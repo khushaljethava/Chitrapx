@@ -8,7 +8,10 @@ import { z } from "zod";
 import { db, schema, type Db } from "@chitrapx/db";
 import { FatalJobError, type FailureCleanup, type JobContext } from "./runJob.ts";
 
-const run = promisify(execFile);
+const exec = promisify(execFile);
+/** Every ffmpeg/ffprobe call is killed well before the job expires, so a pathological file never holds a worker slot. */
+const run = (cmd: string, args: string[], opts: { maxBuffer?: number } = {}) =>
+  exec(cmd, args, { ...opts, timeout: 10 * 60_000, killSignal: "SIGKILL" });
 const FFMPEG = () => process.env.FFMPEG_PATH ?? "ffmpeg";
 const FFPROBE = () => process.env.FFPROBE_PATH ?? "ffprobe";
 /** App Previews are 30 seconds at most; anything past a minute is never shown. */
@@ -63,7 +66,9 @@ export async function processRecording(raw: unknown, job: JobContext, deps: Reco
     await deps.upload(`${prefix}.webm`, webm, "video/webm");
     await deps.upload(`${prefix}.poster.jpg`, poster, "image/jpeg");
     const meta = { ready: true, webm: `${prefix}.webm`, poster: `${prefix}.poster.jpg`, duration: out.duration, width: out.width, height: out.height };
-    await db.update(schema.assets).set({ meta, width: out.width, height: out.height }).where(eq(schema.assets.id, asset.id));
+    // Every app's copy of this file shares the conversion.
+    await db.update(schema.assets).set({ meta, width: out.width, height: out.height })
+      .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.sha256, asset.sha256), eq(schema.assets.kind, "recording")));
     return { actual: 0, output: meta };
   } finally {
     await rm(work, { recursive: true, force: true });
@@ -75,6 +80,9 @@ export const markRecordingFailed: FailureCleanup = async (tx: Db, job) => {
   const [row] = await tx.select({ input: schema.jobs.input, error: schema.jobs.error }).from(schema.jobs).where(eq(schema.jobs.id, job.id));
   const assetId = (row?.input as { assetId?: string } | null)?.assetId;
   if (!assetId || !z.uuid().safeParse(assetId).success) return;
-  await tx.update(schema.assets).set({ meta: { ready: false, error: row?.error ?? "processing_failed" } })
+  const [asset] = await tx.select({ sha256: schema.assets.sha256 }).from(schema.assets)
     .where(and(eq(schema.assets.id, assetId), eq(schema.assets.workspaceId, job.workspaceId)));
+  if (!asset) return;
+  await tx.update(schema.assets).set({ meta: { ready: false, error: row?.error ?? "processing_failed" } })
+    .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.sha256, asset.sha256), eq(schema.assets.kind, "recording")));
 };

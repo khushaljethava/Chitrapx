@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
-import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs } from "@/server/jobs.ts";
+import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
 import { createApp } from "@/server/apps.ts";
 import { createProject } from "@/server/projects.ts";
 import { seedTemplates } from "@chitrapx/db/seed";
@@ -15,6 +15,7 @@ beforeAll(async () => {
   await boss.start();
   await boss.createQueue("noop");
   await boss.createQueue("export");
+  await boss.createQueue("process_recording");
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
 
@@ -90,5 +91,45 @@ describe("export guards", () => {
     await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
     const boss2 = { send: async () => "x" } as never;
     await expect(enqueueExport(ctx, boss2, p.id, {})).rejects.toMatchObject({ status: 400, code: "board_size_mismatch" });
+  });
+});
+
+describe("recordings", () => {
+  async function recording(ctx: Ctx, appId: string, sha: string, meta: { ready: boolean; error?: string }) {
+    const [a] = await db.insert(schema.assets).values({ workspaceId: ctx.workspaceId, appId, kind: "recording", storagePath: `${ctx.workspaceId}/${sha}`,
+      mime: "video/mp4", bytes: 1, sha256: sha, meta }).returning();
+    return a!;
+  }
+
+  it("queues one conversion per file, even for copies in other apps, and retries a failed one", async () => {
+    const ctx = { ...(await ctxWith(0)), plan: "pro" as const };
+    const [a, b] = [await createApp(ctx, { name: "A" }), await createApp(ctx, { name: "B" })];
+    const sha = "a".repeat(64);
+    const first = await recording(ctx, a.id, sha, { ready: false });
+    const copy = await recording(ctx, b.id, sha, { ready: false });
+    expect(await queueRecordingProcessing(ctx, boss, first)).not.toBeNull();
+    expect(await queueRecordingProcessing(ctx, boss, first)).toBeNull();
+    expect(await queueRecordingProcessing(ctx, boss, copy)).toBeNull();
+
+    await db.update(schema.jobs).set({ status: "failed" }).where(eq(schema.jobs.workspaceId, ctx.workspaceId));
+    await db.update(schema.assets).set({ meta: { ready: false, error: "recording_unreadable" } }).where(eq(schema.assets.sha256, sha));
+    expect(await queueRecordingProcessing(ctx, boss, { ...copy, meta: { ready: false, error: "recording_unreadable" } })).not.toBeNull();
+    const rows = await db.select({ meta: schema.assets.meta }).from(schema.assets).where(eq(schema.assets.workspaceId, ctx.workspaceId));
+    expect(rows.map((r) => r.meta)).toEqual([{ ready: false }, { ready: false }]);
+  });
+
+  it("refuses a paid export while a recording in the project is not converted", async () => {
+    await seedTemplates();
+    const ctx = await ctxWith(5);
+    const app = await createApp(ctx, { name: "A" });
+    const rec = await recording(ctx, app.id, "b".repeat(64), { ready: false });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    const doc = p.doc;
+    const b0 = doc.groups[0]!.boards[0]!;
+    const i = b0.elements.findIndex((e) => e.type === "device");
+    b0.elements[i] = { ...b0.elements[i]!, type: "video-device", videoSrc: `asset:${rec.id}`, posterSrc: `asset:${rec.id}#poster` } as never;
+    await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
+    await expect(enqueueExport(ctx, boss, p.id, {})).rejects.toMatchObject({ status: 409, code: "recording_not_ready" });
+    expect(await balance(db, ctx.workspaceId)).toBe(5);
   });
 });

@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { once } from "node:events";
 import { readFile, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -45,22 +46,32 @@ export async function runVideo(raw: unknown, job: JobContext): Promise<{ actual:
   const { width, height } = VIDEO_FORMATS[parsed.data.format];
 
   const out = join(tmpdir(), `chitrapx-${job.id}.mp4`);
-  const ffmpeg = spawn(process.env.FFMPEG_PATH ?? "ffmpeg", ffmpegArgs(out), { stdio: ["pipe", "ignore", "pipe"] });
-  let stderr = "";
-  ffmpeg.stderr.on("data", (d) => { stderr += String(d); });
-  const exited = new Promise<number>((resolve, reject) => {
-    ffmpeg.on("error", (err: NodeJS.ErrnoException) => reject(err.code === "ENOENT" ? new FatalJobError("ffmpeg_missing") : err));
-    ffmpeg.on("close", (code) => resolve(code ?? 1));
-  });
-  const write = (buf: Buffer) => new Promise<void>((resolve, reject) => {
-    ffmpeg.stdin.once("error", reject);
-    if (!ffmpeg.stdin.write(buf)) ffmpeg.stdin.once("drain", resolve); else resolve();
-  });
-
-  const browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
+  // ponytail: one deadline for the whole render; the job expires at 30 min, this stops well before.
+  const deadline = Date.now() + 20 * 60_000;
+  let ffmpeg: ReturnType<typeof spawn> | undefined;
+  let exited: Promise<number> = Promise.resolve(0);
+  let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
   let duration = 0;
   try {
+    const proc = spawn(process.env.FFMPEG_PATH ?? "ffmpeg", ffmpegArgs(out), { stdio: ["pipe", "ignore", "pipe"] });
+    ffmpeg = proc;
+    let stderr = "";
+    proc.stderr!.on("data", (d) => { stderr += String(d); });
+    exited = new Promise<number>((resolve, reject) => {
+      proc.on("error", (err: NodeJS.ErrnoException) => reject(err.code === "ENOENT" ? new FatalJobError("ffmpeg_missing") : err));
+      proc.on("close", (code) => resolve(code ?? 1));
+    });
+    exited.catch(() => {}); // observed below; never an unhandled rejection that takes the worker down
+    let stdinError: Error | undefined;
+    proc.stdin!.on("error", (err) => { stdinError = err; });
+    const write = async (buf: Buffer) => {
+      if (stdinError) throw stdinError;
+      if (!proc.stdin!.write(buf)) await Promise.race([once(proc.stdin!, "drain"), exited.then(() => { throw new Error(`ffmpeg exited: ${stderr.slice(0, 300)}`); })]);
+    };
+
+    browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
+    page.setDefaultTimeout(60_000);
     const origins = exportOrigins();
     await page.route("**/*", (route) => (exportUrlAllowed(route.request().url(), origins) ? route.continue() : route.abort("blockedbyclient")));
     const res = await page.goto(renderUrl(process.env.WEB_ORIGIN ?? "http://localhost:3000", job.id), { waitUntil: "load", timeout: 60_000 });
@@ -71,19 +82,23 @@ export async function runVideo(raw: unknown, job: JobContext): Promise<{ actual:
     duration = ready.duration;
     const frames = Math.round(duration * VIDEO_FPS);
     for (let f = 0; f < frames; f++) {
-      await page.evaluate((t) => window.__chitrapxSeek!(t), f / VIDEO_FPS);
+      if (Date.now() > deadline) throw new FatalJobError("video_render_timeout");
+      // A recording that fails or never settles throws here, so the job fails and refunds instead of encoding a stale screen.
+      await page.evaluate((t) => window.__chitrapxSeek!(t), f / VIDEO_FPS).catch((e: Error) => {
+        throw /video_failed|video_seek_timeout/.test(e.message) ? new FatalJobError("recording_playback_failed") : e;
+      });
       await write(await page.screenshot({ type: "jpeg", quality: 92 }));
     }
-    ffmpeg.stdin.end();
+    proc.stdin!.end();
     const code = await exited;
     if (code !== 0) throw new Error(`ffmpeg failed: ${stderr.slice(0, 300)}`);
   } catch (err) {
-    ffmpeg.kill("SIGKILL");
+    ffmpeg?.kill("SIGKILL");
     await exited.catch(() => {});
     await discard(out);
     throw err;
   } finally {
-    await browser.close();
+    await browser?.close();
   }
 
   const bytes = await readFile(out);

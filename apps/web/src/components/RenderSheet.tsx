@@ -9,8 +9,8 @@ declare global {
 }
 
 /** Every requested board at 1:1, one after another, each wrapped in [data-item] for the worker. */
-export function RenderSheet({ doc, plan, indices, assetUrls, pending = [] }: {
-  doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>; pending?: string[];
+export function RenderSheet({ doc, plan, indices, assetUrls }: {
+  doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>;
 }) {
   const boards = useMemo(() => indices.map((i) => {
     const item = plan[i]!;
@@ -18,7 +18,7 @@ export function RenderSheet({ doc, plan, indices, assetUrls, pending = [] }: {
     return { i, ...boardFor(doc, item.groupId, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null) };
   }), [doc, plan, indices, assetUrls]);
   // Recordings still converting render as placeholders instead of failing the export.
-  const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))].filter((m) => !pending.includes(m)), [boards, pending]);
+  const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))], [boards]);
 
   useEffect(() => {
     let cancelled = false;

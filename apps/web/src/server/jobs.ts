@@ -5,7 +5,7 @@ import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
 import { checkExportable, LOCALE_CODE, VIDEO_FORMAT_IDS } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
-import { getProject } from "./projects.ts";
+import { getProject, pendingAssetSrcs } from "./projects.ts";
 import type { ObjectStorage } from "./storage.ts";
 
 export type JobSummary = Pick<typeof schema.jobs.$inferSelect, "id" | "type" | "status" | "error" | "createdAt" | "finishedAt" | "output">;
@@ -32,6 +32,7 @@ export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, r
   if (!project.doc.groups.some((g) => g.boards.length)) throw badRequest("project_is_empty");
   const known = [project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)];
   if (locales?.some((l) => !known.includes(l))) throw badRequest("unknown_locale");
+  await requireRecordingsReady(ctx, project.doc);
   const check = checkExportable(project.doc, locales);
   if (!check.ok) throw badRequest(check.code);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { locales } }));
@@ -55,10 +56,32 @@ const videoInput = z.object({
   secondsPerBoard: z.number().min(2).max(6).default(3),
 });
 
-/** Queues the free conversion of an uploaded recording (WebM for playback, poster, duration). */
-export async function queueRecordingProcessing(ctx: Ctx, boss: PgBoss, asset: { id: string; kind: string; meta: { ready?: boolean; error?: string } | null }) {
-  if (asset.kind !== "recording" || asset.meta?.ready || asset.meta?.error) return null;
-  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "process_recording", input: { assetId: asset.id } }));
+/** Paid renders never run with a recording that is converting or failed; they would show an empty screen. */
+// ponytail: checks the whole document, not just the exported size; narrow it if that ever blocks someone.
+async function requireRecordingsReady(ctx: Ctx, doc: Parameters<typeof pendingAssetSrcs>[1]) {
+  if ((await pendingAssetSrcs(ctx, doc)).length) throw new HttpError(409, "recording_not_ready", "A screen recording in this project is not converted yet");
+}
+
+/**
+ * Queues the free conversion of an uploaded recording (WebM for playback, poster, duration) unless
+ * it is converted or one is already queued for the same file. Uploading a failed recording again retries it.
+ */
+export async function queueRecordingProcessing(ctx: Ctx, boss: PgBoss, asset: { id: string; kind: string; sha256: string; meta: { ready?: boolean; error?: string } | null }) {
+  if (asset.kind !== "recording" || asset.meta?.ready) return null;
+  return withTx(async (tx) => {
+    // Serializes uploads of the same file so only one conversion is ever queued for it.
+    await tx.client.query("select pg_advisory_xact_lock(hashtext($1))", [`rec:${ctx.workspaceId}:${asset.sha256}`]);
+    const { rowCount } = await tx.client.query(
+      `select 1 from jobs j join assets a on a.id::text = j.input->>'assetId'
+        where j.workspace_id = $1 and j.type = 'process_recording' and j.status in ('queued', 'running')
+          and a.workspace_id = $1 and a.sha256 = $2 limit 1`, [ctx.workspaceId, asset.sha256]);
+    if (rowCount) return null;
+    if (asset.meta?.error) {
+      await tx.db.update(schema.assets).set({ meta: { ready: false } })
+        .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.sha256, asset.sha256)));
+    }
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "process_recording", input: { assetId: asset.id } });
+  });
 }
 
 /** Charges 3 credits and queues an animated MP4 of one size's boards. */
@@ -69,6 +92,7 @@ export async function enqueueVideo(ctx: Ctx, boss: PgBoss, projectId: string, ra
   if (!group?.boards.length) throw badRequest("project_is_empty");
   const known = [project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)];
   if (input.locale && !known.includes(input.locale)) throw badRequest("unknown_locale");
+  await requireRecordingsReady(ctx, project.doc);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "video", input }));
 }
 

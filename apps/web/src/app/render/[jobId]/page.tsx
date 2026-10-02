@@ -4,7 +4,7 @@ import { db, schema, verifyRenderSig } from "@chitrapx/db";
 import { exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
 import { RenderSheet } from "@/components/RenderSheet.tsx";
 import { VideoSheet } from "@/components/VideoSheet.tsx";
-import { assetUrlMap, pendingAssetSrcs } from "@/server/projects.ts";
+import { assetUrlMap } from "@/server/projects.ts";
 import { supabaseStorage } from "@/server/storage.ts";
 
 export const dynamic = "force-dynamic";
@@ -35,12 +35,13 @@ export default async function RenderPage({ params, searchParams }: {
     const format = VIDEO_FORMAT_IDS.includes(input.format as VideoFormat) ? (input.format as VideoFormat) : null;
     if (!group || !format) notFound();
     const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
-    const [urls, pending] = await Promise.all([assetUrlMap(jobCtx, supabaseStorage(), doc), pendingAssetSrcs(jobCtx, doc)]);
-    return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} pending={pending} />;
+    // A recording that is not converted is missing here, so a paid render fails and refunds instead of omitting it.
+    const urls = await assetUrlMap(jobCtx, supabaseStorage(), doc);
+    return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} />;
   }
   const plan = exportPlan(doc, (job.input as { locales?: string[] }).locales);
   const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
   const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
-  const [assetUrls, pending] = await Promise.all([assetUrlMap(jobCtx, supabaseStorage(), doc), pendingAssetSrcs(jobCtx, doc)]);
-  return <RenderSheet doc={doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} pending={pending} />;
+  const assetUrls = await assetUrlMap(jobCtx, supabaseStorage(), doc);
+  return <RenderSheet doc={doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} />;
 }
