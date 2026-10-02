@@ -4,6 +4,7 @@ import React from 'react';
 import { artboardBackground } from './lib/artboardBackground';
 import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
 import { elementVisualStyle } from './lib/elementStyle';
+import { animationStateAt } from './lib/animation';
 import { TextElement } from './elements/TextElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
@@ -53,7 +54,9 @@ export function count3dDevices(board: ArtboardState): number {
 
 // Renders an artboard exactly as it exports: same element components as the
 // editor canvas, but read-only and clipped to the artboard bounds.
-export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; scale: number }) {
+// Chitrapx: `time` (seconds) plays each element's enter/exit animation, for video frames and previews.
+export function StaticArtboard({ artboard, scale, time }: { artboard: ArtboardState; scale: number; time?: number }) {
+  const slide = artboard.size.height * 0.08;
   return (
     <div
       style={{
@@ -81,7 +84,11 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
       >
         <ArtboardBackgroundImage artboard={artboard} />
         {/* Sound layers have nothing to show. */}
-        {artboard.elements.filter((element) => element.type !== 'audio').map(element => (
+        {artboard.elements.filter((element) => element.type !== 'audio').map(element => {
+          const motion = time === undefined ? null : animationStateAt(element.animation, time, slide);
+          if (motion && !motion.visible) return null;
+          const visual = elementVisualStyle(element);
+          return (
           <div
             key={element.id}
             style={{
@@ -90,12 +97,15 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
               top: `${element.position.y}px`,
               width: `${element.size.width * element.scale}px`,
               height: `${element.size.height * element.scale}px`,
-              transform: `rotate(${element.rotation}deg)`,
               transformOrigin: 'center center',
               // Same shared shadow/blur/opacity the canvas applies through
               // DraggableElement — this dialog is the other render site, and it
               // is meant to show exactly what exports.
-              ...elementVisualStyle(element),
+              ...visual,
+              transform: motion
+                ? `translate(${motion.dx}px, ${motion.dy}px) rotate(${element.rotation}deg) scale(${motion.scale})`
+                : `rotate(${element.rotation}deg)`,
+              ...(motion ? { opacity: (Number(visual.opacity ?? 1)) * motion.opacity } : {}),
             }}
           >
             {element.type === 'text' && (
@@ -139,7 +149,8 @@ export function StaticArtboard({ artboard, scale }: { artboard: ArtboardState; s
               <GestureElement element={element as GestureElementProps} isSelected={false} />
             )}
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

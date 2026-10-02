@@ -6,3 +6,6 @@ export { waitForRender } from "./ready.ts";
 export { StaticArtboard, count3dDevices } from "./osg/StaticArtboard";
 export { LOCALES, type LocaleDef } from "./osg/i18n/locales";
 export { ALL_FONTS } from "./osg/lib/fontService";
+export { animationStateAt, type AnimationState } from "./osg/lib/animation";
+export { defaultAnimations } from "./motion.ts";
+export { VideoFrame, type VideoFrameProps } from "./VideoFrame.tsx";
