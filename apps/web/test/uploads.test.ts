@@ -36,6 +36,19 @@ class MemoryStorage implements ObjectStorage {
   }
   async signedUrls(paths: string[]) { return paths.map((p) => `mem://${p}`); }
   async signedDownload(path: string) { return `mem://${path}`; }
+  /** Serves the file in 64 KB chunks and records how far the reader got. */
+  readBytes = 0;
+  async downloadStream(path: string) {
+    const f = this.files.get(path);
+    if (!f) throw new Error("missing");
+    let at = 0;
+    return new ReadableStream<Uint8Array>({
+      pull: (c) => {
+        if (at >= f.length) { c.close(); return; }
+        const chunk = f.subarray(at, at + 65536); at += chunk.length; this.readBytes = at; c.enqueue(chunk);
+      },
+    });
+  }
 }
 
 async function setup(plan: Ctx["plan"] = "free") {
@@ -130,5 +143,45 @@ describe("uploads", () => {
     const file = png(1, 1);
     expect(await status(signUpload(other.ctx, other.storage, { appId: app.id, kind: "screenshot", size: file.length, mime: "image/png", sha256: sha(file) }))).toBe(404);
     expect(await status(listAssets(other.ctx, other.storage, app.id))).toBe(404);
+  });
+});
+
+/** The smallest bytes file-type recognises as an MP4 (an ftyp box), padded to `size`. */
+function mp4(size: number): Buffer {
+  const head = Buffer.from([0, 0, 0, 0x18, ...Buffer.from("ftypmp42"), 0, 0, 0, 0, ...Buffer.from("mp42isom")]);
+  return Buffer.concat([head, Buffer.alloc(Math.max(0, size - head.length), 7)]);
+}
+
+describe("streamed verification and recordings", () => {
+  it("accepts a recording by streaming it, without holding it all at once", async () => {
+    const s = await setup();
+    const file = mp4(3 * 1024 * 1024);
+    const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: file.length, mime: "video/mp4", sha256: sha(file) });
+    if (!("uploadId" in signed)) throw new Error("expected a token");
+    s.storage.files.set(signed.path, file);
+    const asset = await completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", sha256: sha(file), uploadId: signed.uploadId });
+    expect(asset).toMatchObject({ kind: "recording", mime: "video/mp4", bytes: file.length });
+  });
+
+  it("stops reading and removes the object as soon as it passes the size limit", async () => {
+    const s = await setup();
+    const big = png(1, 1);
+    const huge = Buffer.concat([big, Buffer.alloc(26 * 1024 * 1024)]);
+    const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", size: 100, mime: "image/png", sha256: sha(huge) });
+    if (!("uploadId" in signed)) throw new Error("expected a token");
+    s.storage.files.set(signed.path, huge);
+    expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", sha256: sha(huge), uploadId: signed.uploadId }))).toBe(413);
+    expect(s.storage.readBytes).toBeLessThan(26 * 1024 * 1024 + 70_000);
+    expect(s.storage.files.size).toBe(0);
+  });
+
+  it("refuses a recording that is really a text file, and oversized declarations", async () => {
+    const s = await setup();
+    const fake = Buffer.from("not a video at all");
+    const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: fake.length, mime: "video/mp4", sha256: sha(fake) });
+    if (!("uploadId" in signed)) throw new Error("expected a token");
+    s.storage.files.set(signed.path, fake);
+    expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", sha256: sha(fake), uploadId: signed.uploadId }))).toBe(400);
+    expect(await status(signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: 600 * 1024 * 1024, mime: "video/mp4", sha256: "a".repeat(64) }))).toBe(413);
   });
 });

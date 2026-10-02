@@ -4,6 +4,8 @@ import { adminClient } from "@/lib/supabase/admin.ts";
 export interface ObjectStorage {
   signUpload(path: string): Promise<{ path: string; token: string }>;
   download(path: string): Promise<Buffer>;
+  /** The object as a stream, so large files are never held in memory. */
+  downloadStream(path: string): Promise<ReadableStream<Uint8Array>>;
   remove(path: string): Promise<void>;
   /** Fails if `to` already exists. */
   move(from: string, to: string): Promise<void>;
@@ -28,6 +30,13 @@ export function supabaseStorage(): ObjectStorage {
       const { data, error } = await bucket().download(path);
       if (error) throw error;
       return Buffer.from(await data.arrayBuffer());
+    },
+    async downloadStream(path) {
+      const { data, error } = await bucket().createSignedUrl(path, 120);
+      if (error) throw error;
+      const res = await fetch(data.signedUrl);
+      if (!res.ok || !res.body) throw new Error(`download failed: ${res.status}`);
+      return res.body;
     },
     async remove(path) {
       const { error } = await bucket().remove([path]);

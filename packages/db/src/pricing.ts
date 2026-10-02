@@ -11,6 +11,8 @@ export const PRICES = {
   ai_copy: 3,
   /** One App Preview or social video. */
   video: 3,
+  /** Converting an uploaded screen recording for playback. Free. */
+  process_recording: 0,
 } as const;
 
 export type JobType = keyof typeof PRICES;

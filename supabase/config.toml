@@ -120,8 +120,8 @@ file_size_limit = "50MiB"
 
 [storage.buckets.uploads]
 public = false
-# Matches the largest accepted upload today (images, 25 MB). Raise when recordings ship.
-file_size_limit = "25MiB"
+# The largest accepted upload (screen recordings, 500 MB); smaller per-kind limits are enforced by the app.
+file_size_limit = "500MiB"
 
 [storage.buckets.exports]
 public = false

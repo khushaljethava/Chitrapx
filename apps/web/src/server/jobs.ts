@@ -55,6 +55,12 @@ const videoInput = z.object({
   secondsPerBoard: z.number().min(2).max(6).default(3),
 });
 
+/** Queues the free conversion of an uploaded recording (WebM for playback, poster, duration). */
+export async function queueRecordingProcessing(ctx: Ctx, boss: PgBoss, asset: { id: string; kind: string; meta: { ready?: boolean; error?: string } | null }) {
+  if (asset.kind !== "recording" || asset.meta?.ready || asset.meta?.error) return null;
+  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "process_recording", input: { assetId: asset.id } }));
+}
+
 /** Charges 3 credits and queues an animated MP4 of one size's boards. */
 export async function enqueueVideo(ctx: Ctx, boss: PgBoss, projectId: string, raw: unknown): Promise<{ jobId: string }> {
   const project = await getProject(ctx, projectId);

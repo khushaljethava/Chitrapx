@@ -3,6 +3,12 @@ import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
 import { runExport } from "./export.ts";
+import { createWriteStream } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
+import { markRecordingFailed, processRecording, type RecordingDeps } from "./recording.ts";
 import { runVideo } from "./video.ts";
 import { FatalJobError, type FailureCleanup, type JobHandler } from "./runJob.ts";
 
@@ -27,6 +33,25 @@ function aiDeps(): AiDeps {
   return deps;
 }
 
+const uploadsBucket = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  auth: { persistSession: false, autoRefreshToken: false },
+}).storage.from("uploads");
+
+/** Recordings can be 500 MB: streamed to disk, never buffered. */
+const recordingDeps: RecordingDeps = {
+  async download(workspaceId, sha256, dest) {
+    const { data, error } = await uploadsBucket().createSignedUrl(`${workspaceId}/${sha256}`, 600);
+    if (error) throw new FatalJobError("asset_missing");
+    const res = await fetch(data.signedUrl);
+    if (!res.ok || !res.body) throw new Error(`download failed: ${res.status}`);
+    await pipeline(Readable.fromWeb(res.body as unknown as WebReadableStream), createWriteStream(dest));
+  },
+  async upload(path, file, contentType) {
+    const { error } = await uploadsBucket().upload(path, await readFile(file), { contentType, upsert: true });
+    if (error) throw new Error(`upload failed: ${error.message}`);
+  },
+};
+
 export const handlers: Record<JobType, JobHandler> = {
   /** Proves queue, worker and credits end to end. `{ fail: true }` exercises the refund path. */
   noop: async (input) => {
@@ -36,10 +61,11 @@ export const handlers: Record<JobType, JobHandler> = {
   },
   export: runExport,
   video: runVideo,
+  process_recording: (input, job) => processRecording(input, job, recordingDeps),
   ai_design: (input, job) => runAiDesign(input, job, aiDeps()),
   ai_translate: (input, job) => runAiTranslate(input, job, aiDeps()),
   ai_copy: (input, job) => runAiCopy(input, job, aiDeps()),
 };
 
 /** What to undo when a job fails for good. */
-export const cleanups: Partial<Record<JobType, FailureCleanup>> = { ai_design: cleanupFailedDesign };
+export const cleanups: Partial<Record<JobType, FailureCleanup>> = { ai_design: cleanupFailedDesign, process_recording: markRecordingFailed };

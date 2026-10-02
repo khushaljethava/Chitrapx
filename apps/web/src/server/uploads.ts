@@ -15,9 +15,12 @@ export const UPLOAD_LIMITS = { screenshot: 25 * MB, image: 25 * MB, recording: 5
 const ACCEPTED: Record<UploadKind, readonly string[]> = {
   screenshot: ["image/png", "image/jpeg", "image/webp"],
   image: ["image/png", "image/jpeg", "image/webp"],
+  recording: ["video/mp4", "video/quicktime", "video/x-m4v"],
 };
+/** Bytes kept for type sniffing and image dimensions (JPEG headers can sit after a large EXIF block). */
+const HEAD_BYTES = { screenshot: 512 * 1024, image: 512 * 1024, recording: 64 * 1024 } as const;
 
-const uploadKind = z.enum(["screenshot", "image"]);
+const uploadKind = z.enum(["screenshot", "image", "recording"]);
 type UploadKind = z.infer<typeof uploadKind>;
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
 const signInput = z.object({ appId: z.uuid(), kind: uploadKind, size: z.number().int().positive(), mime: z.string(), sha256 });
@@ -73,14 +76,29 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   const mine = await findAsset(ctx, input.sha256, input.appId);
   if (mine) { await discard(); return mine; }
 
-  const bytes = await storage.download(staging).catch(() => { throw badRequest("upload_missing"); });
   const reject = async (err: HttpError): Promise<never> => { await discard(); throw err; };
-  if (bytes.length > UPLOAD_LIMITS[input.kind]) return reject(tooLarge(input.kind));
-  if (createHash("sha256").update(bytes).digest("hex") !== input.sha256) return reject(badRequest("checksum_mismatch"));
-  const type = await fileTypeFromBuffer(bytes);
+  // Streamed: hash and size are computed as bytes arrive, and only the head is kept.
+  const stream = await storage.downloadStream(staging).catch(() => { throw badRequest("upload_missing"); });
+  const reader = stream.getReader();
+  const hash = createHash("sha256");
+  const head: Uint8Array[] = [];
+  let size = 0, headSize = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > UPLOAD_LIMITS[input.kind]) { await reader.cancel(); return reject(tooLarge(input.kind)); }
+    hash.update(value);
+    if (headSize < HEAD_BYTES[input.kind]) { head.push(value); headSize += value.byteLength; }
+  }
+  const headBytes = Buffer.concat(head);
+  if (hash.digest("hex") !== input.sha256) return reject(badRequest("checksum_mismatch"));
+  const type = await fileTypeFromBuffer(headBytes);
   if (!type || !ACCEPTED[input.kind].includes(type.mime)) return reject(badRequest("unsupported_type"));
   let dims: { width?: number; height?: number } = {};
-  try { dims = imageSize(bytes); } catch { return reject(badRequest("unreadable_image")); }
+  if (input.kind !== "recording") {
+    try { dims = imageSize(headBytes); } catch { return reject(badRequest("unreadable_image")); }
+  }
 
   const sibling = await findAsset(ctx, input.sha256);
   if (sibling) { await discard(); return linkExisting(ctx, input.appId, sibling); }
@@ -90,7 +108,9 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   await storage.move(staging, path);
   const [inserted] = await db.insert(schema.assets).values({
     workspaceId: ctx.workspaceId, appId: input.appId, kind: input.kind, storagePath: path, mime: type.mime,
-    width: dims.width ?? null, height: dims.height ?? null, bytes: bytes.length, sha256: input.sha256,
+    width: dims.width ?? null, height: dims.height ?? null, bytes: size, sha256: input.sha256,
+    // Recordings become playable once the worker has converted them.
+    meta: input.kind === "recording" ? { ready: false } : null,
   }).onConflictDoNothing().returning();
   return inserted ?? (await findAsset(ctx, input.sha256, input.appId))!;
 }

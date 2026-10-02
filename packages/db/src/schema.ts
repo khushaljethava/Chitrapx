@@ -18,6 +18,16 @@ const id = () => uuid("id").primaryKey().defaultRandom();
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const workspaceRef = () => uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" });
 
+export type AssetMeta = {
+  ready: boolean;
+  webm?: string;
+  poster?: string;
+  duration?: number;
+  width?: number;
+  height?: number;
+  error?: string;
+};
+
 export type Brand = {
   primaryColor?: string;
   secondaryColor?: string;
@@ -96,6 +106,8 @@ export const assets = pgTable("assets", {
   height: integer("height"),
   bytes: integer("bytes").notNull(),
   sha256: text("sha256").notNull(),
+  /** Recordings: { ready, webm, poster, duration, width, height } once processed, or { ready: false, error }. */
+  meta: jsonb("meta").$type<AssetMeta>(),
   createdAt: createdAt(),
 }, (t) => [unique("assets_ws_app_sha_uq").on(t.workspaceId, t.appId, t.sha256).nullsNotDistinct()]);
 
