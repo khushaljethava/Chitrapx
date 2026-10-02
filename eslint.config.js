@@ -12,6 +12,7 @@ export default tseslint.config(
     // Code ported from open-screenshot-generator keeps its upstream shape so upstream fixes stay easy to apply.
     // Last so it wins over the rules above.
     files: ["packages/document/src/artboard.ts", "packages/renderer/src/osg/**"],
-    rules: { "@typescript-eslint/no-explicit-any": "off", "@typescript-eslint/no-unused-vars": "off" },
+    linterOptions: { reportUnusedDisableDirectives: "off" },
+    rules: { "@typescript-eslint/no-explicit-any": "off", "@typescript-eslint/no-unused-vars": "off", "prefer-const": "off" },
   },
 );

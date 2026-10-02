@@ -88,7 +88,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
     const open = () => beginEdit();
     wrapper.addEventListener(QUICK_EDIT_EVENT, open);
     return () => wrapper.removeEventListener(QUICK_EDIT_EVENT, open);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- beginEdit is
+    // (upstream disabled react-hooks/exhaustive-deps here) -- beginEdit is
     // recreated every render; the content it seeds from is the dependency.
   }, [element.content, isEditing]);
 
