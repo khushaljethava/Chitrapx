@@ -25,6 +25,7 @@ export type Command =
   | { type: "removeLocale"; code: string }
   | { type: "addGroupFromTarget"; fromGroupId: string; target: TargetId; newGroupId: string }
   | { type: "deleteGroup"; groupId: string }
+  | { type: "duplicateGroupAsVariant"; groupId: string; newGroupId: string }
   | { type: "setTexts"; texts: Array<{ id: string; text: string }> };
 
 const FULL_SCREEN = { left: 0, top: 0, width: 100, height: 100 };
@@ -186,6 +187,16 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
       case "deleteGroup":
         if (d.groups.length > 1) d.groups = d.groups.filter((g) => g.id !== cmd.groupId);
         return;
+      case "duplicateGroupAsVariant": {
+        const src = d.groups.find((g) => g.id === cmd.groupId);
+        if (!src) return;
+        const taken = new Set(d.groups.filter((g) => g.target === src.target).map((g) => g.variant ?? "A"));
+        const letter = "BCDEFGHIJKLMNOPQRSTUVWXYZ".split("").find((l) => !taken.has(l));
+        if (!letter) return;
+        const copy = JSON.parse(JSON.stringify(src)) as BoardGroup;
+        d.groups.push({ ...copy, id: cmd.newGroupId, variant: letter, boards: copy.boards.map((b, i) => ({ ...b, id: `${cmd.newGroupId}-b${i + 1}` })) } as Draft<BoardGroup>);
+        return;
+      }
     }
   });
 }

@@ -11,6 +11,8 @@ export const CURRENT_SCHEMA_VERSION = 1;
 export interface BoardGroup {
   id: string;
   target: TargetId;
+  /** A/B variant of another group with the same target ("B", "C", ...); exported to its own folder. */
+  variant?: string;
   boards: ArtboardState[];
   spanElements: ArtboardElement[];
 }
@@ -73,6 +75,7 @@ const board = z.object({
 const group = z.object({
   id: z.string().min(1),
   target: z.enum(TARGET_IDS),
+  variant: z.string().regex(/^[B-Z]$/).optional(),
   boards: z.array(board),
   spanElements: z.array(element).default([]),
 });

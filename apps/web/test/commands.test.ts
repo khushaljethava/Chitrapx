@@ -118,3 +118,12 @@ describe("review fixes", () => {
     expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo" });
   });
 });
+
+describe("variant sets", () => {
+  it("duplicates a group as the next free variant letter of the same size", () => {
+    let d = applyCommand(doc(), { type: "duplicateGroupAsVariant", groupId: "g", newGroupId: "gB" });
+    d = applyCommand(d, { type: "duplicateGroupAsVariant", groupId: "g", newGroupId: "gC" });
+    expect(d.groups.map((g) => [g.id, g.target, g.variant])).toEqual([["g", "iphone-6.9", undefined], ["gB", "iphone-6.9", "B"], ["gC", "iphone-6.9", "C"]]);
+    expect(d.groups[1]!.boards.map((b) => b.id)).not.toEqual(d.groups[0]!.boards.map((b) => b.id));
+  });
+});

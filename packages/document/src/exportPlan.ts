@@ -29,7 +29,7 @@ export function exportPlan(doc: ChitrapxDoc, locales?: string[]): ExportItem[] {
       const spans = g.spanElements.filter((el) => is3d(el) && el.position.x < (i + 1) * w && el.position.x + el.size.width > i * w).length;
       items.push({
         groupId: g.id, boardIndex: i, locale,
-        file: `${target.platform}/${target.id}/${locale}/${String(i + 1).padStart(2, "0")}-${slug(b.name || b.id)}.png`,
+        file: `${target.platform}/${target.id}${g.variant ? `-${g.variant}` : ""}/${locale}/${String(i + 1).padStart(2, "0")}-${slug(b.name || b.id)}.png`,
         width: target.width, height: target.height,
         threeD: b.elements.filter(is3d).length + spans,
       });

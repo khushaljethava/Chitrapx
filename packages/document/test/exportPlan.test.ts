@@ -27,3 +27,15 @@ describe("exportPlan", () => {
     expect(exportBatches(exportPlan(doc([group([board("x", [])])])), 8)).toEqual([[0]]);
   });
 });
+
+describe("variants", () => {
+  it("export into their own folder and only take single letters B to Z", async () => {
+    const { migrate } = await import("../src/index.ts");
+    const d = doc([group([board("b1", [])]), { ...group([board("b1", [])]), id: "g2", variant: "B" } as never]);
+    expect(exportPlan(d).map((p) => p.file)).toEqual(["ios/iphone-6.9/en-US/01-b1.png", "ios/iphone-6.9-B/en-US/01-b1.png"]);
+    expect(() => migrate(d)).not.toThrow();
+    expect(migrate(d).groups[1]!.variant).toBe("B");
+    expect(() => migrate(doc([{ ...group([board("b1", [])]), variant: "../x" } as never]))).toThrow();
+    expect(() => migrate(doc([{ ...group([board("b1", [])]), variant: "A" } as never]))).toThrow();
+  });
+});
