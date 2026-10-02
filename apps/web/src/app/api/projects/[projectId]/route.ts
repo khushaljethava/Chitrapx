@@ -1,9 +1,10 @@
 import { requireContext } from "@/server/context.ts";
 import { readJson, route } from "@/server/http.ts";
-import { deleteProject, updateProject } from "@/server/projects.ts";
+import { deleteProject, getProject, updateProject } from "@/server/projects.ts";
 
 type P = { params: Promise<{ projectId: string }> };
 
+export const GET = route(async (_req: Request, { params }: P) => getProject(await requireContext(), (await params).projectId));
 export const PATCH = route(async (req: Request, { params }: P) => {
   const ctx = await requireContext();
   return updateProject(ctx, (await params).projectId, await readJson(req));

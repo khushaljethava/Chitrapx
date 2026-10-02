@@ -15,7 +15,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
     <>
       <div>
         <Link href={`/dashboard/apps/${project.appId}`} className="text-sm text-neutral-500 hover:underline">Back to app</Link>
-        <h1 className="text-2xl font-semibold">{project.name}</h1>
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-2xl font-semibold">{project.name}</h1>
+          <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
+        </div>
       </div>
       <ExportPanel projectId={project.id}
         boardCount={project.doc.groups.reduce((n, g) => n + g.boards.length, 0)}

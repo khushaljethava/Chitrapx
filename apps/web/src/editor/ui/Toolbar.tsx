@@ -1,0 +1,57 @@
+"use client";
+
+import Link from "next/link";
+import { LOCALES } from "@chitrapx/renderer";
+import { useEditor, useEditorStore } from "../context.tsx";
+import type { SaveStatus } from "../save.ts";
+
+const STATUS: Record<SaveStatus, string> = {
+  saved: "All changes saved", saving: "Saving", unsaved: "Unsaved changes", offline: "Offline, kept on this device",
+  conflict: "Changed elsewhere", error: "Could not save",
+};
+
+export function Toolbar({ name, projectId, status }: { name: string; projectId: string; status: SaveStatus }) {
+  const store = useEditorStore();
+  const zoom = useEditor((s) => s.zoom);
+  const canUndo = useEditor((s) => s.past.length > 0);
+  const canRedo = useEditor((s) => s.future.length > 0);
+  const locale = useEditor((s) => s.locale);
+  const loc = useEditor((s) => s.doc.localization);
+  const codes = [loc.baseLocale, ...loc.locales.map((l) => l.code)];
+
+  return (
+    <header className="flex flex-wrap items-center gap-3 border-b border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900">
+      <Link href={`/dashboard/projects/${projectId}`} className="text-sm text-neutral-500 hover:underline">Back</Link>
+      <h1 className="max-w-48 truncate font-semibold">{name}</h1>
+      <div className="flex gap-1">
+        <button type="button" className="btn-ghost px-2 py-1" disabled={!canUndo} onClick={() => store.getState().undo()} title="Undo (Ctrl/Cmd+Z)">Undo</button>
+        <button type="button" className="btn-ghost px-2 py-1" disabled={!canRedo} onClick={() => store.getState().redo()} title="Redo (Shift+Ctrl/Cmd+Z)">Redo</button>
+      </div>
+      <div className="flex items-center gap-1 text-sm">
+        <button type="button" className="btn-ghost px-2 py-1" aria-label="Zoom out" onClick={() => store.getState().setZoom(zoom / 1.25)}>-</button>
+        <span className="w-12 text-center tabular-nums">{Math.round(zoom * 100)}%</span>
+        <button type="button" className="btn-ghost px-2 py-1" aria-label="Zoom in" onClick={() => store.getState().setZoom(zoom * 1.25)}>+</button>
+      </div>
+      <nav className="flex flex-wrap items-center gap-1" aria-label="Languages">
+        {codes.map((c) => (
+          <span key={c} className="inline-flex items-center">
+            <button type="button" className={c === locale ? "btn px-2 py-1 text-xs" : "btn-ghost px-2 py-1 text-xs"} onClick={() => store.getState().setLocale(c)}>{c}</button>
+            {c !== loc.baseLocale && c === locale && (
+              <button type="button" aria-label={`Remove ${c}`} className="px-1 text-xs text-neutral-500 hover:text-red-600" onClick={() => store.getState().apply({ type: "removeLocale", code: c })}>x</button>
+            )}
+          </span>
+        ))}
+        <select aria-label="Add a language" className="input w-auto py-1 text-xs" value="" onChange={(e) => {
+          if (!e.target.value) return;
+          store.getState().apply({ type: "addLocale", code: e.target.value });
+          store.getState().setLocale(e.target.value);
+        }}>
+          <option value="">Add language</option>
+          {LOCALES.filter((l) => !codes.includes(l.code)).map((l) => <option key={l.code} value={l.code}>{l.nativeName} ({l.code})</option>)}
+        </select>
+      </nav>
+      <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status">{STATUS[status]}</span>
+      <Link href={`/dashboard/projects/${projectId}`} className="btn py-1.5">Export</Link>
+    </header>
+  );
+}
