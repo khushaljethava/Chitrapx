@@ -1,0 +1,1032 @@
+// Ported from open-screenshot-generator (MIT), src/components/open-screenshot-generator/elements/Device3DRenderer.tsx
+"use client";
+import { useEffect, useRef, useState } from 'react';
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import type { DeviceType, Device3DPose, Device3DFrameColor } from '@chitrapx/document';
+import { withBasePath } from '../shims/basePath';
+
+interface Device3DRendererProps {
+  deviceType: DeviceType;
+  side: 'left' | 'right';
+  screenshotSrc?: string;
+  objectFit?: 'contain' | 'cover' | 'fill';
+  pose?: Device3DPose;
+  frameColor?: Device3DFrameColor;
+}
+
+type NotchKind = 'island' | 'notch' | 'punch' | 'none';
+
+// All lengths are fractions of the device body width (world width = 1).
+interface DeviceMetrics {
+  cornerRadius: number;
+  screenRadius: number;
+  bezel: number;
+  thickness: number;
+  notch: NotchKind;
+}
+
+const DEFAULT_METRICS: DeviceMetrics = { cornerRadius: 0.12, screenRadius: 0.095, bezel: 0.03, thickness: 0.08, notch: 'none' };
+
+const DEVICE_METRICS: Partial<Record<DeviceType, DeviceMetrics>> = {
+  'iphone-15': { cornerRadius: 0.14, screenRadius: 0.11, bezel: 0.03, thickness: 0.08, notch: 'island' },
+  'iphone-15-pro': { cornerRadius: 0.14, screenRadius: 0.11, bezel: 0.028, thickness: 0.08, notch: 'island' },
+  'iphone-17-pro-max': { cornerRadius: 0.15, screenRadius: 0.12, bezel: 0.026, thickness: 0.078, notch: 'island' },
+  'iphone-14': { cornerRadius: 0.13, screenRadius: 0.10, bezel: 0.03, thickness: 0.08, notch: 'notch' },
+  'iphone-13': { cornerRadius: 0.12, screenRadius: 0.09, bezel: 0.03, thickness: 0.08, notch: 'notch' },
+  'iphone-x': { cornerRadius: 0.12, screenRadius: 0.09, bezel: 0.03, thickness: 0.08, notch: 'notch' },
+  'iphone': { cornerRadius: 0.10, screenRadius: 0.08, bezel: 0.035, thickness: 0.08, notch: 'none' },
+  'android-bar': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'none' },
+  'android-notch': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'notch' },
+  'android-punch-hole': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.03, thickness: 0.075, notch: 'punch' },
+  'ipad-pro-13': { cornerRadius: 0.045, screenRadius: 0.032, bezel: 0.032, thickness: 0.028, notch: 'none' },
+  'ipad-11': { cornerRadius: 0.05, screenRadius: 0.036, bezel: 0.036, thickness: 0.032, notch: 'none' },
+  'tablet': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.05, thickness: 0.045, notch: 'none' },
+  'tablet-7': { cornerRadius: 0.06, screenRadius: 0.04, bezel: 0.045, thickness: 0.05, notch: 'none' },
+  'tablet-10': { cornerRadius: 0.05, screenRadius: 0.035, bezel: 0.03, thickness: 0.042, notch: 'none' },
+  'desktop': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.02, thickness: 0.03, notch: 'none' },
+  // Apple Watch Series 10-ish: near-squircle case, big screen radius, and a
+  // chunky body (real watches are ~10mm thick on a ~39mm-wide case).
+  'apple-watch': { cornerRadius: 0.34, screenRadius: 0.30, bezel: 0.10, thickness: 0.24, notch: 'none' },
+  // Macs build fully custom geometry (see buildMacDevice); these entries only
+  // keep the shared fallback paths (metrics lookups) sensible.
+  'macbook': { cornerRadius: 0.04, screenRadius: 0.012, bezel: 0.02, thickness: 0.05, notch: 'none' },
+  'imac': { cornerRadius: 0.02, screenRadius: 0.012, bezel: 0.012, thickness: 0.02, notch: 'none' },
+};
+
+// ---- Apple Watch extras (all fractions of the case width, world width = 1) ----
+
+// Case height / width. The watch always keeps its native proportions: unlike
+// phones its body never stretches to the element box, because the band's
+// vertical reach already dominates the box.
+const WATCH_BODY_ASPECT = 46 / 39;
+// Strap cross-section + sweep. Each strap starts tucked inside the case,
+// runs out along the case plane, then bends backward (like a worn band).
+const WATCH_BAND = { width: 0.62, thickness: 0.11, run: 0.62, back: 0.30 };
+// Fluoroelastomer sport band per body finish.
+const WATCH_BAND_COLORS: Record<Device3DFrameColor, number> = {
+  titanium: 0x9a9aa2,
+  black: 0x1b1b1e,
+  white: 0xe4e4e8,
+};
+
+// ---- Mac extras (fractions of the device width, world width = 1) ----
+
+// MacBook: base slab lying flat, lid hinged open at the back. The lid keeps a
+// 16:10 screen with a camera-housing notch; the base carries a keyboard +
+// trackpad deck texture. Like the watch, the body never stretches to the
+// element box.
+const MACBOOK = {
+  baseDepth: 0.70,
+  baseThick: 0.036,
+  lidThick: 0.015,
+  bezelSide: 0.02,
+  bezelTop: 0.02,
+  bezelBottom: 0.035,
+  openTiltDeg: 12, // lid lean back from vertical
+};
+const MACBOOK_SCREEN_W = 1 - 2 * MACBOOK.bezelSide;
+const MACBOOK_SCREEN_H = MACBOOK_SCREEN_W / 1.6;
+const MACBOOK_LID_H = MACBOOK.bezelTop + MACBOOK_SCREEN_H + MACBOOK.bezelBottom;
+
+// iMac: display slab (16:9 screen over a chin) on a tapered leg + flat foot.
+const IMAC = {
+  slabThick: 0.02,
+  bezel: 0.012,
+  chin: 0.08,
+  standH: 0.115,
+  legW: 0.13,
+  footW: 0.32,
+  footDepth: 0.40,
+  footThick: 0.009,
+};
+const IMAC_SCREEN_W = 1 - 2 * IMAC.bezel;
+const IMAC_SCREEN_H = IMAC_SCREEN_W * 9 / 16;
+const IMAC_SLAB_H = IMAC.bezel + IMAC_SCREEN_H + IMAC.chin;
+const IMAC_TOTAL_H = IMAC_SLAB_H + IMAC.standH;
+
+// Aluminum body per finish: the standard silver, space black, bright silver.
+const MAC_BODY_COLORS: Record<Device3DFrameColor, number> = {
+  titanium: 0xaeb0b5,
+  black: 0x37373b,
+  white: 0xd8dadf,
+};
+
+const CAMERA_FOV = 20;
+
+// Live Device3DRenderer instances. Every mounted device holds a real WebGL
+// context, and browsers cap ~16 live contexts (the oldest is silently evicted),
+// so the pixel-ratio budget scales down as more devices mount.
+const liveInstances = new Set<symbol>();
+let warnedContextPressure = false;
+
+// Per-device pixel-ratio ceiling for the current instance count: the usual 3
+// for a handful of devices, tighter as a template mounts many at once so total
+// GPU buffer cost stays roughly bounded.
+function pixelRatioCap(): number {
+  const count = liveInstances.size;
+  return count <= 4 ? 3 : count <= 8 ? 2 : 1.5;
+}
+
+// Pose presets: yaw spins the device toward its exposed rail (mirrored for
+// side 'right'), pitch reclines it back toward the camera so it reads as
+// viewed from above, roll leans the projected long axis diagonally in the
+// image plane (also mirrored). Values eyeballed against common 3D-mockup panels.
+// Without bodyAspect the device body's proportions follow the element box (the
+// device fills the box); bodyAspect pins true phone proportions instead — used
+// by the rolled poses where a box-derived body reads visibly squat.
+const POSES: Record<Device3DPose, { yaw: number; pitch: number; roll?: number; bodyAspect?: number }> = {
+  classic: { yaw: 24, pitch: 0 },
+  // Dead-on product shot — no rotation at all; only the perspective of the
+  // camera itself (band tips foreshorten, rails stay hidden).
+  front: { yaw: 0, pitch: 0 },
+  upright: { yaw: 34, pitch: 0 },
+  side: { yaw: 54, pitch: 0 },
+  tilted: { yaw: 30, pitch: 26 },
+  reclined: { yaw: 33, pitch: 48 },
+  laying: { yaw: 28, pitch: 66 },
+  floating: { yaw: 34, pitch: 36, roll: -20, bodyAspect: 2.05 },
+  drifting: { yaw: 32, pitch: 46, roll: -35, bodyAspect: 2.05 },
+  // Gentle diagonal rest: mild yaw toward the exposed rail, slight backward
+  // pitch, strong in-image lean (clockwise on side 'left'). Long axis runs
+  // diagonally but the screen stays ~90% visible.
+  leaning: { yaw: 21, pitch: 10, roll: -31, bodyAspect: 2.05 },
+  // Dramatic float: deeper yaw, NEGATIVE pitch (camera above the face, top
+  // edge toward the viewer) and a heavy opposite lean (counter-clockwise on
+  // side 'right'). Reads as a phone sailing diagonally across the canvas.
+  soaring: { yaw: 35, pitch: -15, roll: -36, bodyAspect: 2.05 },
+  // Exact yaw/pitch/roll decomposition of the classic 2D isometric mockup
+  // projection: spin the phone 60° on the table, then view the table from
+  // arccos(0.6) ≈ 53° above (SVG equivalent: rotate(∓60) scale(1, 0.6)).
+  // The NEGATIVE pitch is what puts the camera above the face — the laying
+  // poses use positive pitch and read as shot from below the plane.
+  isometric: { yaw: 49.107, pitch: -23.578, roll: 70.893, bodyAspect: 2.05 },
+};
+
+// Body finishes. 'titanium' is the original look and stays the default.
+const FRAME_COLORS: Record<Device3DFrameColor, { rail: number; railRoughness: number; railEnv: number; button: number }> = {
+  titanium: { rail: 0x8a8a90, railRoughness: 0.42, railEnv: 0.85, button: 0xb8b8be },
+  black: { rail: 0x3b3b40, railRoughness: 0.45, railEnv: 0.7, button: 0x4a4a50 },
+  white: { rail: 0xdcdce0, railRoughness: 0.32, railEnv: 1.0, button: 0xe6e6ea },
+};
+
+/**
+ * MacBook camera-housing notch: squared top corners (flush with the screen's
+ * top edge) and rounded bottom corners only — the real notch is a chunky tab,
+ * not a pill. Origin-centered like roundedRectShape.
+ */
+function notchTabShape(w: number, h: number, r: number): THREE.Shape {
+  const x = -w / 2;
+  const y = -h / 2;
+  const s = new THREE.Shape();
+  s.moveTo(x, y + h);
+  s.lineTo(x, y + r);
+  s.quadraticCurveTo(x, y, x + r, y);
+  s.lineTo(x + w - r, y);
+  s.quadraticCurveTo(x + w, y, x + w, y + r);
+  s.lineTo(x + w, y + h);
+  s.closePath();
+  return s;
+}
+
+function roundedRectShape(w: number, h: number, r: number): THREE.Shape {
+  const radius = Math.min(r, w / 2, h / 2);
+  const x = -w / 2;
+  const y = -h / 2;
+  const s = new THREE.Shape();
+  s.moveTo(x + radius, y);
+  s.lineTo(x + w - radius, y);
+  s.absarc(x + w - radius, y + radius, radius, -Math.PI / 2, 0, false);
+  s.lineTo(x + w, y + h - radius);
+  s.absarc(x + w - radius, y + h - radius, radius, 0, Math.PI / 2, false);
+  s.lineTo(x + radius, y + h);
+  s.absarc(x + radius, y + h - radius, radius, Math.PI / 2, Math.PI, false);
+  s.lineTo(x, y + radius);
+  s.absarc(x + radius, y + radius, radius, Math.PI, Math.PI * 1.5, false);
+  return s;
+}
+
+// ShapeGeometry writes raw shape XY into the uv attribute; remap to 0..1 so a
+// texture spans the whole (origin-centered) shape.
+function normalizeShapeUVs(geo: THREE.BufferGeometry, w: number, h: number) {
+  const uv = geo.attributes.uv as THREE.BufferAttribute;
+  for (let i = 0; i < uv.count; i++) {
+    uv.setXY(i, uv.getX(i) / w + 0.5, uv.getY(i) / h + 0.5);
+  }
+  uv.needsUpdate = true;
+}
+
+/**
+ * MacBook keyboard-deck texture, drawn procedurally: aluminum deck, recessed
+ * key well with a key grid, speaker grilles, and a trackpad. Canvas top row =
+ * texture v=1 = the shape's +y edge, which the deck mesh maps to the HINGE
+ * side, so the keyboard is drawn toward the canvas top.
+ */
+function makeDeckTexture(bodyColor: number): THREE.CanvasTexture {
+  const W = 1024;
+  const H = Math.round(W * MACBOOK.baseDepth);
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d')!;
+
+  // Aluminum deck with a subtle brightness ramp toward the hinge.
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  const body = new THREE.Color(bodyColor);
+  const lighter = body.clone().multiplyScalar(1.07);
+  const darker = body.clone().multiplyScalar(0.93);
+  grad.addColorStop(0, `#${lighter.getHexString()}`);
+  grad.addColorStop(1, `#${darker.getHexString()}`);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  const rr = (x: number, y: number, w: number, h: number, r: number, fill: string) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, r);
+    ctx.fill();
+  };
+
+  // Recessed key well (MacBook Pro style: black well spanning between grilles).
+  const wellX = W * 0.115;
+  const wellY = H * 0.055;
+  const wellW = W * 0.77;
+  const wellH = H * 0.52;
+  rr(wellX, wellY, wellW, wellH, 14, '#0b0b0e');
+
+  // Key grid: a function row + 4 letter rows + a bottom row with a spacebar.
+  const pad = 10;
+  const gap = 6;
+  const rows = 6;
+  const keyH = (wellH - 2 * pad - (rows - 1) * gap) / rows;
+  const keyFill = '#2c2c33';
+  for (let r = 0; r < rows; r++) {
+    const y = wellY + pad + r * (keyH + gap);
+    if (r === rows - 1) {
+      // Bottom row: two modifiers, spacebar, two modifiers.
+      const unit = (wellW - 2 * pad - 5 * gap) / 8;
+      let x = wellX + pad;
+      for (const wMul of [1, 1, 4, 1, 1]) {
+        const w = unit * wMul + (wMul - 1) * gap * 0.25;
+        rr(x, y, w, keyH, 6, keyFill);
+        x += w + gap;
+      }
+      continue;
+    }
+    const cols = r === 0 ? 14 : 13;
+    const kw = (wellW - 2 * pad - (cols - 1) * gap) / cols;
+    const kh = r === 0 ? keyH * 0.7 : keyH;
+    for (let c = 0; c < cols; c++) {
+      rr(wellX + pad + c * (kw + gap), y, kw, kh, 6, keyFill);
+    }
+  }
+
+  // Speaker grilles: fine horizontal ribbing beside the key well.
+  ctx.fillStyle = `#${darker.clone().multiplyScalar(0.82).getHexString()}`;
+  for (const gx of [W * 0.035, W * 0.905]) {
+    for (let y = wellY + 6; y < wellY + wellH - 6; y += 7) {
+      ctx.fillRect(gx, y, W * 0.06, 2.6);
+    }
+  }
+
+  // Trackpad: a shade darker than the deck, hairline border.
+  const tpW = W * 0.40;
+  const tpH = H * 0.36;
+  const tpX = (W - tpW) / 2;
+  const tpY = H * 0.615;
+  rr(tpX, tpY, tpW, tpH, 12, `#${darker.clone().multiplyScalar(0.96).getHexString()}`);
+  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(tpX, tpY, tpW, tpH, 12);
+  ctx.stroke();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+/**
+ * Renders a device as real 3D geometry with three.js. The body is an extruded
+ * rounded-rect (black glass caps + metallic rail via per-face materials) and the
+ * screenshot is a texture on the screen face, so it sits in the exact same
+ * perspective as the body. Camera distance is proportional to the device, which
+ * keeps the 3D depth identical no matter how large the element is drawn.
+ */
+export function Device3DRenderer({ deviceType, side, screenshotSrc, objectFit = 'cover', pose = 'classic', frameColor = 'titanium' }: Device3DRendererProps) {
+  const mountRef = useRef<HTMLDivElement>(null);
+  // Bumped when the browser restores an evicted WebGL context; re-runs the
+  // effect below so the whole renderer/scene is rebuilt from scratch.
+  const [rebuildTick, setRebuildTick] = useState(0);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    // Constructing the renderer can throw under GPU pressure ("Error creating
+    // WebGL context"), and a throw skips the effect cleanup entirely, so the
+    // instance registers in the live count only once construction succeeded;
+    // registering first would permanently inflate the count and pin every
+    // healthy device's pixel-ratio cap at the lowest tier.
+    // Chitrapx: data-device3d tells the export readiness check when this device has drawn.
+    mount.dataset.device3d = 'pending';
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+    } catch (err) {
+      mount.dataset.device3d = 'error';
+      throw err;
+    }
+    const instanceId = Symbol('device3d');
+    liveInstances.add(instanceId);
+    if (!warnedContextPressure && liveInstances.size > 12) {
+      warnedContextPressure = true;
+      console.warn(`Device3DRenderer: ${liveInstances.size} live WebGL contexts. Browsers cap around 16 and silently evict the oldest, which blanks that device until its context is restored.`);
+    }
+
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const canvas = renderer.domElement;
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    mount.appendChild(canvas);
+
+    // When the browser evicts this context ("Oldest context will be lost"),
+    // preventDefault marks the restore as wanted (three.js also does this in
+    // its own internal handler; keeping ours makes the contract explicit).
+    const handleContextLost = (e: Event) => e.preventDefault();
+    // three.js turns render() into a no-op while the context is lost and does
+    // NOT repaint after restore, so rebuild the renderer/scene outright: bump
+    // the tick, which re-runs this effect (full cleanup + fresh build).
+    const handleContextRestored = () => setRebuildTick((t) => t + 1);
+    canvas.addEventListener('webglcontextlost', handleContextLost);
+    canvas.addEventListener('webglcontextrestored', handleContextRestored);
+
+    const scene = new THREE.Scene();
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    // Heavy blur turns the room's small bright lights into soft studio panels;
+    // sharp reflections show up as pixel noise on the high-curvature corner
+    // bevels of the metal rail.
+    const envTexture = pmrem.fromScene(new RoomEnvironment(), 0.35).texture;
+    scene.environment = envTexture;
+
+    const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100);
+
+    // Key light aimed at the exposed side rail; the environment map does the rest.
+    const sideSign = side === 'left' ? -1 : 1;
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyLight.position.set(sideSign * 3, 2.5, 4);
+    scene.add(keyLight);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(-sideSign * 2, -1.5, 3);
+    scene.add(fillLight);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+    const group = new THREE.Group();
+    const poseAngles = POSES[pose] ?? POSES.classic;
+    const yawRad = THREE.MathUtils.degToRad(poseAngles.yaw) * -sideSign;
+    const pitchRad = THREE.MathUtils.degToRad(poseAngles.pitch);
+    const rollRad = THREE.MathUtils.degToRad(poseAngles.roll ?? 0) * -sideSign;
+    // Yaw about Y first, then recline about the world X axis — like a phone
+    // spun on a table, then the table tipped toward the camera — then roll
+    // about the camera axis so the long axis leans diagonally in the image.
+    const poseQuat = new THREE.Quaternion()
+      .setFromAxisAngle(new THREE.Vector3(0, 0, 1), rollRad)
+      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), pitchRad))
+      .multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), yawRad));
+    group.quaternion.copy(poseQuat);
+    scene.add(group);
+
+    const metrics = DEVICE_METRICS[deviceType] ?? DEFAULT_METRICS;
+    const isWatch = deviceType === 'apple-watch';
+    const isMacbook = deviceType === 'macbook';
+    const isImac = deviceType === 'imac';
+    const isMac = isMacbook || isImac;
+    const disposables: Array<{ dispose(): void }> = [];
+    let texture: THREE.Texture | null = null;
+    let textureImage: HTMLImageElement | null = null;
+    let shotMesh: THREE.Mesh | null = null;
+    // x/y are local offsets inside shotParent (the MacBook's shot rides the
+    // tilted lid group; the iMac's screen sits above the chin, off-center).
+    let screenSize = { w: 0, h: 0, radius: 0, z: 0, x: 0, y: 0 };
+    let shotParent: THREE.Object3D = group;
+    let disposed = false;
+
+    // All renders are synchronous (render-on-demand, no rAF loop): the drawing
+    // buffer must always hold a finished frame because PNG export can snapshot
+    // the canvas at any moment.
+    const render = () => {
+      renderer.render(scene, camera);
+      if (!screenshotSrc || textureImage) mount.dataset.device3d = 'ready';
+    };
+
+    const track = <T extends { dispose(): void }>(obj: T): T => {
+      disposables.push(obj);
+      return obj;
+    };
+
+    // (Re)creates the screenshot plane for the current screen size + texture.
+    const updateShot = () => {
+      if (shotMesh) {
+        shotMesh.parent?.remove(shotMesh);
+        shotMesh.geometry.dispose();
+        (shotMesh.material as THREE.Material).dispose();
+        shotMesh = null;
+      }
+      if (!texture || !textureImage || screenSize.w <= 0) return;
+
+      let { w, h } = screenSize;
+      const screenAspect = w / h;
+      const imgAspect = textureImage.naturalWidth / textureImage.naturalHeight;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.repeat.set(1, 1);
+      texture.offset.set(0, 0);
+
+      let geo: THREE.BufferGeometry;
+      if (objectFit === 'contain') {
+        // Letterbox: shrink the plane; the black screen face shows through as bars.
+        if (imgAspect > screenAspect) h = w / imgAspect;
+        else w = h * imgAspect;
+        geo = new THREE.PlaneGeometry(w, h);
+      } else {
+        if (objectFit === 'cover') {
+          // Crop the texture via repeat/offset so it covers the screen shape.
+          if (imgAspect > screenAspect) {
+            const rx = screenAspect / imgAspect;
+            texture.repeat.set(rx, 1);
+            texture.offset.set((1 - rx) / 2, 0);
+          } else {
+            const ry = imgAspect / screenAspect;
+            texture.repeat.set(1, ry);
+            texture.offset.set(0, (1 - ry) / 2);
+          }
+        }
+        geo = new THREE.ShapeGeometry(roundedRectShape(w, h, screenSize.radius), 24);
+        normalizeShapeUVs(geo, w, h);
+      }
+      // Screens emit light — unlit material so the screenshot shows at full brightness.
+      const mat = new THREE.MeshBasicMaterial({ map: texture, toneMapped: false });
+      shotMesh = new THREE.Mesh(geo, mat);
+      shotMesh.position.set(screenSize.x, screenSize.y, screenSize.z + 0.001);
+      shotMesh.renderOrder = 1;
+      shotParent.add(shotMesh);
+    };
+
+    // Extruded rounded-rect slab with welded bevel normals — the shared
+    // building block for phone bodies, the MacBook base/lid and the iMac slab.
+    const extrudeSlab = (w: number, h: number, thickness: number, cornerRadius: number, bevelRatio = 0.22) => {
+      const bevel = thickness * bevelRatio;
+      const depth = thickness - 2 * bevel;
+      const shape = roundedRectShape(w - 2 * bevel, h - 2 * bevel, Math.max(cornerRadius - bevel, 0.008));
+      const raw = new THREE.ExtrudeGeometry(shape, {
+        depth,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 8,
+        curveSegments: 48,
+      });
+      const geo = track(toCreasedNormals(raw, THREE.MathUtils.degToRad(30)));
+      raw.dispose();
+      geo.translate(0, 0, -depth / 2); // z spans [-thickness/2, thickness/2]
+      return geo;
+    };
+
+    // MacBook: flat base with a keyboard-deck texture + lid hinged open at the
+    // back; iMac: display slab over a chin, on a tapered leg + flat foot. Both
+    // keep native proportions (like the watch) and center on the overall
+    // silhouette so poses pivot mid-body.
+    const buildMacDevice = () => {
+      const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+      const aluColor = MAC_BODY_COLORS[frameColor] ?? MAC_BODY_COLORS.titanium;
+      const aluMat = track(new THREE.MeshStandardMaterial({ color: aluColor, metalness: 0.85, roughness: 0.42, envMapIntensity: finish.railEnv }));
+      const bezelMat = track(new THREE.MeshStandardMaterial({ color: 0x0b0b0d, metalness: 0.35, roughness: 0.3 }));
+      const screenMat = track(new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.1, roughness: 0.25 }));
+      const mac = new THREE.Group();
+      group.add(mac);
+
+      if (isMacbook) {
+        const M = MACBOOK;
+        const tiltRad = THREE.MathUtils.degToRad(M.openTiltDeg);
+        const totalH = M.baseThick + MACBOOK_LID_H * Math.cos(tiltRad);
+        mac.position.y = -totalH / 2; // ground y=0 in mac-local coords
+
+        // Base slab, lying flat: extruded in XY then rotated so the extrusion
+        // (thickness) runs along +y; top face at y = baseThick.
+        const baseGeo = extrudeSlab(1, M.baseDepth, M.baseThick, 0.045);
+        baseGeo.rotateX(-Math.PI / 2);
+        baseGeo.translate(0, M.baseThick / 2, 0);
+        mac.add(new THREE.Mesh(baseGeo, aluMat));
+
+        // Keyboard + trackpad deck, just above the base top face.
+        const deckW = 0.955;
+        const deckD = M.baseDepth - 0.035;
+        const deckGeo = track(new THREE.ShapeGeometry(roundedRectShape(deckW, deckD, 0.03), 24));
+        normalizeShapeUVs(deckGeo, deckW, deckD);
+        const deckTexture = track(makeDeckTexture(aluColor));
+        deckTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        // Low metalness so the drawn keys/trackpad read instead of washing out
+        // under the environment reflection.
+        const deckMat = track(new THREE.MeshStandardMaterial({ map: deckTexture, metalness: 0.3, roughness: 0.58, envMapIntensity: finish.railEnv * 0.55 }));
+        const deck = new THREE.Mesh(deckGeo, deckMat);
+        deck.rotation.x = -Math.PI / 2; // shape +y -> world -z (hinge side)
+        deck.position.y = M.baseThick + 0.0012;
+        mac.add(deck);
+
+        // Lid group at the hinge; rotate the whole group so the screen,
+        // screenshot and notch all lean back together.
+        const hingeZ = -M.baseDepth / 2 + 0.012;
+        const lid = new THREE.Group();
+        lid.position.set(0, M.baseThick - 0.004, hingeZ);
+        lid.rotation.x = -tiltRad;
+        mac.add(lid);
+
+        const lidGeo = extrudeSlab(1, MACBOOK_LID_H, M.lidThick, 0.035);
+        lidGeo.translate(0, MACBOOK_LID_H / 2, 0);
+        lid.add(new THREE.Mesh(lidGeo, aluMat));
+
+        // Black display bezel covering the lid's inner face.
+        const bezelGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.982, MACBOOK_LID_H - 0.014, 0.028), 24));
+        const bezelMesh = new THREE.Mesh(bezelGeo, bezelMat);
+        bezelMesh.position.set(0, MACBOOK_LID_H / 2, M.lidThick / 2 + 0.0008);
+        lid.add(bezelMesh);
+
+        // Screen face + camera-housing notch inside the bezel.
+        const screenCenterY = M.bezelBottom + MACBOOK_SCREEN_H / 2;
+        const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(MACBOOK_SCREEN_W, MACBOOK_SCREEN_H, 0.014), 24));
+        const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+        screenMesh.position.set(0, screenCenterY, M.lidThick / 2 + 0.0016);
+        lid.add(screenMesh);
+
+        shotParent = lid;
+        screenSize = { w: MACBOOK_SCREEN_W, h: MACBOOK_SCREEN_H, radius: 0.014, z: M.lidThick / 2 + 0.0016, x: 0, y: screenCenterY };
+
+        // Real MacBook Pro proportions: ~11% of the screen width, ~3.5:1,
+        // squared top, bottom radius about a third of its height.
+        const notchW = MACBOOK_SCREEN_W * 0.11;
+        const notchH = notchW / 3.5;
+        const notchGeo = track(new THREE.ShapeGeometry(notchTabShape(notchW, notchH, notchH * 0.33), 12));
+        const notchMesh = new THREE.Mesh(notchGeo, track(new THREE.MeshBasicMaterial({ color: 0x000000 })));
+        notchMesh.position.set(0, M.bezelBottom + MACBOOK_SCREEN_H - notchH / 2, M.lidThick / 2 + 0.0032);
+        notchMesh.renderOrder = 2;
+        lid.add(notchMesh);
+      } else {
+        // iMac. Ground y=0 in mac-local coords; slab sits on the stand.
+        mac.position.y = -IMAC_TOTAL_H / 2;
+
+        const slabGeo = extrudeSlab(1, IMAC_SLAB_H, IMAC.slabThick, 0.022);
+        slabGeo.translate(0, IMAC.standH + IMAC_SLAB_H / 2, 0);
+        mac.add(new THREE.Mesh(slabGeo, aluMat));
+
+        // Front bezel plate (white on the silver finishes, near-black on the
+        // dark one); the chin strip goes body-coloured over it.
+        const frontZ = IMAC.slabThick / 2;
+        const faceColor = frameColor === 'black' ? 0x161618 : 0xe9e9ee;
+        const faceMat = track(new THREE.MeshStandardMaterial({ color: faceColor, metalness: 0.15, roughness: 0.5 }));
+        const faceGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.988, IMAC_SLAB_H - 0.012, 0.018), 24));
+        const face = new THREE.Mesh(faceGeo, faceMat);
+        face.position.set(0, IMAC.standH + IMAC_SLAB_H / 2, frontZ + 0.0008);
+        mac.add(face);
+
+        const chinGeo = track(new THREE.ShapeGeometry(roundedRectShape(0.988, IMAC.chin - 0.012, 0.012), 12));
+        const chin = new THREE.Mesh(chinGeo, aluMat);
+        chin.position.set(0, IMAC.standH + (IMAC.chin - 0.006) / 2 + 0.003, frontZ + 0.0016);
+        mac.add(chin);
+
+        const screenCenterY = IMAC.standH + IMAC.chin + IMAC_SCREEN_H / 2;
+        const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(IMAC_SCREEN_W, IMAC_SCREEN_H, 0.012), 24));
+        const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+        screenMesh.position.set(0, screenCenterY, frontZ + 0.0024);
+        mac.add(screenMesh);
+
+        shotParent = mac;
+        screenSize = { w: IMAC_SCREEN_W, h: IMAC_SCREEN_H, radius: 0.012, z: frontZ + 0.0024, x: 0, y: screenCenterY };
+
+        // Stand: tapered leg behind the slab + flat foot running backward.
+        const legGeo = track(new THREE.BoxGeometry(IMAC.legW, IMAC.standH + 0.02, 0.012));
+        const leg = new THREE.Mesh(legGeo, aluMat);
+        leg.position.set(0, IMAC.standH / 2 + 0.008, -IMAC.slabThick / 2 - 0.008);
+        mac.add(leg);
+
+        const footGeo = extrudeSlab(IMAC.footW, IMAC.footDepth, IMAC.footThick, 0.03);
+        footGeo.rotateX(-Math.PI / 2);
+        footGeo.translate(0, IMAC.footThick / 2, -IMAC.footDepth / 2 + 0.10);
+        mac.add(new THREE.Mesh(footGeo, aluMat));
+      }
+    };
+
+    // Builds body + screen + notch + buttons for the element's current aspect ratio.
+    const buildDevice = (aspect: number) => {
+      for (const child of [...group.children]) group.remove(child);
+      for (const d of disposables.splice(0)) d.dispose();
+      shotMesh = null;
+      shotParent = group;
+
+      if (isMac) {
+        buildMacDevice();
+        updateShot();
+        return;
+      }
+
+      const w = 1;
+      const h = isWatch
+        ? WATCH_BODY_ASPECT
+        : THREE.MathUtils.clamp(poseAngles.bodyAspect ?? aspect, 0.3, 4);
+      const t = metrics.thickness;
+      const bevel = t * 0.22;
+      const depth = t - 2 * bevel;
+
+      // The bevel expands the outline by bevelSize, so shrink the base shape to
+      // keep the finished body exactly w × h at its waist.
+      const bodyShape = roundedRectShape(w - 2 * bevel, h - 2 * bevel, Math.max(metrics.cornerRadius - bevel, 0.02));
+      const rawBodyGeo = new THREE.ExtrudeGeometry(bodyShape, {
+        depth,
+        bevelEnabled: true,
+        bevelThickness: bevel,
+        bevelSize: bevel,
+        bevelSegments: 10,
+        curveSegments: 64,
+      });
+      // ExtrudeGeometry is flat-shaded, which makes every segment of the curved
+      // bevel catch the environment separately (visible faceting on the metal
+      // edge). Weld normals across shallow angles, keeping genuine creases sharp.
+      const bodyGeo = track(toCreasedNormals(rawBodyGeo, THREE.MathUtils.degToRad(30)));
+      rawBodyGeo.dispose();
+      bodyGeo.translate(0, 0, -depth / 2);
+      // Material 0 = front/back caps (black glass), 1 = extruded rail.
+      const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+      const capMat = track(new THREE.MeshStandardMaterial({ color: 0x0b0b0d, metalness: 0.4, roughness: 0.3 }));
+      // Brushed rather than polished: a rougher rail with damped reflections
+      // avoids specular sparkle on the smooth-shaded bevel curvature.
+      const railMat = track(new THREE.MeshStandardMaterial({ color: finish.rail, metalness: 1.0, roughness: finish.railRoughness, envMapIntensity: finish.railEnv }));
+      group.add(new THREE.Mesh(bodyGeo, [capMat, railMat]));
+
+      // Screen face sits just above the front cap.
+      const frontZ = depth / 2 + bevel;
+      const bezelWorld = metrics.bezel * w;
+      const sw = w - 2 * bezelWorld;
+      const sh = h - 2 * bezelWorld;
+      const sr = Math.max(metrics.screenRadius - bezelWorld * 0.5, 0.02);
+      screenSize = { w: sw, h: sh, radius: sr, z: frontZ + 0.0015, x: 0, y: 0 };
+
+      const screenGeo = track(new THREE.ShapeGeometry(roundedRectShape(sw, sh, sr), 24));
+      const screenMat = track(new THREE.MeshStandardMaterial({ color: 0x000000, metalness: 0.1, roughness: 0.25 }));
+      const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+      screenMesh.position.z = screenSize.z;
+      group.add(screenMesh);
+
+      // Camera cutout, drawn above the screenshot.
+      const notchMat = track(new THREE.MeshBasicMaterial({ color: 0x000000 }));
+      let notchGeo: THREE.BufferGeometry | null = null;
+      let notchY = 0;
+      if (metrics.notch === 'island') {
+        const nw = w * 0.24;
+        const nh = w * 0.068;
+        notchGeo = track(new THREE.ShapeGeometry(roundedRectShape(nw, nh, nh / 2), 16));
+        notchY = sh / 2 - nh / 2 - w * 0.03;
+      } else if (metrics.notch === 'notch') {
+        const nw = w * 0.32;
+        const nh = w * 0.075;
+        notchGeo = track(new THREE.ShapeGeometry(roundedRectShape(nw, nh, nh * 0.4), 16));
+        notchY = sh / 2 - nh / 2 + 0.001;
+      } else if (metrics.notch === 'punch') {
+        notchGeo = track(new THREE.CircleGeometry(w * 0.025, 24));
+        notchY = sh / 2 - w * 0.05;
+      }
+      if (notchGeo) {
+        const notchMesh = new THREE.Mesh(notchGeo, notchMat);
+        notchMesh.position.set(0, notchY, screenSize.z + 0.002);
+        notchMesh.renderOrder = 2;
+        group.add(notchMesh);
+      }
+
+      // Side buttons on the rail facing the viewer (phones/tablets only).
+      // Anchored in fixed world units below the corner radius — fractions of the
+      // device height would let buttons ride up into the corner arc on short or
+      // user-squashed elements and poke out of the silhouette as dark bumps.
+      if (metrics.notch !== 'none' || deviceType === 'iphone' || deviceType === 'tablet' || deviceType === 'ipad-pro-13' || deviceType === 'ipad-11') {
+        const finishForButtons = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+        const buttonMat = track(new THREE.MeshStandardMaterial({ color: finishForButtons.button, metalness: 0.9, roughness: 0.45 }));
+        const buttonSpecs = side === 'left'
+          ? [{ len: 0.11 }, { len: 0.11 }] // volume up/down
+          : [{ len: 0.16 }]; // power
+        const gap = 0.05;
+        let cursorY = h / 2 - metrics.cornerRadius - 0.12; // top of first button
+        const stackLen = buttonSpecs.reduce((sum, s) => sum + s.len, 0) + gap * (buttonSpecs.length - 1);
+        if (cursorY - stackLen > -h / 2 + metrics.cornerRadius) {
+          for (const spec of buttonSpecs) {
+            const geo = track(new THREE.CapsuleGeometry(t * 0.16, spec.len, 8, 16));
+            const mesh = new THREE.Mesh(geo, buttonMat);
+            mesh.position.set(sideSign * (w / 2 + t * 0.02), cursorY - spec.len / 2, 0);
+            group.add(mesh);
+            cursorY -= spec.len + gap;
+          }
+        }
+      }
+
+      // USB-C slot on the bottom rail — only really visible in the reclined
+      // poses where the camera looks down past the bottom edge. The watch's
+      // bottom rail is where the band attaches, so it gets none.
+      if (deviceType !== 'desktop' && !isWatch) {
+        const portMat = track(new THREE.MeshStandardMaterial({ color: 0x121214, metalness: 0.4, roughness: 0.55 }));
+        const portGeo = track(new THREE.CapsuleGeometry(t * 0.1, 0.075, 6, 12));
+        portGeo.rotateZ(Math.PI / 2); // capsule axis Y -> X, lying along the rail
+        const portMesh = new THREE.Mesh(portGeo, portMat);
+        portMesh.position.set(0, -h / 2, 0);
+        group.add(portMesh);
+      }
+
+      // Apple Watch extras: sport band straps + digital crown + side button.
+      if (isWatch) {
+        const finish = FRAME_COLORS[frameColor] ?? FRAME_COLORS.titanium;
+        const bandMat = track(new THREE.MeshStandardMaterial({
+          color: WATCH_BAND_COLORS[frameColor] ?? WATCH_BAND_COLORS.titanium,
+          metalness: 0,
+          roughness: 0.62,
+        }));
+        // Strap cross-section. ExtrudeGeometry sweeps shape.x along the path's
+        // Frenet normal and shape.y along the binormal; for a curve confined to
+        // the YZ plane that puts shape.x on world X (band width) and shape.y on
+        // the backward bend (band thickness).
+        const strapProfile = roundedRectShape(WATCH_BAND.width, WATCH_BAND.thickness, WATCH_BAND.thickness / 2);
+        for (const dir of [1, -1] as const) {
+          const y0 = dir * (h / 2 - 0.1); // start tucked inside the case
+          const curve = new THREE.CubicBezierCurve3(
+            new THREE.Vector3(0, y0, -0.02),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run * 0.55, -0.02),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run * 0.88, -0.09),
+            new THREE.Vector3(0, y0 + dir * WATCH_BAND.run, -WATCH_BAND.back),
+          );
+          const rawStrap = new THREE.ExtrudeGeometry(strapProfile, { steps: 40, bevelEnabled: false, extrudePath: curve });
+          const strapGeo = track(toCreasedNormals(rawStrap, THREE.MathUtils.degToRad(30)));
+          rawStrap.dispose();
+          group.add(new THREE.Mesh(strapGeo, bandMat));
+        }
+        // Digital crown on the exposed rail, upper half of the case.
+        const crownMat = track(new THREE.MeshStandardMaterial({ color: finish.button, metalness: 0.95, roughness: 0.38, envMapIntensity: finish.railEnv }));
+        const crownGeo = track(new THREE.CylinderGeometry(0.085, 0.085, 0.06, 28));
+        crownGeo.rotateZ(Math.PI / 2); // axis Y -> X, poking out of the rail
+        const crown = new THREE.Mesh(crownGeo, crownMat);
+        crown.position.set(sideSign * (w / 2 + 0.02), h * 0.185, 0.02);
+        group.add(crown);
+        // Flat elongated side button under the crown, nearly flush.
+        const buttonGeo = track(new THREE.CapsuleGeometry(0.032, 0.24, 6, 14));
+        const button = new THREE.Mesh(buttonGeo, crownMat);
+        button.position.set(sideSign * (w / 2 + 0.006), -h * 0.05, 0.02);
+        group.add(button);
+      }
+
+      updateShot();
+    };
+
+    const layoutCamera = (cw: number, ch: number) => {
+      const aspect = cw / ch;
+      const h = isWatch
+        ? WATCH_BODY_ASPECT
+        : THREE.MathUtils.clamp(poseAngles.bodyAspect ?? ch / cw, 0.3, 4);
+      const tanV = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
+      const margin = 1.08;
+      // Fit the pose-rotated device exactly: a point at camera-space
+      // (x, y, z) fits iff |y| <= tan(fov/2)·(dist − z) vertically and
+      // |x| <= tan(fov/2)·aspect·(dist − z) horizontally — solve for dist.
+      const t2 = metrics.thickness / 2;
+      const fitPoints: THREE.Vector3[] = [];
+      if (isMacbook) {
+        // Base footprint + the opened lid's top edge (leaning back past the
+        // hinge), in the centered coords buildMacDevice uses.
+        const M = MACBOOK;
+        const tiltRad = THREE.MathUtils.degToRad(M.openTiltDeg);
+        const cy = (M.baseThick + MACBOOK_LID_H * Math.cos(tiltRad)) / 2;
+        const hingeZ = -M.baseDepth / 2 + 0.012;
+        const lidTopY = M.baseThick - 0.004 + MACBOOK_LID_H * Math.cos(tiltRad);
+        const lidTopZ = hingeZ - MACBOOK_LID_H * Math.sin(tiltRad);
+        for (const sx of [-0.5, 0.5]) {
+          for (const sz of [-1, 1]) {
+            fitPoints.push(new THREE.Vector3(sx, -cy, sz * M.baseDepth * 0.5));
+            fitPoints.push(new THREE.Vector3(sx, M.baseThick - cy, sz * M.baseDepth * 0.5));
+          }
+          fitPoints.push(new THREE.Vector3(sx, lidTopY - cy, lidTopZ - M.lidThick));
+          fitPoints.push(new THREE.Vector3(sx, lidTopY - cy, lidTopZ + M.lidThick));
+        }
+      } else if (isImac) {
+        // Slab corners + the foot's ground footprint.
+        const cy = IMAC_TOTAL_H / 2;
+        for (const sx of [-0.5, 0.5]) {
+          for (const sz of [-1, 1]) {
+            fitPoints.push(new THREE.Vector3(sx, IMAC_TOTAL_H - cy, sz * IMAC.slabThick * 0.5));
+            fitPoints.push(new THREE.Vector3(sx, IMAC.standH - cy, sz * IMAC.slabThick * 0.5));
+          }
+        }
+        for (const sx of [-1, 1]) {
+          fitPoints.push(new THREE.Vector3(sx * IMAC.footW * 0.5, -cy, 0.10));
+          fitPoints.push(new THREE.Vector3(sx * IMAC.footW * 0.5, -cy, 0.10 - IMAC.footDepth));
+        }
+      } else {
+        for (const sx of [-0.5, 0.5]) {
+          for (const sy of [-0.5, 0.5]) {
+            for (const sz of [-1, 1]) {
+              fitPoints.push(new THREE.Vector3(sx, sy * h, sz * t2));
+            }
+          }
+        }
+      }
+      if (isWatch) {
+        // The band reaches past the case: include the strap tips (front and
+        // fully bent-back) and the crown's rail protrusion in the fit.
+        const tipY = h / 2 - 0.1 + WATCH_BAND.run + WATCH_BAND.thickness / 2;
+        for (const sx of [-1, 1]) {
+          for (const sy of [-1, 1]) {
+            fitPoints.push(new THREE.Vector3(sx * (WATCH_BAND.width / 2), sy * tipY, 0.04));
+            fitPoints.push(new THREE.Vector3(sx * (WATCH_BAND.width / 2), sy * tipY, -(WATCH_BAND.back + 0.06)));
+            fitPoints.push(new THREE.Vector3(sx * 0.61, sy * h * 0.2, 0.02));
+          }
+        }
+      }
+      const corner = new THREE.Vector3();
+      let dist = 0.1;
+      // The watch's bent-back straps make its projection strongly asymmetric
+      // (unlike the near-planar phones) — and so do the Macs (lid leaning back
+      // over a forward base, stand foot running backward) — so solve for a
+      // camera offset that centers the projected bounds as well as the fitting
+      // distance. A few fixed-point iterations converge well within a pixel.
+      let offX = 0;
+      let offY = 0;
+      const iterations = isWatch || isMac ? 4 : 1;
+      for (let i = 0; i < iterations; i++) {
+        dist = 0.1;
+        for (const p of fitPoints) {
+          corner.copy(p).applyQuaternion(poseQuat);
+          dist = Math.max(
+            dist,
+            corner.z + (Math.abs(corner.y - offY) * margin) / tanV,
+            corner.z + (Math.abs(corner.x - offX) * margin) / (tanV * aspect),
+          );
+        }
+        if (i === iterations - 1) break;
+        let pxMin = Infinity, pxMax = -Infinity, pyMin = Infinity, pyMax = -Infinity;
+        for (const p of fitPoints) {
+          corner.copy(p).applyQuaternion(poseQuat);
+          const zDist = dist - corner.z;
+          pxMin = Math.min(pxMin, (corner.x - offX) / zDist);
+          pxMax = Math.max(pxMax, (corner.x - offX) / zDist);
+          pyMin = Math.min(pyMin, (corner.y - offY) / zDist);
+          pyMax = Math.max(pyMax, (corner.y - offY) / zDist);
+        }
+        offX += ((pxMin + pxMax) / 2) * dist;
+        offY += ((pyMin + pyMax) / 2) * dist;
+      }
+      camera.aspect = aspect;
+      camera.near = dist * 0.05;
+      camera.far = dist * 10;
+      // Slightly above center, like a product shot looking marginally down.
+      camera.position.set(offX, offY + dist * 0.02, dist);
+      camera.lookAt(offX, offY, 0);
+      camera.updateProjectionMatrix();
+    };
+
+    let lastAspect = 0;
+    let lastPixelRatio = 0;
+    let lastW = 0;
+    let lastH = 0;
+    // The artboard scales elements with CSS transforms (zoom / display scale
+    // factor), which don't change clientWidth. Derive the true on-screen scale
+    // so the canvas backing store matches what the user actually sees.
+    const effectivePixelRatio = () => {
+      const rect = mount.getBoundingClientRect();
+      const cssScale = mount.clientWidth > 0 ? rect.width / mount.clientWidth : 1;
+      // Target ~2× the pixels actually shown on screen. Browser canvas
+      // downscaling is plain bilinear (averages only 4 texels), so a backing
+      // store much larger than 2× the displayed size starts skipping pixels and
+      // re-introduces jaggies — bigger is NOT smoother. The floor of 1 keeps the
+      // bitmap at least layout-sized because PNG export draws the canvas at its
+      // layout size regardless of the current zoom. This also bounds memory to
+      // roughly what is visible on screen.
+      const target = cssScale * (window.devicePixelRatio || 1) * 2;
+      // Cap by the live instance count so 8+ devices can't each claim a 3x
+      // buffer; the 800ms scale watch re-reads this, so existing devices adopt
+      // a changed cap on their next poll.
+      return Math.min(Math.max(target, 1), pixelRatioCap());
+    };
+
+    // The expensive path: reallocating the drawing buffer and re-extruding the
+    // body (~50k triangles + normal welding). Never run this per drag frame.
+    const applySize = () => {
+      const cw = mount.clientWidth;
+      const ch = mount.clientHeight;
+      if (cw < 2 || ch < 2) return;
+      const pr = effectivePixelRatio();
+      if (pr !== lastPixelRatio || cw !== lastW || ch !== lastH) {
+        lastPixelRatio = pr;
+        lastW = cw;
+        lastH = ch;
+        renderer.setPixelRatio(pr);
+        renderer.setSize(cw, ch, false);
+        layoutCamera(cw, ch);
+      }
+      const aspect = ch / cw;
+      // Rebuild geometry only when the element's proportions actually change.
+      if (Math.abs(aspect - lastAspect) > 0.005) {
+        lastAspect = aspect;
+        buildDevice(aspect);
+      }
+      // setSize() wipes the drawing buffer, so a frame must be presented before
+      // returning (the app rescales the artboard right before exporting, and a
+      // deferred render would let the export capture a blank canvas).
+      render();
+    };
+
+    // While the user drags a resize handle, the canvas simply CSS-stretches with
+    // the element (cheap); the buffer + geometry snap to crisp once idle.
+    let resizeTimer = 0;
+    let firstSize = true;
+    const handleResize = () => {
+      if (firstSize) {
+        firstSize = false;
+        applySize();
+        return;
+      }
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(applySize, 110);
+    };
+
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(mount);
+    handleResize();
+    // ResizeObserver can't see ancestor transform changes (artboard zoom), so
+    // cheaply poll the effective scale and re-render sharper when it changes.
+    const scaleWatch = window.setInterval(() => {
+      if (Math.abs(effectivePixelRatio() - lastPixelRatio) > 0.1) applySize();
+    }, 800);
+
+    // PNG export draws the canvas 1:1 into the output (no browser downscale),
+    // which exposes specular aliasing on the metal rail that the on-screen
+    // downscale normally averages away. While an export is in flight, render at
+    // 2x layout pixels so the capture gets the same ~2x supersampling the
+    // on-screen path targets, then restore the regular buffer.
+    const handleExportPhase = (e: Event) => {
+      const phase = (e as CustomEvent).detail?.phase;
+      const cw = mount.clientWidth;
+      const ch = mount.clientHeight;
+      if (phase === 'begin') {
+        if (cw < 2 || ch < 2) return;
+        renderer.setPixelRatio(Math.max(2, lastPixelRatio));
+        renderer.setSize(cw, ch, false);
+        layoutCamera(cw, ch);
+        render();
+      } else {
+        lastPixelRatio = 0; // force applySize to rebuild the on-screen buffer
+        applySize();
+      }
+    };
+    window.addEventListener('artboard:export', handleExportPhase);
+
+    if (screenshotSrc) {
+      const img = new window.Image();
+      img.onload = () => {
+        if (disposed) return;
+        textureImage = img;
+        texture = new THREE.Texture(img);
+        texture.colorSpace = THREE.SRGBColorSpace;
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        texture.needsUpdate = true;
+        updateShot();
+        render();
+      };
+      img.onerror = () => { if (!disposed) mount.dataset.device3d = 'error'; };
+      img.src = withBasePath(screenshotSrc);
+    }
+
+    return () => {
+      disposed = true;
+      liveInstances.delete(instanceId);
+      // Detach before forceContextLoss below fires 'webglcontextlost' on this
+      // very canvas — a teardown loss must not schedule a rebuild.
+      canvas.removeEventListener('webglcontextlost', handleContextLost);
+      canvas.removeEventListener('webglcontextrestored', handleContextRestored);
+      window.removeEventListener('artboard:export', handleExportPhase);
+      window.clearInterval(scaleWatch);
+      window.clearTimeout(resizeTimer);
+      resizeObserver.disconnect();
+      for (const d of disposables.splice(0)) d.dispose();
+      if (shotMesh) {
+        shotMesh.geometry.dispose();
+        (shotMesh.material as THREE.Material).dispose();
+      }
+      texture?.dispose();
+      envTexture.dispose();
+      pmrem.dispose();
+      renderer.dispose();
+      // dispose() frees GPU resources but the browser's WebGL context slot is
+      // only released when the canvas is GC'd. Force-lose it so a batch swap of
+      // N 3D devices can't transiently hold 2N context slots and evict other
+      // live canvases ("oldest context will be lost").
+      renderer.forceContextLoss();
+      mount.removeChild(canvas);
+    };
+  }, [deviceType, side, screenshotSrc, objectFit, pose, frameColor, rebuildTick]);
+
+  return <div ref={mountRef} style={{ width: '100%', height: '100%', pointerEvents: 'none' }} />;
+}

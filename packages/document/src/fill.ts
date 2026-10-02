@@ -23,7 +23,8 @@ export function fillScreenshots(doc: ChitrapxDoc, assetIds: string[]): ChitrapxD
       const elements = [...b.elements];
       for (const { el, i } of order) {
         if (next >= assetIds.length) break;
-        elements[i] = { ...el, screenshotSrc: assetSrc(assetIds[next++]!) } as ArtboardElement;
+        const rect = (el as { screenshotRect?: unknown }).screenshotRect ?? { left: 0, top: 0, width: 100, height: 100 };
+        elements[i] = { ...el, screenshotSrc: assetSrc(assetIds[next++]!), screenshotRect: rect } as ArtboardElement;
       }
       return { ...b, elements };
     }),

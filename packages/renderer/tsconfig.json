@@ -1,0 +1,6 @@
+{
+  "extends": "../../tsconfig.base.json",
+  // Ported OSG code predates noUncheckedIndexedAccess; it stays on for every other package.
+  "compilerOptions": { "lib": ["ES2023", "DOM", "DOM.Iterable"], "jsx": "react-jsx", "types": ["node"], "noUncheckedIndexedAccess": false },
+  "include": ["src", "test"]
+}
