@@ -72,3 +72,25 @@ describe("applyTexts", () => {
     expect((out.groups[1]!.boards[0]!.elements[0] as unknown as { content: string }).content).toBe("New");
   });
 });
+
+describe("review fixes", () => {
+  it("screenshotsPerBoard follows fillScreenshots: boards without devices get none, two devices get two", async () => {
+    const { screenshotsPerBoard } = await import("../src/index.ts");
+    const d = doc([group([board("b0", []), board("b1", [device("r", 700), device("l", 100)]), board("b2", [device("x", 300)])])]);
+    expect(screenshotsPerBoard(d, 2)).toEqual([[], [0, 1], []]);
+    expect(screenshotsPerBoard(d, 5)).toEqual([[], [0, 1], [2]]);
+  });
+
+  it("caps translated text to the slot budget", () => {
+    const out = applyTranslations(tpl(), "de-DE", [{ id: "h3", text: "z".repeat(1000) }]);
+    expect(out.groups[0]!.boards[2]!.localized!["de-DE"]!.h3!.content).toHaveLength(40);
+  });
+
+  it("skips a translation whose source text changed since the job read it", () => {
+    const d = tpl();
+    const sources = new Map([["h1", "Track every brew"], ["h2", "Old wording"]]);
+    const out = applyTranslations(d, "de-DE", [{ id: "h1", text: "Verfolgen" }, { id: "h2", text: "Veraltet" }], sources);
+    expect(out.groups[0]!.boards[0]!.localized!["de-DE"]!.h1!.content).toBe("Verfolgen");
+    expect(out.groups[0]!.boards[1]!.localized?.["de-DE"]?.h2).toBeUndefined();
+  });
+});

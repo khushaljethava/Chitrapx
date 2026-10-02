@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { PRICES, type JobType } from "@chitrapx/db";
-import { runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
+import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
 import { runExport } from "./export.ts";
-import { FatalJobError, type JobHandler } from "./runJob.ts";
+import { FatalJobError, type FailureCleanup, type JobHandler } from "./runJob.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -38,3 +38,6 @@ export const handlers: Record<JobType, JobHandler> = {
   ai_translate: (input, job) => runAiTranslate(input, job, aiDeps()),
   ai_copy: (input, job) => runAiCopy(input, job, aiDeps()),
 };
+
+/** What to undo when a job fails for good. */
+export const cleanups: Partial<Record<JobType, FailureCleanup>> = { ai_design: cleanupFailedDesign };

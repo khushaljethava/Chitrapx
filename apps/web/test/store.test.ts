@@ -31,7 +31,7 @@ describe("editor store", () => {
     s.getState().apply({ type: "setOverride", ref, locale: "de-DE", props: { content: "Hallo" } });
     s.getState().apply({ type: "setOverride", ref, locale: "de-DE", props: { content: "Servus" } });
     s.getState().undo();
-    expect(s.getState().doc.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { t: { content: "Hallo" } } });
+    expect(s.getState().doc.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { t: { content: "Hallo", origin: "manual" } } });
   });
 
   it("a gesture is one undo step however many moves it makes", () => {

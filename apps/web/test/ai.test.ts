@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
@@ -54,5 +55,18 @@ describe("AI job starters", () => {
     expect(await balance(db, s.ctx.workspaceId)).toBe(14);
     await startCopyVariants(s.ctx, boss, p.id);
     expect(await balance(db, s.ctx.workspaceId)).toBe(11);
+  });
+});
+
+describe("text limits", () => {
+  it("refuses to translate or rewrite more text than one job may send", async () => {
+    const s = await setup(50);
+    const p = await createProject(s.ctx, s.app.id, { name: "T", templateSlug: "amoura-dating" });
+    const row = (await db.select().from(schema.projects).where(eq(schema.projects.id, p.id)))[0]!;
+    const doc = row.doc as { groups: Array<{ boards: Array<{ elements: Array<{ type: string; content?: string }> }> }> };
+    for (const el of doc.groups[0]!.boards[0]!.elements) if (el.type === "text") el.content = "w".repeat(25_000);
+    await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
+    await expect(startTranslate(s.ctx, boss, p.id, { locales: ["de-DE"] })).rejects.toMatchObject({ code: "too_much_text" });
+    await expect(startCopyVariants(s.ctx, boss, p.id)).rejects.toMatchObject({ code: "too_much_text" });
   });
 });

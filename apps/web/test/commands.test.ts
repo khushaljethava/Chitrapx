@@ -69,11 +69,11 @@ describe("commands", () => {
 
   it("locale overrides: set, reset, and screenshots per locale; base untouched", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } });
-    expect(d.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { a: { content: "Hallo" } } });
+    expect(d.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { a: { content: "Hallo", origin: "manual" } } });
     expect(findElement(d, r("a"))).toMatchObject({ content: "a" });
     d = applyCommand(d, { type: "setScreenshot", ref: r("a"), src: "asset:x", locale: "de-DE" });
-    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", screenshotSrc: "asset:x" });
-    d = applyCommand(d, { type: "resetOverride", ref: r("a"), locale: "de-DE", keys: ["content", "screenshotSrc"] });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", origin: "manual", screenshotSrc: "asset:x" });
+    d = applyCommand(d, { type: "resetOverride", ref: r("a"), locale: "de-DE", keys: ["content", "origin", "screenshotSrc"] });
     expect(d.groups[0]!.boards[0]!.localized).toEqual({});
     d = applyCommand(d, { type: "setScreenshot", ref: r("a"), src: "asset:y" });
     expect(findElement(d, r("a"))).toMatchObject({ screenshotSrc: "asset:y", screenshotRect: { left: 0, top: 0, width: 100, height: 100 } });
@@ -115,7 +115,7 @@ describe("review fixes", () => {
   it("duplicating an element copies its translations to the copy", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } });
     d = applyCommand(d, { type: "duplicateElements", refs: [r("a")], newIds: ["a2"], offset: 10 });
-    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo" });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo", origin: "manual" });
   });
 });
 
@@ -125,5 +125,13 @@ describe("variant sets", () => {
     d = applyCommand(d, { type: "duplicateGroupAsVariant", groupId: "g", newGroupId: "gC" });
     expect(d.groups.map((g) => [g.id, g.target, g.variant])).toEqual([["g", "iphone-6.9", undefined], ["gB", "iphone-6.9", "B"], ["gC", "iphone-6.9", "C"]]);
     expect(d.groups[1]!.boards.map((b) => b.id)).not.toEqual(d.groups[0]!.boards.map((b) => b.id));
+  });
+});
+
+describe("hand-edited translations", () => {
+  it("typing over a machine translation marks it manual so a later translate keeps it", () => {
+    let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo", origin: "auto" } });
+    d = applyCommand(d, { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Servus" } });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Servus", origin: "manual" });
   });
 });

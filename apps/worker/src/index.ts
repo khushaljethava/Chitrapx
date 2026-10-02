@@ -1,7 +1,7 @@
 import { PgBoss } from "pg-boss";
 import { grantMonthlyCredits, pool, type JobType } from "@chitrapx/db";
-import { handlers } from "./handlers.ts";
-import { runJob } from "./runJob.ts";
+import { cleanups, handlers } from "./handlers.ts";
+import { runJob, sweepAbandonedJobs } from "./runJob.ts";
 
 const boss = new PgBoss(process.env.DATABASE_URL!);
 boss.on("error", (err) => console.error("[pg-boss]", err));
@@ -11,7 +11,7 @@ for (const type of Object.keys(handlers) as JobType[]) {
   await boss.createQueue(type);
   // ponytail: one process, 4 concurrent jobs per type; scale by running more worker containers.
   await boss.work<{ jobId: string }>(type, { localConcurrency: 4, pollingIntervalSeconds: 1 }, async (jobs) => {
-    for (const job of jobs) await runJob(job.data.jobId, handlers[type]);
+    for (const job of jobs) await runJob(job.data.jobId, handlers[type], cleanups[type]);
   });
 }
 
@@ -19,6 +19,13 @@ await boss.createQueue("grant_monthly_credits");
 await boss.schedule("grant_monthly_credits", "0 3 * * *");
 await boss.work("grant_monthly_credits", async () => {
   console.log(`[grants] ${await grantMonthlyCredits()} workspaces granted`);
+});
+
+await boss.createQueue("sweep_abandoned_jobs");
+await boss.schedule("sweep_abandoned_jobs", "*/5 * * * *");
+await boss.work("sweep_abandoned_jobs", async () => {
+  const n = await sweepAbandonedJobs(cleanups);
+  if (n) console.log(`[sweep] failed and refunded ${n} abandoned jobs`);
 });
 
 console.log(`[worker] ready: ${Object.keys(handlers).join(", ")}`);
@@ -29,7 +36,8 @@ for (const signal of ["SIGTERM", "SIGINT"] as const) {
     if (stopping) return;
     stopping = true;
     console.log(`[worker] ${signal}, finishing in-flight jobs`);
-    await boss.stop({ graceful: true, timeout: 30_000 });
+    // AI designs can take a couple of minutes; give in-flight jobs time to finish on deploys.
+    await boss.stop({ graceful: true, timeout: 180_000 });
     await pool.end();
     process.exit(0);
   });

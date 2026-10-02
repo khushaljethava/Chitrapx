@@ -148,7 +148,11 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         const byLocale = (b.localized ??= {});
         const byEl = (byLocale[cmd.locale] ??= {});
         const current = (byEl[cmd.ref.elementId] ??= {}) as Record<string, unknown>;
-        if (cmd.type === "setOverride") Object.assign(current, cmd.props);
+        if (cmd.type === "setOverride") {
+          Object.assign(current, cmd.props);
+          // A person typed this: machine translation must never overwrite it.
+          if ("content" in cmd.props && !("origin" in cmd.props)) current.origin = "manual";
+        }
         else for (const k of cmd.keys) delete current[k];
         if (!Object.keys(current).length) delete byEl[cmd.ref.elementId];
         if (!Object.keys(byEl).length) delete byLocale[cmd.locale];

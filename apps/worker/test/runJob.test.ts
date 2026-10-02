@@ -32,7 +32,7 @@ describe("runJob", () => {
   it("transient error rethrows so pg-boss retries, and does not refund", async () => {
     const { ws, jobId } = await reservedJob();
     await expect(runJob(jobId, async () => { throw new Error("overloaded"); })).rejects.toThrow("overloaded");
-    expect(await jobRow(jobId)).toMatchObject({ status: "running", attempts: 1 });
+    expect(await jobRow(jobId)).toMatchObject({ status: "queued", attempts: 1 });
     expect(await balance(db, ws)).toBe(9);
   });
 
@@ -53,19 +53,69 @@ describe("runJob", () => {
     expect(await balance(db, ws)).toBe(9);
   });
 
-  it("overlapping deliveries of one job end it once, never settle plus refund", async () => {
-    const { ws, jobId } = await reservedJob(MAX_ATTEMPTS - 2);
+  it("overlapping deliveries: the second never runs while the first is live, and the job ends once", async () => {
+    const { ws, jobId } = await reservedJob();
     let release!: () => void;
     const gate = new Promise<void>((r) => { release = r; });
-    // Delivery 1 is slow and succeeds; delivery 2 (a redelivery) fails on its last attempt.
     const slow = runJob(jobId, async () => { await gate; return { actual: 1 }; });
     await new Promise((r) => setTimeout(r, 50));
-    await runJob(jobId, async () => { throw new Error("overloaded"); });
+    let secondRan = false;
+    await runJob(jobId, async () => { secondRan = true; throw new Error("overloaded"); });
     release();
     await slow;
+    expect(secondRan).toBe(false);
     const finals = await db.select().from(schema.creditLedger).where(eq(schema.creditLedger.jobId, jobId));
     expect(finals.filter((r) => r.reason === "settle" || r.reason === "refund")).toHaveLength(1);
-    expect(await jobRow(jobId)).toMatchObject({ status: "failed" });
+    expect(await jobRow(jobId)).toMatchObject({ status: "done" });
+    expect(await balance(db, ws)).toBe(9);
+  });
+
+});
+
+describe("review fixes", () => {
+  it("a transient failure puts the job back in the queue; a fresh running job is never claimed twice", async () => {
+    const { jobId } = await reservedJob();
+    await expect(runJob(jobId, async () => { throw new Error("overloaded"); })).rejects.toThrow();
+    expect(await jobRow(jobId)).toMatchObject({ status: "queued", attempts: 1 });
+    await db.update(schema.jobs).set({ status: "running", startedAt: new Date() }).where(eq(schema.jobs.id, jobId));
+    let ran = false;
+    await runJob(jobId, async () => { ran = true; return { actual: 1 }; });
+    expect(ran).toBe(false);
+  });
+
+  it("a running job abandoned past its expiry can be claimed again", async () => {
+    const { jobId } = await reservedJob();
+    await db.update(schema.jobs).set({ status: "running", startedAt: new Date(Date.now() - 60 * 60_000) }).where(eq(schema.jobs.id, jobId));
+    await runJob(jobId, async () => ({ actual: 1 }));
+    expect(await jobRow(jobId)).toMatchObject({ status: "done" });
+  });
+
+  it("validation errors are deterministic: fail at once and refund", async () => {
+    const { ws, jobId } = await reservedJob();
+    const { z } = await import("zod");
+    await runJob(jobId, async () => { z.object({ a: z.string() }).parse({}); return { actual: 1 }; });
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", attempts: 1 });
     expect(await balance(db, ws)).toBe(10);
+  });
+
+  it("runs the failure cleanup inside the refund transaction", async () => {
+    const { jobId } = await reservedJob();
+    let cleaned: string | null = null;
+    await runJob(jobId, async () => { throw new FatalJobError("x"); }, async (_tx, job) => { cleaned = job.id; });
+    expect(cleaned).toBe(jobId);
+  });
+});
+
+describe("sweepAbandonedJobs", () => {
+  it("fails and refunds jobs left running long past expiry, and leaves fresh ones", async () => {
+    const { sweepAbandonedJobs } = await import("../src/runJob.ts");
+    const old = await reservedJob();
+    const fresh = await reservedJob();
+    await db.update(schema.jobs).set({ status: "running", startedAt: new Date(Date.now() - 2 * 3600_000) }).where(eq(schema.jobs.id, old.jobId));
+    await db.update(schema.jobs).set({ status: "running", startedAt: new Date() }).where(eq(schema.jobs.id, fresh.jobId));
+    await sweepAbandonedJobs();
+    expect(await jobRow(old.jobId)).toMatchObject({ status: "failed", error: "abandoned" });
+    expect(await balance(db, old.ws)).toBe(10);
+    expect((await jobRow(fresh.jobId)).status).toBe("running");
   });
 });

@@ -34,15 +34,16 @@ export const COPY_SYSTEM = `You write the text for every text slot of an App Sto
 ${STYLE}
 Each slot has an id, a role (its name in the design), the template's sample text and a maximum length. Keep the shape of the sample: if a headline is split across several slots (for example an accent word in its own slot), split yours the same way so the design still reads naturally. Ratings, badges and small labels stay short and plausible; never invent statistics, awards or press quotes, and replace sample ones with neutral, truthful wording. Return text for every slot.`;
 
-export function copyPrompt(app: AppBrief, insights: ScreenInsight[], order: number[], slots: TextSlot[][]): string {
+/** `perBoard[i]` lists positions in `order` shown on board i (none, one, or several devices). */
+export function copyPrompt(app: AppBrief, insights: ScreenInsight[], order: number[], perBoard: number[][], slots: TextSlot[][]): string {
   return `App: ${app.name}
 Description: ${app.description || "(none)"}
 Brief: ${app.brief || "(none)"}
 
-Boards in order. Board i shows screenshot order[i] (if the template has a device there).
+Boards in order, with the screenshots each one shows.
 ${slots.map((board, i) => {
-    const shot = insights[order[i] ?? -1];
-    return `Board ${i}${shot ? ` shows: ${shot.summary} (feature: ${shot.feature})` : ""}
+    const shots = (perBoard[i] ?? []).map((k) => insights[order[k] ?? -1]).filter((s): s is ScreenInsight => !!s);
+    return `Board ${i}${shots.length ? ` shows: ${shots.map((s) => `${s.summary} (feature: ${s.feature})`).join("; ")}` : " shows no screenshot"}
 ${board.map((s) => `  - id "${s.id}", role "${s.role}", max ${s.maxChars} chars, sample: ${JSON.stringify(s.text)}`).join("\n")}`;
   }).join("\n\n")}`;
 }

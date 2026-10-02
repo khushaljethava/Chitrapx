@@ -21,9 +21,10 @@ export function CopyIdeas() {
     setState("working");
     try {
       const { jobId } = await api<{ jobId: string }>(`/api/projects/${projectId}/copy-variants`, "POST");
-      for (let i = 0; i < 90; i++) {
+      // Follows this one job (not a recent-jobs list) for as long as the job may run.
+      for (let i = 0; i < 330; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const job = (await api<Job[]>(`/api/projects/${projectId}/jobs`)).find((j) => j.id === jobId);
+        const job = await api<Job>(`/api/jobs/${jobId}`);
         if (job?.status === "done") { setVariants(job.output?.variants ?? []); setState("ready"); return; }
         if (job?.status === "failed") throw new Error(jobError(job.error));
       }

@@ -152,3 +152,47 @@ describe("ai_copy", () => {
     expect((await projectRow(s.project.id)).revision).toBe(0);
   });
 });
+
+describe("review fixes", () => {
+  it("a failed design removes the empty project it was created for", async () => {
+    const { cleanupFailedDesign } = await import("../src/ai/jobs.ts");
+    const s = await setup(2);
+    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : { templateSlug: "made-up", screenshotOrder: [0], reasoning: "" }));
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)), cleanupFailedDesign);
+    expect(await db.select().from(schema.projects).where(eq(schema.projects.id, s.project.id))).toEqual([]);
+  });
+
+  it("design copy that misses most slots fails and refunds instead of charging for sample text", async () => {
+    const s = await setup(2);
+    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "" } : { boards: [{ boardIndex: 0, texts: [{ id: "nope", text: "x" }] }] }));
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
+    expect(await balance(db, s.ws)).toBe(30);
+  });
+
+  it("translate charges only for languages it translated and fails when nothing usable came back", async () => {
+    const s = await setup(1);
+    const [t] = await db.select().from(schema.templates).where(eq(schema.templates.slug, "amoura-dating"));
+    await db.update(schema.projects).set({ doc: migrate(t!.doc) }).where(eq(schema.projects.id, s.project.id));
+    const empty = fakeModel(() => ({ texts: [{ id: "nope", text: "x" }] }));
+    const bad = await queue(s.ws, s.project.id, "ai_translate", { locales: ["de-DE"] }, 2);
+    await runJob(bad, (input, job) => runAiTranslate(input, job, deps(empty.model)));
+    expect(await jobRow(bad)).toMatchObject({ status: "failed", error: "ai_incomplete" });
+    expect(await balance(db, s.ws)).toBe(30);
+  });
+
+  it("a cached insight that no longer validates is re-analysed, not fatal", async () => {
+    const s = await setup(1);
+    await db.insert(schema.screenInsights).values({ workspaceId: s.ws, sha256: s.assets[0]!.sha256, insight: { old: true }, model: "x" });
+    const slots = await amouraSlots();
+    const { model, calls } = fakeModel((req) => req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+      ? { templateSlug: "amoura-dating", screenshotOrder: [0], reasoning: "" }
+      : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: "ok" })) })) });
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect((await jobRow(jobId)).status).toBe("done");
+    expect(calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(1);
+  });
+});

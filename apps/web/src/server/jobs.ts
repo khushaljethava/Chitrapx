@@ -37,6 +37,17 @@ export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, r
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { locales } }));
 }
 
+/** One job of this workspace (for following a specific job's progress). */
+export async function getJob(ctx: Ctx, jobId: string): Promise<JobSummary> {
+  if (!z.uuid().safeParse(jobId).success) throw notFound();
+  const [job] = await db.select({
+    id: schema.jobs.id, type: schema.jobs.type, status: schema.jobs.status, error: schema.jobs.error,
+    createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output,
+  }).from(schema.jobs).where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.workspaceId, ctx.workspaceId)));
+  if (!job) throw notFound();
+  return job;
+}
+
 /** A short-lived download link for a finished export in this workspace. */
 export async function exportDownloadUrl(ctx: Ctx, storage: Pick<ObjectStorage, "signedDownload">, jobId: string): Promise<string> {
   if (!z.uuid().safeParse(jobId).success) throw notFound();

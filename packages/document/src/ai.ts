@@ -65,6 +65,18 @@ export function allTexts(doc: ChitrapxDoc): SlotText[] {
  * repeated indices dropped, missing ones appended), and copy only into slots that exist as text
  * on that board, trimmed and capped to the slot's budget.
  */
+/**
+ * Which screenshots (positions in the ordered list) each board of the first group shows, walking
+ * empty device screens exactly as fillScreenshots does: board by board, left to right.
+ */
+export function screenshotsPerBoard(doc: ChitrapxDoc, n: number): number[][] {
+  let next = 0;
+  return (doc.groups[0]?.boards ?? []).map((b) => b.elements
+    .filter((e) => (e.type === "device" || e.type === "video-device") && !(e as { screenshotSrc?: string }).screenshotSrc)
+    .sort((a, z) => a.position.x - z.position.x)
+    .flatMap(() => (next < n ? [next++] : [])));
+}
+
 /** A usable screenshot order: valid, unique indices first, then any the model left out. */
 export function repairOrder(order: number[], n: number): number[] {
   const out = [...new Set(order.filter((i) => Number.isInteger(i) && i >= 0 && i < n))];
@@ -103,7 +115,7 @@ export function applyTexts(doc: ChitrapxDoc, texts: SlotText[]): ChitrapxDoc {
  * Writes machine translations as locale overrides marked `origin: "auto"` and adds the language.
  * A slot a person already translated (an override with content and no `origin: "auto"`) is kept.
  */
-export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotText[]): ChitrapxDoc {
+export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotText[], sources?: Map<string, string>): ChitrapxDoc {
   if (locale === doc.localization.baseLocale) return doc;
   const byId = new Map(texts.map((t) => [t.id, t.text.trim()]));
   return produce(doc, (d) => {
@@ -111,10 +123,13 @@ export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotT
     for (const g of d.groups) for (const b of g.boards) for (const e of b.elements) {
       const text = byId.get(e.id);
       if (text === undefined || e.type !== "text") continue;
+      const base = (e as TextElementProps).content ?? "";
+      // The base text changed while the translation ran: this translation is of old words.
+      if (sources && sources.has(e.id) && sources.get(e.id) !== base) continue;
       const byEl = ((b.localized ??= {})[locale] ??= {});
       const current = byEl[e.id];
       if (current?.content !== undefined && current.origin !== "auto") continue; // a person wrote this
-      byEl[e.id] = { ...current, content: text, origin: "auto" };
+      byEl[e.id] = { ...current, content: text.slice(0, budget(base)), origin: "auto" };
     }
   });
 }

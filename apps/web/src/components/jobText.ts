@@ -8,6 +8,10 @@ const MESSAGES: Record<string, string> = {
   nothing_to_translate: "There is no text to translate yet.",
   nothing_to_rewrite: "There is no text to rewrite yet.",
   project_is_empty: "This project has no boards yet.",
+  ai_incomplete: "The AI answer was incomplete. Please try again.",
+  ai_output_invalid: "The AI answer could not be used. Please try again.",
+  too_much_text: "There is too much text to send to the AI at once. Shorten or split the project.",
+  abandoned: "The job stopped unexpectedly.",
 };
 export function jobError(error: string | null | undefined): string {
   if (!error) return "Something went wrong.";

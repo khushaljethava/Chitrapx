@@ -93,7 +93,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   /** Text and font follow the language being edited; everything else is shared by all languages. */
   const setLocalizable = (key: "content" | "fontFamily", value: string) =>
     localized ? store.getState().apply({ type: "setOverride", ref: refr, locale, props: { [key]: value } }) : set({ [key]: value });
-  const reset = (key: string) => store.getState().apply({ type: "resetOverride", ref: refr, locale, keys: [key] });
+  const reset = (key: string) => store.getState().apply({ type: "resetOverride", ref: refr, locale, keys: key === "content" ? ["content", "origin"] : [key] });
   const OverrideNote = ({ k }: { k: string }) => localized && (override as Record<string, unknown> | undefined)?.[k] !== undefined
     ? <button type="button" className="text-xs text-indigo-600 hover:underline" onClick={() => reset(k)}>{locale} override. Reset to {base}</button> : null;
   const sz = { w: el.size.width * (el.scale || 1), h: el.size.height * (el.scale || 1) };

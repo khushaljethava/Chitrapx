@@ -2,13 +2,13 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db, priceFor, PRICES, schema, withTx } from "@chitrapx/db";
+import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, repairOrder, screenInsightSchema, slotCopySchema,
+  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
   type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
 } from "@chitrapx/document";
-import { FatalJobError, type JobContext } from "../runJob.ts";
+import { FatalJobError, type FailureCleanup, type JobContext } from "../runJob.ts";
 import { imageBlock } from "./images.ts";
 import { MODELS, sumUsage, type StructuredModel, type Usage } from "./model.ts";
 import {
@@ -19,6 +19,16 @@ import {
 export type AiDeps = { model: StructuredModel; loadAsset: (workspaceId: string, sha256: string) => Promise<Buffer> };
 
 const MAX_SCREENSHOTS = 10;
+/** Share of requested slots a model answer must cover to count as done. */
+const MIN_COVERAGE = 0.8;
+/** Text sent to the model per job; the web checks this first, this guards direct queueing. */
+export const MAX_TEXT_CHARS = 20_000;
+
+/** A design that failed for good leaves no empty project behind (only if nobody saved into it). */
+export const cleanupFailedDesign: FailureCleanup = async (tx: Db, job) => {
+  if (!job.projectId) return;
+  await tx.delete(schema.projects).where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId), eq(schema.projects.revision, 0)));
+};
 let catalogCache: CatalogEntry[] | null = null;
 const catalog = () => (catalogCache ??= JSON.parse(readFileSync(join(import.meta.dirname, "../../../../packages/assets/catalog.json"), "utf8")) as CatalogEntry[]);
 
@@ -55,14 +65,16 @@ async function insightsFor(job: JobContext, assets: Array<{ sha256: string }>, d
   for (const a of assets) {
     const [cached] = await db.select().from(schema.screenInsights)
       .where(and(eq(schema.screenInsights.workspaceId, job.workspaceId), eq(schema.screenInsights.sha256, a.sha256)));
-    if (cached) { out.push(screenInsightSchema.parse(cached.insight)); continue; }
+    const valid = cached && screenInsightSchema.safeParse(cached.insight);
+    if (valid && valid.success) { out.push(valid.data); continue; } // an outdated cache entry is re-analysed below
     const image = await imageBlock(await deps.loadAsset(job.workspaceId, a.sha256));
     const { data, usage: u } = await deps.model.generate({
       model: MODELS.fast, system: ANALYZE_SYSTEM, schema: screenInsightSchema, maxTokens: 2000,
       content: [image, { type: "text", text: "Describe this screenshot." }],
     });
     usage.push(u);
-    await db.insert(schema.screenInsights).values({ workspaceId: job.workspaceId, sha256: a.sha256, insight: data, model: u.model }).onConflictDoNothing();
+    await db.insert(schema.screenInsights).values({ workspaceId: job.workspaceId, sha256: a.sha256, insight: data, model: u.model })
+      .onConflictDoUpdate({ target: [schema.screenInsights.workspaceId, schema.screenInsights.sha256], set: { insight: data, model: u.model } });
     out.push(data);
   }
   return out;
@@ -97,9 +109,13 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
 
   const copy = await deps.model.generate({
     model: MODELS.writer, system: COPY_SYSTEM, schema: slotCopySchema, effort: "medium",
-    content: [{ type: "text", text: copyPrompt(brief, insights, order, textSlots(templateDoc)) }],
+    content: [{ type: "text", text: copyPrompt(brief, insights, order, screenshotsPerBoard(templateDoc, assets.length), textSlots(templateDoc)) }],
   });
   usage.push(copy.usage);
+  // Charging for a template full of sample copy would be wrong: most slots must be written.
+  const slotIds = new Set(textSlots(templateDoc).flat().map((x) => x.id));
+  const written = new Set(copy.data.boards.flatMap((b) => b.texts.map((x) => x.id)).filter((id) => slotIds.has(id)));
+  if (slotIds.size && written.size < slotIds.size * MIN_COVERAGE) throw new FatalJobError("ai_incomplete");
 
   const designed = { ...applyDesign(templateDoc, { screenshotOrder: order, boards: copy.data.boards }, assets.map((a) => a.id)), brand: { appId: app.id } };
   await updateProjectDoc(job, () => designed);
@@ -116,6 +132,7 @@ export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps
   const { doc, appName } = await projectDoc(job);
   const texts = allTexts(doc).filter((t) => t.text.trim());
   if (!texts.length) throw new FatalJobError("nothing_to_translate");
+  if (texts.reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw new FatalJobError("too_much_text");
   const glossary = [appName].filter(Boolean);
 
   const usage: Usage[] = [];
@@ -128,11 +145,17 @@ export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps
     });
     usage.push(u);
     const known = new Set(texts.map((t) => t.id));
-    results.push({ locale, texts: data.texts.filter((t) => known.has(t.id)) });
+    const usable = data.texts.filter((t) => known.has(t.id) && t.text.trim());
+    if (usable.length < texts.length * MIN_COVERAGE) continue; // not charged; reported below
+    results.push({ locale, texts: usable });
   }
-  // Applied to the latest document under the lock, so edits made while translating are kept.
-  await updateProjectDoc(job, (current) => results.reduce((d, r) => applyTranslations(d, r.locale, r.texts), current));
-  return { actual: priceFor("ai_translate", input.data), output: { locales: results.map((r) => r.locale), usage: sumUsage(usage) } };
+  if (!results.length) throw new FatalJobError("ai_incomplete");
+  // Applied to the latest document under the lock: edits made meanwhile are kept, and a slot whose
+  // base text changed while translating is skipped rather than given a stale translation.
+  const sources = new Map(texts.map((t) => [t.id, t.text]));
+  await updateProjectDoc(job, (current) => results.reduce((d, r) => applyTranslations(d, r.locale, r.texts, sources), current));
+  const skipped = input.data.locales.filter((l) => !results.some((r) => r.locale === l));
+  return { actual: PRICES.ai_translate * results.length, output: { locales: results.map((r) => r.locale), skipped, usage: sumUsage(usage) } };
 }
 
 /** Three alternative copy sets; the editor applies one. Never changes the document itself. */
@@ -140,6 +163,7 @@ export async function runAiCopy(_raw: unknown, job: JobContext, deps: AiDeps) {
   const { doc, appName } = await projectDoc(job);
   const texts = allTexts(doc).filter((t) => t.text.trim());
   if (!texts.length) throw new FatalJobError("nothing_to_rewrite");
+  if (texts.reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw new FatalJobError("too_much_text");
   const { data, usage } = await deps.model.generate({
     model: MODELS.writer, system: VARIANTS_SYSTEM, schema: variantsSchema, effort: "medium",
     content: [{ type: "text", text: variantsPrompt(appName, texts) }],

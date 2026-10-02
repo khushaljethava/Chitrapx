@@ -33,9 +33,9 @@ export function anthropicModel(client = new Anthropic()): StructuredModel {
       const isWriter = req.model === MODELS.writer;
       const system: Anthropic.Beta.BetaTextBlockParam[] = [{ type: "text", text: req.system }];
       if (req.cachedContext) system.push({ type: "text", text: req.cachedContext, cache_control: { type: "ephemeral" } });
-      let res;
+      let res: Anthropic.Beta.BetaMessage;
       try {
-        res = await client.beta.messages.parse({
+        res = await client.beta.messages.create({
           model: req.model,
           max_tokens: req.maxTokens ?? 16000,
           system,
@@ -45,18 +45,23 @@ export function anthropicModel(client = new Anthropic()): StructuredModel {
           ...(isWriter ? { betas: ["server-side-fallback-2026-07-01"], fallbacks: "default" as const } : {}),
         });
       } catch (err) {
-        if (err instanceof Anthropic.BadRequestError || err instanceof Anthropic.AuthenticationError
-          || err instanceof Anthropic.PermissionDeniedError || err instanceof Anthropic.NotFoundError) {
-          throw new FatalJobError(`ai_request_rejected: ${err.message}`);
-        }
+        const deterministic = err instanceof Anthropic.BadRequestError || err instanceof Anthropic.AuthenticationError
+          || err instanceof Anthropic.PermissionDeniedError || err instanceof Anthropic.NotFoundError
+          || err instanceof Anthropic.UnprocessableEntityError || (err instanceof Anthropic.APIError && err.status === 413);
+        if (deterministic) throw new FatalJobError(`ai_request_rejected: ${(err as Error).message}`);
         throw err; // rate limits, overload, 5xx, network: let the job retry
       }
+      // Stop reasons first: a refusal or a truncated answer would only repeat (and be paid for) on retry.
       if (res.stop_reason === "refusal") throw new FatalJobError("ai_refused");
       if (res.stop_reason === "max_tokens") throw new FatalJobError("ai_output_too_long");
-      if (res.parsed_output == null) throw new Error("ai_output_unparseable"); // transient: retry
+      const text = res.content.filter((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text").map((b) => b.text).join("");
+      let json: unknown;
+      try { json = JSON.parse(text); } catch { throw new FatalJobError("ai_output_invalid"); }
+      const parsed = req.schema.safeParse(json);
+      if (!parsed.success) throw new FatalJobError("ai_output_invalid");
       const u = res.usage;
       return {
-        data: res.parsed_output as T,
+        data: parsed.data,
         usage: { model: res.model, input: u.input_tokens, output: u.output_tokens, cacheRead: u.cache_read_input_tokens ?? 0, cacheWrite: u.cache_creation_input_tokens ?? 0 },
       };
     },
