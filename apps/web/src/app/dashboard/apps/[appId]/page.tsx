@@ -8,12 +8,15 @@ import { getApp } from "@/server/apps.ts";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { listProjects } from "@/server/projects.ts";
+import { supabaseStorage } from "@/server/storage.ts";
+import { listAssets } from "@/server/uploads.ts";
+import { UploadGrid } from "@/components/UploadGrid.tsx";
 
 export default async function AppPage({ params }: { params: Promise<{ appId: string }> }) {
   const ctx = await requireContext();
   const { appId } = await params;
   const app = await getApp(ctx, appId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const projects = await listProjects(ctx, app.id);
+  const [projects, assets] = await Promise.all([listProjects(ctx, app.id), listAssets(ctx, supabaseStorage(), app.id)]);
   return (
     <>
       <div className="flex items-center justify-between">
@@ -24,6 +27,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
         <DeleteAppButton appId={app.id} />
       </div>
       <ProjectList appId={app.id} projects={projects.map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt: updatedAt.toISOString() }))} maxProjects={PLANS[ctx.plan].maxProjects} />
+      <UploadGrid appId={app.id} logoAssetId={app.brand.logoAssetId} assets={assets.map(({ id, url, width, height }) => ({ id, url, width, height }))} />
       <BrandForm app={{ id: app.id, name: app.name, description: app.description, platformHint: app.platformHint, brand: app.brand }} />
     </>
   );
