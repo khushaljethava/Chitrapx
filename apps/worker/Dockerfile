@@ -9,4 +9,6 @@ RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
 COPY packages/db packages/db
 COPY apps/worker apps/worker
 ENV NODE_ENV=production
-CMD ["pnpm", "--filter", "@chitrapx/worker", "start"]
+WORKDIR /app/apps/worker
+# node is PID 1 so SIGTERM reaches the graceful shutdown handler directly.
+CMD ["node", "--import", "tsx", "src/index.ts"]
