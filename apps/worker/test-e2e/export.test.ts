@@ -61,6 +61,22 @@ describe("export", () => {
     expect(await balance(db, ws)).toBe(9);
   });
 
+  it("exports every board once per locale: 5 boards x 2 locales = 10 PNGs, translated text included", async () => {
+    const doc = await templateDoc("amoura-dating");
+    doc.localization = { baseLocale: "en-US", locales: [{ code: "de-DE" }] };
+    const b0 = doc.groups[0]!.boards[0]!;
+    const textId = b0.elements.find((e) => e.type === "text")!.id;
+    b0.localized = { "de-DE": { [textId]: { content: "Triff jemanden Echtes" } } };
+    const { ws, jobId } = await exportJob(doc);
+    await runJob(jobId, runExport);
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { files: 10 } });
+    const files = await zipFiles(ws, jobId);
+    expect(Object.keys(files).filter((f) => f.includes("/de-DE/"))).toHaveLength(5);
+    const en = files["ios/iphone-6.9/en-US/01-meet-someone-real.png"]!;
+    const de = files["ios/iphone-6.9/de-DE/01-meet-someone-real.png"]!;
+    expect(Buffer.compare(Buffer.from(en), Buffer.from(de))).not.toBe(0);
+  });
+
   it("fails by name and refunds when the document references a missing asset", async () => {
     const doc = await templateDoc("amoura-dating");
     const device = doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "device") as { screenshotSrc?: string };
