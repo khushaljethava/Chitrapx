@@ -9,6 +9,8 @@ export const PRICES = {
   ai_translate: 2,
   /** Three alternative copy sets. */
   ai_copy: 3,
+  /** One App Preview or social video. */
+  video: 3,
 } as const;
 
 export type JobType = keyof typeof PRICES;

@@ -3,6 +3,7 @@ import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
 import { runExport } from "./export.ts";
+import { runVideo } from "./video.ts";
 import { FatalJobError, type FailureCleanup, type JobHandler } from "./runJob.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -34,6 +35,7 @@ export const handlers: Record<JobType, JobHandler> = {
     return { actual: PRICES.noop, output: { ok: true } };
   },
   export: runExport,
+  video: runVideo,
   ai_design: (input, job) => runAiDesign(input, job, aiDeps()),
   ai_translate: (input, job) => runAiTranslate(input, job, aiDeps()),
   ai_copy: (input, job) => runAiCopy(input, job, aiDeps()),

@@ -108,6 +108,38 @@ describe("export", () => {
   });
 });
 
+describe("video", () => {
+  it("renders an App Preview MP4: H.264 886x1920 at 30 fps, 15 seconds, silent stereo AAC", async () => {
+    const { runVideo } = await import("../src/video.ts");
+    const { execFileSync } = await import("node:child_process");
+    const doc = await templateDoc("amoura-dating");
+    const ws = await makeWorkspace((await createUser()).id);
+    await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: 10, reason: "adjust" });
+    const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "V" }).returning();
+    const [project] = await db.insert(schema.projects).values({ workspaceId: ws, appId: app!.id, name: "V", kind: "video", doc }).returning();
+    const input = { groupId: doc.groups[0]!.id, format: "app-preview-portrait", secondsPerBoard: 3 };
+    const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId: project!.id, type: "video", creditsReserved: 3, input }).returning();
+    await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: -3, reason: "reserve", jobId: job!.id });
+    await runJob(job!.id, runVideo);
+    expect((await jobRow(job!.id)).status).toBe("done");
+
+    const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
+    const { data } = await storage.from(EXPORTS_BUCKET).download(`${ws}/${job!.id}.mp4`);
+    const file = join(GOLDEN, `../.video-test-${job!.id}.mp4`);
+    writeFileSync(file, Buffer.from(await data!.arrayBuffer()));
+    const probe = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_streams", "-show_format", "-of", "json", file]).toString());
+    const { unlinkSync } = await import("node:fs");
+    unlinkSync(file);
+    const v = probe.streams.find((s: { codec_type: string }) => s.codec_type === "video");
+    const a = probe.streams.find((s: { codec_type: string }) => s.codec_type === "audio");
+    expect(v).toMatchObject({ codec_name: "h264", width: 886, height: 1920, pix_fmt: "yuv420p", r_frame_rate: "30/1" });
+    expect(a).toMatchObject({ codec_name: "aac", channels: 2 });
+    expect(Number(probe.format.duration)).toBeGreaterThanOrEqual(14.9);
+    expect(Number(probe.format.duration)).toBeLessThanOrEqual(30.5);
+    expect(await balance(db, ws)).toBe(7);
+  }, 300_000);
+});
+
 describe("golden renders", () => {
   // A 2D phone set, a feature graphic and a 3D Mac board: the three renderer paths most likely to drift.
   for (const slug of ["amoura-dating", "fg-chat-connect", "mac-boardly"]) {

@@ -9,6 +9,8 @@ COPY apps/worker/package.json apps/worker/
 RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
 # Headless Chromium plus its system libraries, for exports.
 RUN cd apps/worker && pnpm exec playwright install --with-deps chromium
+# ffmpeg (libx264, AAC) for preview videos.
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && apt-get clean
 COPY packages/db packages/db
 COPY packages/document packages/document
 COPY packages/assets packages/assets

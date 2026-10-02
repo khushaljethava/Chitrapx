@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db, schema, verifyRenderSig } from "@chitrapx/db";
-import { exportPlan, migrate } from "@chitrapx/document";
+import { exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
 import { RenderSheet } from "@/components/RenderSheet.tsx";
+import { VideoSheet } from "@/components/VideoSheet.tsx";
 import { assetUrlMap } from "@/server/projects.ts";
 import { supabaseStorage } from "@/server/storage.ts";
 
@@ -21,13 +22,21 @@ export default async function RenderPage({ params, searchParams }: {
   const { exp, sig, items } = await searchParams;
   if (!verifyRenderSig(jobId, exp, sig)) notFound();
   const [job] = await db.select().from(schema.jobs)
-    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), eq(schema.jobs.type, "export")));
+    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), inArray(schema.jobs.type, ["export", "video"])));
   if (!job?.projectId) notFound();
   const [project] = await db.select().from(schema.projects)
     .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
   if (!project) notFound();
 
   const doc = migrate(project.doc);
+  if (job.type === "video") {
+    const input = job.input as { groupId?: string; locale?: string; format?: string; secondsPerBoard?: number };
+    const group = doc.groups.find((g) => g.id === input.groupId);
+    const format = VIDEO_FORMAT_IDS.includes(input.format as VideoFormat) ? (input.format as VideoFormat) : null;
+    if (!group || !format) notFound();
+    const urls = await assetUrlMap({ userId: "", workspaceId: job.workspaceId, plan: "free" }, supabaseStorage(), doc);
+    return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} />;
+  }
   const plan = exportPlan(doc, (job.input as { locales?: string[] }).locales);
   const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
   const assetUrls = await assetUrlMap({ userId: "", workspaceId: job.workspaceId, plan: "free" }, supabaseStorage(), doc);
