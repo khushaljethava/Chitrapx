@@ -39,9 +39,10 @@ describe("stripBoard", () => {
       ],
       localized: { "de-DE": { d: { screenshotSrc: "/data/projects/s-de.png" }, t: { content: "Hallo" } } },
     } as never;
-    const out = stripBoard(board, report) as unknown as Record<string, any>;
-    expect(out.elements.map((e: { id: string }) => e.id)).toEqual(["d", "t"]);
-    expect(out.elements[0].screenshotSrc).toBeUndefined();
+    type Out = { elements: Array<{ id: string; screenshotSrc?: string }>; backgroundImage?: string; position: unknown; localized: Record<string, unknown> };
+    const out = stripBoard(board, report) as unknown as Out;
+    expect(out.elements.map((e) => e.id)).toEqual(["d", "t"]);
+    expect(out.elements[0]!.screenshotSrc).toBeUndefined();
     expect(out.backgroundImage).toBeUndefined();
     expect(out.position).toEqual({ x: 0, y: 0 });
     expect(out.localized["de-DE"]).toEqual({ d: {}, t: { content: "Hallo" } });
