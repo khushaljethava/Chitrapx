@@ -1,10 +1,10 @@
-import { and, asc, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
 import { assetIdFromSrc, emptyDoc, fillScreenshots, migrate, projectKinds, type ChitrapxDoc } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
-import { badRequest, HttpError, notFound } from "./http.ts";
+import { badRequest, ConflictError, HttpError, notFound } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 import { getTemplate } from "./templates.ts";
 
@@ -100,4 +100,34 @@ export async function assetUrlMap(ctx: Ctx, storage: ObjectStorage, doc: Chitrap
     .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids)));
   const urls = await storage.signedUrls(rows.map((r) => `${ctx.workspaceId}/${r.sha256}`));
   return Object.fromEntries(rows.map((r, i) => [`asset:${r.id}`, urls[i]!]));
+}
+
+export const MAX_DOC_BYTES = 5 * 1024 * 1024;
+export const AUTO_SNAPSHOT_EVERY = 20;
+const saveInput = z.object({ doc: z.unknown(), revision: z.number().int().min(0) });
+
+/**
+ * Replaces the document only if the client edited the latest revision; otherwise 409 with the
+ * current revision so the client can choose. Every 20th revision is kept as a version.
+ */
+export async function saveDoc(ctx: Ctx, projectId: string, raw: unknown): Promise<{ revision: number }> {
+  valid(projectId);
+  const { doc: rawDoc, revision } = saveInput.parse(raw);
+  if (Buffer.byteLength(JSON.stringify(rawDoc ?? null)) > MAX_DOC_BYTES) throw new HttpError(413, "too_large", "This project is too large to save");
+  const doc = migrate(rawDoc);
+  return withTx(async ({ db: tx }) => {
+    const [row] = await tx.update(schema.projects)
+      .set({ doc, revision: sql`${schema.projects.revision} + 1`, updatedAt: new Date(), updatedBy: ctx.userId })
+      .where(and(own(ctx, projectId), eq(schema.projects.revision, revision)))
+      .returning({ revision: schema.projects.revision });
+    if (!row) {
+      const [current] = await tx.select({ revision: schema.projects.revision }).from(schema.projects).where(own(ctx, projectId));
+      if (!current) throw notFound();
+      throw new ConflictError(current.revision);
+    }
+    if (row.revision % AUTO_SNAPSHOT_EVERY === 0) {
+      await tx.insert(schema.projectVersions).values({ workspaceId: ctx.workspaceId, projectId, revision: row.revision, doc, createdBy: ctx.userId });
+    }
+    return { revision: row.revision };
+  });
 }
