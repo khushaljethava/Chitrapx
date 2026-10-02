@@ -129,6 +129,16 @@ export const creditLedger = pgTable("credit_ledger", {
   unique("credit_ledger_job_reason_uq").on(t.jobId, t.reason),
 ]);
 
+/** One analysis per screenshot per workspace (by content hash), reused by every AI design. */
+export const screenInsights = pgTable("screen_insights", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  sha256: text("sha256").notNull(),
+  insight: jsonb("insight").notNull(),
+  model: text("model").notNull(),
+  createdAt: createdAt(),
+}, (t) => [unique("screen_insights_ws_sha_uq").on(t.workspaceId, t.sha256)]);
+
 export const templates = pgTable("templates", {
   id: id(),
   slug: text("slug").notNull().unique(),

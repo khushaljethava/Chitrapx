@@ -10,14 +10,18 @@
     "test:e2e": "vitest run --config vitest.e2e.config.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
     "@chitrapx/db": "workspace:^",
     "@chitrapx/document": "workspace:^",
     "@supabase/supabase-js": "^2.117.2",
     "drizzle-orm": "^0.45.3",
     "fflate": "^0.8.3",
+    "immer": "^11.1.18",
     "pg-boss": "^12.35.1",
     "playwright": "^1.63.0",
-    "tsx": "^4.23.15"
+    "sharp": "^0.35.5",
+    "tsx": "^4.23.15",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/pngjs": "^6.0.5",

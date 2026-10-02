@@ -11,6 +11,7 @@ RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
 RUN cd apps/worker && pnpm exec playwright install --with-deps chromium
 COPY packages/db packages/db
 COPY packages/document packages/document
+COPY packages/assets packages/assets
 COPY apps/worker apps/worker
 ENV NODE_ENV=production
 WORKDIR /app/apps/worker

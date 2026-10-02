@@ -8,9 +8,11 @@
   "scripts": {
     "typecheck": "tsc",
     "test": "vitest run",
-    "import-osg": "tsx scripts/import-osg.ts"
+    "import-osg": "tsx scripts/import-osg.ts",
+    "gen-catalog": "tsx scripts/gen-catalog.ts"
   },
   "dependencies": {
+    "immer": "^11.1.18",
     "zod": "^4.6.5"
   },
   "devDependencies": {

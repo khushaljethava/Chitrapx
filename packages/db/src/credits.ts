@@ -1,7 +1,7 @@
 import { eq, sql } from "drizzle-orm";
 import type { PgBoss } from "pg-boss";
 import { schema, type Db, type Tx } from "./client.ts";
-import { PRICES, type JobType } from "./pricing.ts";
+import { priceFor, type JobType } from "./pricing.ts";
 
 export class InsufficientCreditsError extends Error {
   constructor() { super("insufficient credits"); }
@@ -9,7 +9,7 @@ export class InsufficientCreditsError extends Error {
 
 export const RETRY = { retryLimit: 3, retryDelay: 2, retryBackoff: true } as const;
 /** pg-boss redelivers a job still running after this long; must exceed the slowest healthy run. */
-const EXPIRE_SECONDS: Partial<Record<JobType, number>> = { export: 1800 };
+const EXPIRE_SECONDS: Partial<Record<JobType, number>> = { export: 1800, ai_design: 900, ai_translate: 900, ai_copy: 600 };
 
 export async function balance(db: Db, workspaceId: string): Promise<number> {
   const r = await db.execute<{ s: number }>(
@@ -28,7 +28,7 @@ export async function reserveAndEnqueue(
   boss: PgBoss,
   a: { workspaceId: string; projectId?: string | null; type: JobType; input: unknown },
 ): Promise<{ jobId: string }> {
-  const cost = PRICES[a.type];
+  const cost = priceFor(a.type, a.input);
   await lockWorkspace(tx.db, a.workspaceId);
   const [job] = await tx.db.insert(schema.jobs).values({
     workspaceId: a.workspaceId, projectId: a.projectId ?? null, type: a.type, input: a.input ?? {}, creditsReserved: cost,

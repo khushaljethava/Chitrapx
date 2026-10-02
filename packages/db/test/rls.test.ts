@@ -16,6 +16,7 @@ async function seedWorkspace(): Promise<Ids> {
   await pool.query("insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'screenshot', 'p', 'image/png', 1, $3)", [ws, app, randomUUID()]);
   await pool.query("insert into jobs (workspace_id, type, credits_reserved) values ($1, 'noop', 1)", [ws]);
   await pool.query("insert into credit_ledger (workspace_id, delta, reason) values ($1, 50, 'plan_grant')", [ws]);
+  await pool.query("insert into screen_insights (workspace_id, sha256, insight, model) values ($1, $2, '{}', 'm')", [ws, randomUUID()]);
   return { user, ws, app, project };
 }
 
@@ -33,6 +34,7 @@ const cases: Case[] = [
   { table: "project_versions", where: (b) => `workspace_id = '${b.ws}'`, set: "label = 'x'", insert: (b) => ["insert into project_versions (workspace_id, project_id, revision, doc) values ($1, $2, 2, '{}')", [b.ws, b.project]] },
   { table: "assets", where: (b) => `workspace_id = '${b.ws}'`, set: "mime = 'x'", insert: (b) => ["insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'image', 'p', 'image/png', 1, $3)", [b.ws, b.app, randomUUID()]] },
   { table: "jobs", where: (b) => `workspace_id = '${b.ws}'`, set: "attempts = 9", insert: (b) => ["insert into jobs (workspace_id, type, credits_reserved) values ($1, 'noop', 1)", [b.ws]] },
+  { table: "screen_insights", where: (b) => `workspace_id = '${b.ws}'`, set: "model = 'x'", insert: (b) => ["insert into screen_insights (workspace_id, sha256, insight, model) values ($1, $2, '{}', 'm')", [b.ws, randomUUID()]] },
   { table: "credit_ledger", where: (b) => `workspace_id = '${b.ws}'`, set: "delta = 0", insert: (b) => ["insert into credit_ledger (workspace_id, delta, reason) values ($1, 1000, 'adjust')", [b.ws]] },
 ];
 

@@ -75,3 +75,12 @@ describe("credits", () => {
     expect(await balance(db, ws)).toBe(0);
   });
 });
+
+describe("priceFor", () => {
+  it("charges translation per language and everything else flat", async () => {
+    const { priceFor } = await import("../src/pricing.ts");
+    expect(priceFor("ai_translate", { locales: ["de-DE", "fr-FR"] })).toBe(4);
+    expect(priceFor("ai_translate", {})).toBe(2);
+    expect(priceFor("ai_design", { anything: 1 })).toBe(10);
+  });
+});
