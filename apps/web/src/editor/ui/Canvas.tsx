@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/document";
+import { foldCount, MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/document";
 import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
@@ -166,6 +166,10 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
             ))}
           </div>
           <div ref={layer} className="absolute inset-0 touch-none" onPointerDown={onBackground} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+            {group.boards.slice(0, foldCount(group.target)).map((b, i) => (
+              <span key={`fold-${b.id}`} className="pointer-events-none absolute -top-6 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-medium text-white" style={{ left: i * boardW * zoom }}
+                title="Shoppers see these boards in search results without scrolling">Seen first</span>
+            ))}
             {group.boards.slice(1).map((b, i) => (
               <div key={b.id} className="pointer-events-none absolute top-0 h-full border-l border-dashed border-indigo-400/60" style={{ left: (i + 1) * boardW * zoom }} />
             ))}

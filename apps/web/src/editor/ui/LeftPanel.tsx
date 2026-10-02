@@ -2,6 +2,7 @@
 
 import { getTarget, TARGETS, type ArtboardElement, type TargetId } from "@chitrapx/document";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { Checks } from "./Checks.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
 
 type NewElement = (w: number, h: number) => Record<string, unknown>;
@@ -68,7 +69,7 @@ export function LeftPanel() {
           {doc.groups.map((g) => (
             <span key={g.id} className="inline-flex">
               <button type="button" className={g.id === groupId ? "btn px-2 py-1 text-xs" : "btn-ghost px-2 py-1 text-xs"} onClick={() => store.getState().setActiveGroup(g.id)}>
-                {getTarget(g.target)?.label}
+                {getTarget(g.target)?.label}{g.variant ? ` · ${g.variant}` : ""}
               </button>
               {doc.groups.length > 1 && g.id === groupId && (
                 <button type="button" className="px-1 text-xs text-neutral-500 hover:text-red-600" aria-label={`Remove ${getTarget(g.target)?.label}`}
@@ -77,6 +78,13 @@ export function LeftPanel() {
             </span>
           ))}
         </div>
+        {group && (
+          <button type="button" className="text-xs text-indigo-600 hover:underline"
+            title="A copy of this size to test different screenshots in App Store Product Page Optimization or Play store listing experiments"
+            onClick={() => { const id = crypto.randomUUID(); store.getState().apply({ type: "duplicateGroupAsVariant", groupId, newGroupId: id }); store.getState().setActiveGroup(id); }}>
+            Make an A/B variant of this size
+          </button>
+        )}
         {group && (
           <select aria-label="Add a store size" className="input text-xs" value="" onChange={(e) => {
             const target = e.target.value as TargetId;
@@ -112,6 +120,8 @@ export function LeftPanel() {
           ))}
         </ol>
       </section>
+
+      <Checks />
 
       <CopyIdeas />
     </aside>

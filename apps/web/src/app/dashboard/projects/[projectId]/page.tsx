@@ -18,7 +18,10 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         <Link href={`/dashboard/apps/${project.appId}`} className="text-sm text-neutral-500 hover:underline">Back to app</Link>
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold">{project.name}</h1>
-          <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
+          <div className="flex gap-2">
+            <Link href={`/dashboard/projects/${project.id}/preview`} className="btn-ghost">Store preview</Link>
+            <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
+          </div>
         </div>
       </div>
       <ProjectAi projectId={project.id} codes={[project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)]} />
