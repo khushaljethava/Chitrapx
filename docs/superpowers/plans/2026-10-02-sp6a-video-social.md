@@ -9,7 +9,7 @@
 2. ffmpeg missing or failing must fail the job with a clear error and refund, never hang.
 3. Social project creation must respect plan limits.
 
-### Task 1: animation port + timeline (pure) with tests
-### Task 2: renderer `time` support and default motion
-### Task 3: video job (worker, render page video mode, ffmpeg), price, download route generalised; e2e test with ffprobe
-### Task 4: web: video panel with preview player and job list; inspector animation field; social images action
+### [x] Task 1: animation port + timeline (pure) with tests
+### [x] Task 2: renderer `time` support and default motion
+### [x] Task 3: video job (worker, render page video mode, ffmpeg), price, download route generalised; e2e test with ffprobe
+### [x] Task 4: web: video panel with preview player and job list; inspector animation field; social images action

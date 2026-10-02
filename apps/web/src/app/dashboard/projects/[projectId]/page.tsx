@@ -2,6 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExportPanel } from "@/components/ExportPanel.tsx";
 import { ProjectAi } from "@/components/ProjectAi.tsx";
+import { SocialButton } from "@/components/SocialButton.tsx";
+import { VideoPanel } from "@/components/VideoPanel.tsx";
 import { ProjectBoards } from "@/components/ProjectBoards.tsx";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
@@ -19,6 +21,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         <div className="flex items-center justify-between gap-3">
           <h1 className="text-2xl font-semibold">{project.name}</h1>
           <div className="flex gap-2">
+            <SocialButton projectId={project.id} />
             <Link href={`/dashboard/projects/${project.id}/preview`} className="btn-ghost">Store preview</Link>
             <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
           </div>
@@ -29,6 +32,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         boardCount={project.doc.groups.reduce((n, g) => n + g.boards.length, 0)}
         localeCount={1 + project.doc.localization.locales.length} />
       <ProjectBoards doc={project.doc} assetUrls={assetUrls} />
+      {project.doc.groups.length > 0 && <VideoPanel projectId={project.id} doc={project.doc} assetUrls={assetUrls} />}
     </>
   );
 }

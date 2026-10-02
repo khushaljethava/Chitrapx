@@ -64,3 +64,17 @@ describe("templates", () => {
     expect(urls).toEqual({ [`asset:${a1.id}`]: `signed://${ctx.workspaceId}/${"3".repeat(64)}` });
   });
 });
+
+describe("social images", () => {
+  it("creates a social project with the first board at every social size, within plan limits", async () => {
+    const { createSocialProject } = await import("@/server/projects.ts");
+    const { ctx, app } = await setup();
+    const p = await createProject(ctx, app.id, { name: "Launch", templateSlug: "amoura-dating" });
+    const social = await createSocialProject(ctx, p.id);
+    const doc = (await getProject(ctx, social.id)).doc;
+    expect(doc.kind).toBe("social");
+    expect(doc.groups.map((g) => g.target)).toEqual(["instagram-post", "instagram-story", "x-post", "linkedin-post", "product-hunt"]);
+    expect(doc.groups.every((g) => g.boards.length === 1)).toBe(true);
+    expect(doc.groups[2]!.boards[0]!.size).toEqual({ width: 1600, height: 900 });
+  });
+});

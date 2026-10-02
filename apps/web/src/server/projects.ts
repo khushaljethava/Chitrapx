@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
-import { assetIdFromSrc, emptyDoc, fillScreenshots, migrate, projectKinds, type ChitrapxDoc } from "@chitrapx/document";
+import { assetIdFromSrc, emptyDoc, fillScreenshots, migrate, projectKinds, retarget, type ChitrapxDoc, type TargetId } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest, ConflictError, HttpError, notFound } from "./http.ts";
@@ -129,5 +129,31 @@ export async function saveDoc(ctx: Ctx, projectId: string, raw: unknown): Promis
       await tx.insert(schema.projectVersions).values({ workspaceId: ctx.workspaceId, projectId, revision: row.revision, doc, createdBy: ctx.userId });
     }
     return { revision: row.revision };
+  });
+}
+
+const SOCIAL_TARGETS: TargetId[] = ["instagram-post", "instagram-story", "x-post", "linkedin-post", "product-hunt"];
+
+/** A new social project: the hero board of the project's first size, fitted to every social format. */
+export async function createSocialProject(ctx: Ctx, projectId: string): Promise<Project> {
+  const source = await getProject(ctx, projectId);
+  const group = source.doc.groups[0];
+  const hero = group?.boards[0];
+  if (!group || !hero) throw badRequest("project_is_empty");
+  const doc: ChitrapxDoc = {
+    ...source.doc, kind: "social",
+    groups: SOCIAL_TARGETS.map((target) => {
+      const g = retarget({ ...group, boards: [JSON.parse(JSON.stringify(hero))], spanElements: [] }, target);
+      return { ...g, id: `social-${target}`, boards: g.boards.map((b) => ({ ...b, id: `social-${target}-b1` })) };
+    }),
+  };
+  return withTx(async ({ db: tx }) => {
+    await lockWorkspace(tx, ctx.workspaceId);
+    const [{ n }] = (await tx.select({ n: count() }).from(schema.projects).where(eq(schema.projects.workspaceId, ctx.workspaceId))) as [{ n: number }];
+    if (n >= PLANS[ctx.plan].maxProjects) throw new HttpError(403, "plan_limit", `Your plan allows ${PLANS[ctx.plan].maxProjects} projects`);
+    const [project] = await tx.insert(schema.projects).values({
+      workspaceId: ctx.workspaceId, appId: source.appId, name: `${source.name} (social)`, kind: "social", doc: migrate(doc), updatedBy: ctx.userId,
+    }).returning();
+    return project!;
   });
 }

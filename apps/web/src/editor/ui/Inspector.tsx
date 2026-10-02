@@ -28,6 +28,9 @@ const clampEdge = (v: number) => Math.min(MAX_BOARD_EDGE, Math.max(8, v));
 const withCurrent = (options: ReadonlyArray<readonly [string, string]>, value: string): ReadonlyArray<readonly [string, string]> =>
   options.some(([v]) => v === value) ? options : [[value, value], ...options];
 
+const ANIMATIONS = [["none", "None (automatic)"], ["fade", "Fade"], ["slide-up", "Slide up"], ["slide-down", "Slide down"],
+  ["slide-left", "Slide left"], ["slide-right", "Slide right"], ["scale-up", "Scale up"], ["pop", "Pop"]] as const;
+
 const FITS = [["cover", "Fill the screen"], ["contain", "Fit inside"], ["fill", "Stretch"]] as const;
 
 export function Inspector({ assets }: { assets: PickerAsset[] }) {
@@ -167,6 +170,12 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
         </>
       )}
 
+      <div className="grid grid-cols-2 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+        <SelectField id="i-anim" label="Animation (video)" value={el.animation?.enter ?? "none"} options={ANIMATIONS}
+          onChange={(v) => set({ animation: v === "none" ? undefined : { ...el.animation, enter: v } })} />
+        <NumberField id="i-anim-delay" label="Delay (s)" value={el.animation?.enterDelay ?? 0} step={0.1} min={0} max={10}
+          onChange={(v) => el.animation?.enter && set({ animation: { ...el.animation, enterDelay: Math.min(10, Math.max(0, v)) } })} />
+      </div>
       <div className="grid grid-cols-2 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
         <NumberField id="i-x" label="X" value={el.position.x} onChange={(v) => set({ position: { ...el.position, x: v } })} />
         <NumberField id="i-y" label="Y" value={el.position.y} onChange={(v) => set({ position: { ...el.position, y: v } })} />
