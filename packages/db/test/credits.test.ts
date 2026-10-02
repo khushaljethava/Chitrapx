@@ -7,7 +7,8 @@ import { createUser, makeWorkspace } from "./helpers.ts";
 
 let boss: PgBoss;
 beforeAll(async () => {
-  boss = new PgBoss(process.env.DATABASE_URL!);
+  // Own schema so test jobs never reach a dev worker polling the real queue.
+  boss = new PgBoss({ connectionString: process.env.DATABASE_URL!, schema: "pgboss_test" });
   await boss.start();
   await boss.createQueue("noop");
 });
@@ -39,7 +40,7 @@ describe("credits", () => {
     const { jobId } = await reserve(ws, { hello: 1 });
     const [job] = await db.select().from(schema.jobs).where(sql`id = ${jobId}`);
     expect(job).toMatchObject({ status: "queued", creditsReserved: 1, input: { hello: 1 } });
-    const q = await pool.query("select count(*)::int as n from pgboss.job where name = 'noop' and data->>'jobId' = $1", [jobId]);
+    const q = await pool.query("select count(*)::int as n from pgboss_test.job where name = 'noop' and data->>'jobId' = $1", [jobId]);
     expect(q.rows[0].n).toBe(1);
   });
 
