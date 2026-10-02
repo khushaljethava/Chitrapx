@@ -3,10 +3,26 @@ import { zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 import { db, PRICES, renderUrl, schema } from "@chitrapx/db";
-import { exportBatches, exportPlan, migrate } from "@chitrapx/document";
+import { checkExportable, exportBatches, migrate } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 
 export const EXPORTS_BUCKET = "exports";
+
+/**
+ * The export browser may only reach our web app, our storage, and Google Fonts. Anything a
+ * document might smuggle into CSS (internal hosts, cloud metadata) is aborted (SSRF guard).
+ */
+export function exportUrlAllowed(url: string, origins: string[]): boolean {
+  if (url.startsWith("data:") || url.startsWith("blob:")) return true;
+  let u: URL;
+  try { u = new URL(url); } catch { return false; }
+  return origins.includes(u.origin);
+}
+
+export function exportOrigins(): string[] {
+  return [process.env.WEB_ORIGIN ?? "http://localhost:3000", process.env.NEXT_PUBLIC_SUPABASE_URL!, "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
+    .map((o) => new URL(o).origin);
+}
 
 /** Width and height from a PNG's IHDR chunk. */
 export function pngSize(buf: Buffer): { width: number; height: number } {
@@ -30,13 +46,16 @@ export async function runExport(input: unknown, job: JobContext): Promise<{ actu
   const [project] = await db.select().from(schema.projects)
     .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
   if (!project) throw new FatalJobError("project_missing");
-  const plan = exportPlan(migrate(project.doc), (input as { locales?: string[] } | null)?.locales);
-  if (!plan.length) throw new FatalJobError("nothing_to_export");
+  const check = checkExportable(migrate(project.doc), (input as { locales?: string[] } | null)?.locales);
+  if (!check.ok) throw new FatalJobError(check.code);
+  const plan = check.plan;
+  const origins = exportOrigins();
 
   const files: Record<string, Uint8Array> = {};
   const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 1024 }, deviceScaleFactor: 1 });
+    await page.route("**/*", (route) => (exportUrlAllowed(route.request().url(), origins) ? route.continue() : route.abort("blockedbyclient")));
     for (const batch of exportBatches(plan)) {
       const url = `${renderUrl(process.env.WEB_ORIGIN ?? "http://localhost:3000", job.id)}&items=${batch.join(",")}`;
       const res = await page.goto(url, { waitUntil: "load", timeout: 60_000 });

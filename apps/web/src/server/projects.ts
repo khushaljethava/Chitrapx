@@ -80,7 +80,7 @@ export async function getProject(ctx: Ctx, projectId: string): Promise<Omit<Proj
 export function docAssetIds(doc: ChitrapxDoc): string[] {
   const ids = new Set<string>();
   const add = (v: unknown) => { const id = assetIdFromSrc(typeof v === "string" ? v : null); if (id) ids.add(id); };
-  const visit = (o: Record<string, unknown>) => { for (const k of ["screenshotSrc", "imageSrc", "posterSrc", "customFrameSrc", "backgroundImage"]) add(o[k]); };
+  const visit = (o: Record<string, unknown>) => { for (const k of ["screenshotSrc", "imageSrc", "posterSrc", "customFrameSrc", "videoSrc", "backgroundImage"]) add(o[k]); };
   for (const g of doc.groups) {
     g.spanElements.forEach((e) => visit(e as unknown as Record<string, unknown>));
     for (const b of g.boards) {

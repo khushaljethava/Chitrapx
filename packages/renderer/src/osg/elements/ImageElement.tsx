@@ -158,22 +158,8 @@ export function ImageElement({ element, onUpdate, isSelected }: ImageElementComp
         // "empty" state flashing before the image appears.
         <div className="w-full h-full" />
       ) : (
-        <div className="w-full h-full flex flex-col items-center justify-center text-muted-foreground border border-dashed border-muted-foreground/20 rounded-lg">
-          <ImageIcon className="w-1/4 h-1/4 opacity-25 mb-2" />
-          <p className="text-xs text-center px-2 opacity-50">No image selected</p>
-          {isSelected && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2 text-xs bg-background/80 hover:bg-background"
-              onClick={triggerFileUpload}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <UploadCloudIcon className="w-3 h-3 mr-1" />
-              Upload Image
-            </Button>
-          )}
-        </div>
+        // Chitrapx: an empty image renders nothing, so no placeholder UI can reach an export.
+        <div className="w-full h-full" data-empty-image="" />
       )}
       
       {isLoading && (

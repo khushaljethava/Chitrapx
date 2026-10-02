@@ -8,6 +8,8 @@ export class InsufficientCreditsError extends Error {
 }
 
 export const RETRY = { retryLimit: 3, retryDelay: 2, retryBackoff: true } as const;
+/** pg-boss redelivers a job still running after this long; must exceed the slowest healthy run. */
+const EXPIRE_SECONDS: Partial<Record<JobType, number>> = { export: 1800 };
 
 export async function balance(db: Db, workspaceId: string): Promise<number> {
   const r = await db.execute<{ s: number }>(
@@ -34,7 +36,10 @@ export async function reserveAndEnqueue(
   await tx.db.insert(schema.creditLedger).values({ workspaceId: a.workspaceId, delta: -cost, reason: "reserve", jobId: job!.id });
   if ((await balance(tx.db, a.workspaceId)) < 0) throw new InsufficientCreditsError();
   // Same connection as the transaction: the queue entry commits or rolls back with the job row.
-  await boss.send(a.type, { jobId: job!.id }, { ...RETRY, db: { executeSql: (text, values) => tx.client.query(text, values) } });
+  await boss.send(a.type, { jobId: job!.id }, {
+    ...RETRY, expireInSeconds: EXPIRE_SECONDS[a.type] ?? 900,
+    db: { executeSql: (text, values) => tx.client.query(text, values) },
+  });
   return { jobId: job!.id };
 }
 

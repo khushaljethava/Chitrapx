@@ -1,0 +1,16 @@
+import { describe, expect, it } from "vitest";
+import { exportUrlAllowed } from "../src/export.ts";
+
+describe("export browser network allowlist", () => {
+  const origins = ["http://localhost:3000", "http://127.0.0.1:54321", "https://fonts.googleapis.com", "https://fonts.gstatic.com"];
+  it("allows our web app, storage, Google Fonts and inline data", () => {
+    for (const u of ["http://localhost:3000/render/x?sig=1", "http://127.0.0.1:54321/storage/v1/object/sign/uploads/a", "https://fonts.gstatic.com/s/x.woff2", "data:image/png;base64,AA"]) {
+      expect(exportUrlAllowed(u, origins), u).toBe(true);
+    }
+  });
+  it("blocks internal hosts, cloud metadata, look-alike hosts and garbage", () => {
+    for (const u of ["http://169.254.169.254/latest/meta-data/", "http://10.0.0.5:8080/internal", "http://localhost:5432/", "https://fonts.googleapis.com.evil.com/x", "http://localhost:3000.evil.com/", "not a url"]) {
+      expect(exportUrlAllowed(u, origins), u).toBe(false);
+    }
+  });
+});

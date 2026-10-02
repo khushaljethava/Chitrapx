@@ -74,3 +74,21 @@ describe("jobs", () => {
     await expect(exportDownloadUrl(other, storage, jobId)).rejects.toMatchObject({ status: 404 });
   });
 });
+
+describe("export guards", () => {
+  it("refuses projects whose boards are not their store size", async () => {
+    const { seedTemplates } = await import("@chitrapx/db/seed");
+    await seedTemplates();
+    const { createUser, makeWorkspace } = await import("../../../packages/db/test/helpers.ts");
+    const user = await createUser();
+    const ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" as const };
+    const app = await createApp(ctx, { name: "A" });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    const row = (await db.select().from(schema.projects).where(eq(schema.projects.id, p.id)))[0]!;
+    const doc = row.doc as { groups: Array<{ boards: Array<{ size: { width: number; height: number } }> }> };
+    doc.groups[0]!.boards[0]!.size = { width: 1000, height: 1000 };
+    await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
+    const boss2 = { send: async () => "x" } as never;
+    await expect(enqueueExport(ctx, boss2, p.id, {})).rejects.toMatchObject({ status: 400, code: "board_size_mismatch" });
+  });
+});
