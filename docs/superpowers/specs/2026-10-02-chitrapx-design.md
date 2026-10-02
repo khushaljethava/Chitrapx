@@ -85,7 +85,7 @@ Chitrapx/
 
 ## A4. Data model
 
-All tables carry `workspace_id` (except `profiles` and `templates`). RLS: a row is visible and writable only to members of its workspace. The worker uses the service role and checks `workspace_id` explicitly on every job.
+All tables carry `workspace_id` (except `profiles` and `templates`). RLS: rows are **read-only** to members of their workspace; users hold a JWT that reaches PostgREST directly, so every write goes through the server's checks (plan limits, upload validation, billing fields), never through RLS. The worker uses the service role and checks `workspace_id` explicitly on every job.
 
 ```
 profiles         id (= auth.users.id), name, avatar_url, created_at
