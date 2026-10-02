@@ -4,9 +4,13 @@ WORKDIR /app
 RUN corepack enable
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY packages/db/package.json packages/db/
+COPY packages/document/package.json packages/document/
 COPY apps/worker/package.json apps/worker/
 RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
+# Headless Chromium plus its system libraries, for exports.
+RUN cd apps/worker && pnpm exec playwright install --with-deps chromium
 COPY packages/db packages/db
+COPY packages/document packages/document
 COPY apps/worker apps/worker
 ENV NODE_ENV=production
 WORKDIR /app/apps/worker

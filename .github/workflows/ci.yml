@@ -28,10 +28,21 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
             echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
             echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
+            echo "RENDER_SECRET=$(openssl rand -hex 32)"
+            echo "WEB_ORIGIN=http://localhost:3000"
           } >> "$GITHUB_ENV"
 
       - run: pnpm db:migrate
+      - run: pnpm db:seed
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm --filter @chitrapx/web build
+
+      # Export end to end: real web app, real headless Chromium, golden image comparisons.
+      - run: pnpm --filter @chitrapx/worker exec playwright install --with-deps chromium
+      - name: Start web
+        run: (pnpm --filter @chitrapx/web start > web.log 2>&1 &) && npx --yes wait-on -t 60000 http://localhost:3000/api/health
+      - run: pnpm --filter @chitrapx/worker test:e2e
+      - if: failure()
+        run: cat web.log
