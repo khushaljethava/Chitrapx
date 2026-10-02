@@ -3,3 +3,6 @@ export * from "./doc.ts";
 export * from "./plans.ts";
 export * from "./pricing.ts";
 export * from "./credits.ts";
+export * from "./onboarding.ts";
+export * from "./grants.ts";
+export * from "./month.ts";
