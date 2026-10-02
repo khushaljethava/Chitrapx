@@ -69,7 +69,7 @@ describe("RLS isolates workspaces", () => {
 
 describe("RLS: users cannot write their own workspace's rows either (all writes go through the server)", () => {
   it("cannot change their own plan or billing fields", async () => {
-    const upd = await asUser(a.user, (db) => db.execute(sql`update workspaces set plan = 'studio', stripe_customer_id = 'x' where id = ${a.ws}`));
+    const upd = await asUser(a.user, (db) => db.execute(sql`update workspaces set plan = 'studio', razorpay_customer_id = 'x' where id = ${a.ws}`));
     expect(upd.rowCount ?? 0).toBe(0);
   });
 

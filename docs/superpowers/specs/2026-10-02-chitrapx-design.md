@@ -81,7 +81,7 @@ Chitrapx/
 - **pg-boss** queue on the same Postgres. Ceiling: a few hundred jobs per second; move to Redis/BullMQ if that is ever reached.
 - **Claude via the Vercel AI SDK.** Models: `claude-haiku-4-5-20251001` for analyze and translate, `claude-sonnet-5-5` for plan and variants. All model calls go through one `ai` module in the worker.
 - **Append-only credit ledger.** Balance is `SUM(delta)`. No mutable balance column.
-- **Stripe** for billing (sub-project 7).
+- **Razorpay** for billing (sub-project 7): subscriptions for plans, one-time orders for credit packs, webhooks verified by signature. Chosen by the user over Stripe.
 
 ## A4. Data model
 
@@ -89,7 +89,7 @@ All tables carry `workspace_id` (except `profiles` and `templates`). RLS: rows a
 
 ```
 profiles         id (= auth.users.id), name, avatar_url, created_at
-workspaces       id, name, slug unique, plan ('free'|'pro'|'studio'), stripe_customer_id null, created_at
+workspaces       id, name, slug unique, plan ('free'|'pro'|'studio'), razorpay_customer_id null, created_at
 memberships      workspace_id, user_id, role ('owner'|'member'), created_at; PK (workspace_id, user_id)
 apps             id, workspace_id, name, platform_hint ('ios'|'android'|'both'), description, brand jsonb, created_at
 projects         id, workspace_id, app_id, name, kind ('screenshots'|'video'|'social'),
@@ -204,7 +204,7 @@ Re-implemented from scratch (no storeshots code):
 4. AI pipeline
 5. ASO tools
 6. Video previews and social formats
-7. Billing launch (Stripe plans, credit packs)
+7. Billing launch (Razorpay subscriptions for plans, one-time payments for credit packs)
 
 ## A13. Out of v1 scope
 
@@ -257,4 +257,4 @@ A deployed, empty-but-real SaaS shell: a user can sign up, gets a workspace with
 
 ## B4. Out of scope for Foundation
 
-Editor, renderer, templates, AI, ASO, video, Stripe, team invites, email beyond Supabase's auth emails.
+Editor, renderer, templates, AI, ASO, video, billing, team invites, email beyond Supabase's auth emails.

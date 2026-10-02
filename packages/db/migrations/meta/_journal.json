@@ -43,6 +43,13 @@
       "when": 1790962375335,
       "tag": "0005_screen_insights_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1790964046485,
+      "tag": "0006_rename_billing_customer",
+      "breakpoints": true
     }
   ]
 }

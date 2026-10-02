@@ -38,7 +38,7 @@ export const workspaces = pgTable("workspaces", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   plan: planEnum("plan").notNull().default("free"),
-  stripeCustomerId: text("stripe_customer_id"),
+  razorpayCustomerId: text("razorpay_customer_id"),
   createdAt: createdAt(),
 });
 
