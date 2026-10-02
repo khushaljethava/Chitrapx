@@ -89,6 +89,15 @@ describe("export", () => {
     expect(await balance(db, ws)).toBe(10);
   });
 
+  it("never lets a document point the export browser at an arbitrary URL", async () => {
+    const doc = await templateDoc("amoura-dating");
+    (doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "device") as { screenshotSrc?: string }).screenshotSrc = "http://169.254.169.254/latest/meta-data/";
+    const { ws, jobId } = await exportJob(doc);
+    await runJob(jobId, runExport);
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: expect.stringContaining("asset_missing:http://169.254.169.254") });
+    expect(await balance(db, ws)).toBe(10);
+  });
+
   it("the render page answers 404 unless the signature is valid and the job is running", async () => {
     const { jobId } = await exportJob(await templateDoc("amoura-dating"));
     expect((await fetch(renderUrl(ORIGIN, jobId))).status).toBe(404); // job still queued

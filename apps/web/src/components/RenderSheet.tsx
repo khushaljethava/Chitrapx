@@ -14,7 +14,8 @@ export function RenderSheet({ doc, plan, indices, assetUrls }: {
 }) {
   const boards = useMemo(() => indices.map((i) => {
     const item = plan[i]!;
-    return { i, ...boardFor(doc, item.groupId, item.boardIndex, item.locale, (src) => assetUrls[src] ?? (/^(https?:|data:)/.test(src) ? src : null)) };
+    // Only this workspace's signed assets: the worker's browser must never fetch a URL a document names (SSRF).
+    return { i, ...boardFor(doc, item.groupId, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null) };
   }), [doc, plan, indices, assetUrls]);
   const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))], [boards]);
 
