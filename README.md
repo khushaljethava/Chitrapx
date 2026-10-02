@@ -34,7 +34,7 @@ Three pieces, all reading the same environment variables (see `.env.example`).
 
 1. **Supabase** (cloud project)
    - Run migrations: `DATABASE_URL=<session pooler URL> pnpm db:migrate`.
-   - Storage: create a private bucket named `uploads`.
+   - Storage: create a private bucket named `uploads` with a 25 MB file size limit.
    - Auth: set Site URL to the web origin, add `<origin>/auth/callback` to redirect URLs, enable the Google and GitHub providers.
 2. **Web** (Vercel): project root `apps/web`, install command `pnpm install`, env `DATABASE_URL` (transaction pooler URL), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. Leave `ENABLE_DEV_TOOLS` unset.
 3. **Worker** (Fly.io, Railway or any container host): `docker build -f apps/worker/Dockerfile .`, env `DATABASE_URL` (session pooler or direct URL, since pg-boss uses LISTEN/NOTIFY). It must run continuously; one instance processes 4 jobs per type at a time, add instances to scale.

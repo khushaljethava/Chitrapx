@@ -64,3 +64,32 @@ describe("RLS isolates workspaces", () => {
     expect(upd.rowCount ?? 0).toBe(0);
   });
 });
+
+describe("RLS: users cannot write their own workspace's rows either (all writes go through the server)", () => {
+  it("cannot change their own plan or billing fields", async () => {
+    const upd = await asUser(a.user, (db) => db.execute(sql`update workspaces set plan = 'studio', stripe_customer_id = 'x' where id = ${a.ws}`));
+    expect(upd.rowCount ?? 0).toBe(0);
+  });
+
+  const ownInserts: Array<[string, (a: Ids) => [string, unknown[]]]> = [
+    ["apps", (a) => ["insert into apps (workspace_id, name) values ($1, 'x')", [a.ws]]],
+    ["projects", (a) => ["insert into projects (workspace_id, app_id, name, kind, doc) values ($1, $2, 'x', 'screenshots', '{}')", [a.ws, a.app]]],
+    ["projects pointing at B's app", (a) => ["insert into projects (workspace_id, app_id, name, kind, doc) values ($1, $2, 'x', 'screenshots', '{}')", [a.ws, b.app]]],
+    ["project_versions", (a) => ["insert into project_versions (workspace_id, project_id, revision, doc) values ($1, $2, 9, '{}')", [a.ws, a.project]]],
+    ["assets with a planted storage path", (a) => ["insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'image', $3, 'image/png', 1, $4)", [a.ws, a.app, `${b.ws}/x`, randomUUID()]]],
+  ];
+  for (const [name, insert] of ownInserts) {
+    it(`cannot insert ${name}`, async () => {
+      const [text, values] = insert(a);
+      await expect(asUser(a.user, (_db, c) => c.query(text, values))).rejects.toThrow();
+    });
+  }
+
+  for (const [table, set] of [["apps", "name = 'x'"], ["projects", "name = 'x'"], ["assets", "storage_path = 'x'"], ["profiles", "name = 'x'"]] as const) {
+    it(`cannot update own ${table}`, async () => {
+      const where = table === "profiles" ? sql.raw(`id = '${a.user}'`) : sql.raw(`workspace_id = '${a.ws}'`);
+      const upd = await asUser(a.user, (db) => db.execute(sql`update ${sql.raw(table)} set ${sql.raw(set)} where ${where}`));
+      expect(upd.rowCount ?? 0).toBe(0);
+    });
+  }
+});

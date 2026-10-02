@@ -24,13 +24,13 @@ export function UploadGrid({ appId, assets, logoAssetId }: { appId: string; asse
   async function uploadOne(file: File) {
     if (file.size > MAX_BYTES) throw new Error(`${file.name}: larger than 25 MB`);
     const sha256 = await sha256Hex(file);
-    const signed = await api<{ existing?: unknown; path?: string; token?: string }>("/api/uploads/sign", "POST", {
+    const signed = await api<{ existing?: unknown; uploadId?: string; path?: string; token?: string }>("/api/uploads/sign", "POST", {
       appId, kind: "screenshot", size: file.size, mime: file.type, sha256,
     });
     if (signed.existing) return;
     const { error } = await createClient().storage.from("uploads").uploadToSignedUrl(signed.path!, signed.token!, file, { contentType: file.type });
     if (error) throw new Error(`${file.name}: ${error.message}`);
-    await api("/api/uploads/complete", "POST", { appId, kind: "screenshot", sha256 });
+    await api("/api/uploads/complete", "POST", { appId, kind: "screenshot", sha256, uploadId: signed.uploadId });
   }
 
   async function upload(files: FileList | File[]) {

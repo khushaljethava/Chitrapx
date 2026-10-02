@@ -120,7 +120,8 @@ file_size_limit = "50MiB"
 
 [storage.buckets.uploads]
 public = false
-file_size_limit = "500MiB"
+# Matches the largest accepted upload today (images, 25 MB). Raise when recordings ship.
+file_size_limit = "25MiB"
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]

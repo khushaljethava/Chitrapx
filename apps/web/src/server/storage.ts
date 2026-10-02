@@ -5,6 +5,8 @@ export interface ObjectStorage {
   signUpload(path: string): Promise<{ path: string; token: string }>;
   download(path: string): Promise<Buffer>;
   remove(path: string): Promise<void>;
+  /** Fails if `to` already exists. */
+  move(from: string, to: string): Promise<void>;
   signedUrls(paths: string[]): Promise<string[]>;
 }
 
@@ -14,7 +16,8 @@ export function supabaseStorage(): ObjectStorage {
   const bucket = () => adminClient().storage.from(UPLOADS_BUCKET);
   return {
     async signUpload(path) {
-      const { data, error } = await bucket().createSignedUploadUrl(path, { upsert: true });
+      // No upsert: a token can create its staging object once and never overwrite anything.
+      const { data, error } = await bucket().createSignedUploadUrl(path, { upsert: false });
       if (error) throw error;
       return { path: data.path, token: data.token };
     },
@@ -25,6 +28,10 @@ export function supabaseStorage(): ObjectStorage {
     },
     async remove(path) {
       const { error } = await bucket().remove([path]);
+      if (error) throw error;
+    },
+    async move(from, to) {
+      const { error } = await bucket().move(from, to);
       if (error) throw error;
     },
     async signedUrls(paths) {

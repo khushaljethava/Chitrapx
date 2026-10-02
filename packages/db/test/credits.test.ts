@@ -52,6 +52,14 @@ describe("credits", () => {
     expect(await balance(db, ws)).toBe(9);
   });
 
+  it("a job ends once: a refund after a settle (or the reverse) is ignored", async () => {
+    const ws = await workspaceWith(10);
+    const { jobId } = await reserve(ws);
+    await settle(db, jobId, 1);
+    await refund(db, jobId);
+    expect(await balance(db, ws)).toBe(9);
+  });
+
   it("rejects at balance 0 and leaves no job row", async () => {
     const ws = await workspaceWith(0);
     await expect(reserve(ws)).rejects.toBeInstanceOf(InsufficientCreditsError);

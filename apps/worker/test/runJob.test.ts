@@ -52,4 +52,20 @@ describe("runJob", () => {
     expect(await jobRow(jobId)).toMatchObject({ status: "done", attempts: 1 });
     expect(await balance(db, ws)).toBe(9);
   });
+
+  it("overlapping deliveries of one job end it once, never settle plus refund", async () => {
+    const { ws, jobId } = await reservedJob(MAX_ATTEMPTS - 2);
+    let release!: () => void;
+    const gate = new Promise<void>((r) => { release = r; });
+    // Delivery 1 is slow and succeeds; delivery 2 (a redelivery) fails on its last attempt.
+    const slow = runJob(jobId, async () => { await gate; return { actual: 1 }; });
+    await new Promise((r) => setTimeout(r, 50));
+    await runJob(jobId, async () => { throw new Error("overloaded"); });
+    release();
+    await slow;
+    const finals = await db.select().from(schema.creditLedger).where(eq(schema.creditLedger.jobId, jobId));
+    expect(finals.filter((r) => r.reason === "settle" || r.reason === "refund")).toHaveLength(1);
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed" });
+    expect(await balance(db, ws)).toBe(10);
+  });
 });
