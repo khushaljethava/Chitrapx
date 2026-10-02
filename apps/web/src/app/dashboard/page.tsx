@@ -1,5 +1,7 @@
 import { PLANS } from "@chitrapx/db";
 import { AppList } from "@/components/AppList.tsx";
+import { DevJobsPanel } from "@/components/DevJobsPanel.tsx";
+import { devToolsEnabled } from "@/server/devTools.ts";
 import { listApps } from "@/server/apps.ts";
 import { requireContext } from "@/server/context.ts";
 
@@ -10,6 +12,7 @@ export default async function Dashboard() {
     <>
       <h1 className="text-2xl font-semibold">Your apps</h1>
       <AppList apps={apps.map(({ id, name, platformHint }) => ({ id, name, platformHint }))} maxApps={PLANS[ctx.plan].maxApps} />
+      {devToolsEnabled() && <DevJobsPanel />}
     </>
   );
 }
