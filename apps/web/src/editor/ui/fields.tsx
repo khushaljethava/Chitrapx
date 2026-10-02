@@ -61,7 +61,7 @@ export function SelectField<T extends string>({ id, label, value, options, onCha
   );
 }
 
-export type PickerAsset = { id: string; url: string; width: number | null; height: number | null };
+export type PickerAsset = { id: string; url: string; width: number | null; height: number | null; kind?: string };
 
 export function AssetPicker({ assets, value, onPick, label }: { assets: PickerAsset[]; value?: string; onPick: (src: string | undefined) => void; label: string }) {
   return (

@@ -115,11 +115,25 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   return inserted ?? (await findAsset(ctx, input.sha256, input.appId))!;
 }
 
-export async function listAssets(ctx: Ctx, storage: ObjectStorage, appId: string): Promise<Array<Asset & { url: string }>> {
+/**
+ * The app's uploads with signed URLs. For a recording, `url` is its poster and `videoUrl` its WebM
+ * once converted (both empty while converting). Paths are rebuilt from workspace and hash.
+ */
+export async function listAssets(ctx: Ctx, storage: ObjectStorage, appId: string): Promise<Array<Asset & { url: string; videoUrl?: string }>> {
   await getApp(ctx, appId);
   const rows = await db.select().from(schema.assets)
     .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId)))
     .orderBy(desc(schema.assets.createdAt));
-  const urls = await storage.signedUrls(rows.map((r) => finalPath(ctx, r.sha256)));
-  return rows.map((r, i) => ({ ...r, url: urls[i] ?? "" }));
+  const paths = rows.flatMap((r) => {
+    const base = finalPath(ctx, r.sha256);
+    if (r.kind !== "recording") return [base];
+    return r.meta?.ready ? [`${base}.poster.jpg`, `${base}.webm`] : [];
+  });
+  const urls = await storage.signedUrls(paths);
+  let k = 0;
+  return rows.map((r) => {
+    if (r.kind !== "recording") return { ...r, url: urls[k++] ?? "" };
+    if (!r.meta?.ready) return { ...r, url: "" };
+    return { ...r, url: urls[k++] ?? "", videoUrl: urls[k++] ?? "" };
+  });
 }

@@ -104,7 +104,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold capitalize">{el.type === "device" ? "Device" : el.type}</h2>
+        <h2 className="font-semibold capitalize">{el.type === "device" ? "Device" : el.type === "video-device" ? "Phone with video" : el.type}</h2>
         {localized && <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">Editing {locale}</span>}
       </div>
 
@@ -155,16 +155,26 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
           ) : (
             <ColorField id="i-frame" label="Frame colour" value={a.frameColor ?? ""} onChange={(v) => set({ frameColor: v || undefined })} />
           )}
-          <AssetPicker label={localized ? `Screenshot (${locale})` : "Screenshot"} assets={assets} value={localized ? override?.screenshotSrc ?? a.screenshotSrc : a.screenshotSrc}
+          <AssetPicker label={localized ? `Screenshot (${locale})` : "Screenshot"} assets={assets.filter((x) => x.kind !== "recording")} value={localized ? override?.screenshotSrc ?? a.screenshotSrc : a.screenshotSrc}
             onPick={(src) => store.getState().apply({ type: "setScreenshot", ref: refr, src, locale: localized ? locale : undefined })} />
           <OverrideNote k="screenshotSrc" />
           <SelectField id="i-fit" label="Screenshot fit" value={a.screenshotObjectFit ?? "cover"} options={FITS} onChange={(v) => set({ screenshotObjectFit: v })} />
         </>
       )}
 
+      {el.type === "video-device" && (
+        <>
+          <SelectField id="i-vdevice" label="Model" value={a.deviceType ?? "iphone-17-pro-max"} options={withCurrent(DEVICES, a.deviceType ?? "iphone-17-pro-max")} onChange={(v) => set({ deviceType: v })} />
+          <AssetPicker label="Screen recording" assets={assets.filter((x) => x.kind === "recording")}
+            value={(el as unknown as { videoSrc?: string }).videoSrc}
+            onPick={(src) => set({ videoSrc: src, posterSrc: src ? `${src}#poster` : undefined } as never)} />
+          <p className="text-xs text-neutral-500">Plays in preview videos; still exports show its first frame.</p>
+        </>
+      )}
+
       {el.type === "image" && (
         <>
-          <AssetPicker label="Picture" assets={assets} value={a.imageSrc} onPick={(src) => set({ imageSrc: src })} />
+          <AssetPicker label="Picture" assets={assets.filter((x) => x.kind !== "recording")} value={a.imageSrc} onPick={(src) => set({ imageSrc: src })} />
           <SelectField id="i-ifit" label="Fit" value={a.objectFit ?? "cover"} options={FITS} onChange={(v) => set({ objectFit: v })} />
           <NumberField id="i-iradius" label="Corner radius" value={Number(a.borderRadius ?? 0)} min={0} onChange={(v) => set({ borderRadius: Math.max(0, v) })} />
         </>

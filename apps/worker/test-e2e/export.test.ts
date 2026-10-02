@@ -140,6 +140,50 @@ describe("video", () => {
   }, 300_000);
 });
 
+describe("video with a screen recording", () => {
+  it("plays the recording inside the phone: the screen changes between 1.8 s and 2.5 s", async () => {
+    const { runVideo } = await import("../src/video.ts");
+    const { execFileSync } = await import("node:child_process");
+    const { readFileSync: read, unlinkSync, mkdtempSync } = await import("node:fs");
+    const { tmpdir } = await import("node:os");
+    const tmp = mkdtempSync(join(tmpdir(), "rec-e2e-"));
+    // A converted recording as the worker would leave it: WebM plus poster in the workspace's uploads.
+    const webm = join(tmp, "r.webm"), poster = join(tmp, "p.jpg");
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc2=size=360x780:rate=30:duration=4", "-c:v", "libvpx-vp9", "-deadline", "realtime", "-cpu-used", "8", webm]);
+    execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", webm, "-frames:v", "1", poster]);
+    const ws = await makeWorkspace((await createUser()).id);
+    await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: 10, reason: "adjust" });
+    const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "R" }).returning();
+    const sha = crypto.randomUUID().replace(/-/g, "").padEnd(64, "0");
+    const uploads = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage.from("uploads");
+    await uploads.upload(`${ws}/${sha}.webm`, read(webm), { contentType: "video/webm", upsert: true });
+    await uploads.upload(`${ws}/${sha}.poster.jpg`, read(poster), { contentType: "image/jpeg", upsert: true });
+    const [asset] = await db.insert(schema.assets).values({ workspaceId: ws, appId: app!.id, kind: "recording", storagePath: `${ws}/${sha}`, mime: "video/mp4", bytes: 1, sha256: sha,
+      meta: { ready: true, webm: `${ws}/${sha}.webm`, poster: `${ws}/${sha}.poster.jpg`, duration: 4, width: 360, height: 780 } }).returning();
+
+    const doc = await templateDoc("amoura-dating");
+    const b0 = doc.groups[0]!.boards[0]!;
+    const i = b0.elements.findIndex((e) => e.type === "device");
+    b0.elements[i] = { ...b0.elements[i]!, type: "video-device", styleType: "normal", videoSrc: `asset:${asset!.id}`, posterSrc: `asset:${asset!.id}#poster`, rotation: 0 } as never;
+    const [project] = await db.insert(schema.projects).values({ workspaceId: ws, appId: app!.id, name: "R", kind: "video", doc }).returning();
+    const input = { groupId: doc.groups[0]!.id, format: "app-preview-portrait", secondsPerBoard: 3 };
+    const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId: project!.id, type: "video", creditsReserved: 3, input }).returning();
+    await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: -3, reason: "reserve", jobId: job!.id });
+    await runJob(job!.id, runVideo);
+    expect(await jobRow(job!.id)).toMatchObject({ status: "done" });
+
+    const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
+    const { data } = await storage.from(EXPORTS_BUCKET).download(`${ws}/${job!.id}.mp4`);
+    const mp4 = join(tmp, "out.mp4");
+    writeFileSync(mp4, Buffer.from(await data!.arrayBuffer()));
+    const frame = (t: string) => { const f = join(tmp, `f${t}.png`); execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", t, "-i", mp4, "-frames:v", "1", f]); return PNG.sync.read(read(f)); };
+    const a = frame("1.8"), b = frame("2.5"); // after entrance motion settles, before the 2.6 s crossfade
+    const changed = pixelmatch(a.data, b.data, null, a.width, a.height, { threshold: 0.1 });
+    expect(changed).toBeGreaterThan(5000);
+    for (const f of [webm, poster, mp4]) unlinkSync(f);
+  }, 300_000);
+});
+
 describe("golden renders", () => {
   // A 2D phone set, a feature graphic and a 3D Mac board: the three renderer paths most likely to drift.
   for (const slug of ["amoura-dating", "fg-chat-connect", "mac-boardly"]) {

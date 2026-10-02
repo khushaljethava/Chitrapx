@@ -60,6 +60,9 @@ export function LeftPanel() {
           ))}
           <button type="button" className="btn-ghost px-2 py-1.5" disabled={!board}
             onClick={() => board && add({ ...base(board.size.width, board.size.height, board.size.width * 0.4, board.size.width * 0.4), type: "image", name: "Image", objectFit: "cover" })}>Image</button>
+          <button type="button" className="btn-ghost px-2 py-1.5" disabled={!board} title="A phone that plays a screen recording in preview videos"
+            onClick={() => { if (!board) return; const { width: w, height: h } = board.size; const ew = Math.min(w * 0.6, (h * 0.6) / 2.17);
+              add({ ...base(w, h, ew, ew * 2.17), type: "video-device", name: "Phone with video", deviceType: "iphone-17-pro-max", styleType: "normal", screenshotRect: { left: 0, top: 0, width: 100, height: 100 } }); }}>Phone + video</button>
         </div>
       </section>
 

@@ -14,11 +14,16 @@ export default async function EditorPage({ params }: { params: Promise<{ project
   const storage = supabaseStorage();
   const [docUrls, assets] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId)]);
   // Everything the app has uploaded is pickable, so its URLs must resolve too.
-  const assetUrls = { ...docUrls, ...Object.fromEntries(assets.map((a) => [`asset:${a.id}`, a.url])) };
+  const assetUrls = {
+    ...docUrls,
+    ...Object.fromEntries(assets.flatMap((a) => a.kind === "recording"
+      ? (a.videoUrl ? [[`asset:${a.id}`, a.videoUrl], [`asset:${a.id}#poster`, a.url]] : [])
+      : [[`asset:${a.id}`, a.url]])),
+  };
   return (
     <Editor
       project={{ id: project.id, name: project.name, doc: project.doc, revision: project.revision }}
-      assets={assets.map(({ id, url, width, height }) => ({ id, url, width, height }))}
+      assets={assets.filter((a) => a.kind !== "recording" || a.videoUrl).map(({ id, url, width, height, kind }) => ({ id, url, width, height, kind }))}
       assetUrls={assetUrls}
     />
   );
