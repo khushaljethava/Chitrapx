@@ -6,7 +6,7 @@ export default tseslint.config(
   {
     // Code ported from open-screenshot-generator keeps its original idioms so upstream fixes stay easy to apply.
     files: ["packages/document/src/artboard.ts", "packages/renderer/src/osg/**"],
-    rules: { "@typescript-eslint/no-explicit-any": "off" },
+    rules: { "@typescript-eslint/no-explicit-any": "off", "@typescript-eslint/no-unused-vars": "off" },
   },
   {
     rules: {
