@@ -12,9 +12,9 @@ Help a customer ship screenshots that convert: catch weak headlines before expor
 
 1. **Headline checks** (`packages/document/src/aso.ts`, pure). For each board, in the active language (base text plus that language's overrides):
    - the headline is the text with the largest rendered size (fontSize / 0.3, OSG's rule);
-   - more than 5 words on a headline line: warning; more than 2 headline lines (explicit line breaks plus estimated wrapping): warning;
-   - any text smaller than 9 px when the board is shown 400 px tall (store thumbnail): warning;
-   - text against what is behind it (the topmost overlapping shape, otherwise the board background, both gradient ends checked) below contrast 3:1: error;
+   - more than 5 words on a headline line: warning; more than 3 headline lines (explicit line breaks plus estimated wrapping): warning;
+   - any text smaller than 5 px when the board is shown 400 px tall (store search thumbnail): warning;
+   - text against what is behind it (the topmost overlapping shape, otherwise the board background, both gradient ends checked) below 3:1 for small text or 2.2:1 for text over 60 board px (error below 1.5:1, otherwise warning); text with no letters or digits, and text over a screenshot or photo, are not checked;
    - a translation more than 40 percent longer than the base text: warning (may overflow).
 2. **Fold markers:** iOS, iPad, Mac and Watch boards 1 to 3, Android and Play boards 1 to 2, are labelled "Seen first" on the canvas and in previews.
 3. **Store listing preview** (`/dashboard/projects/[id]/preview`): App Store search result and product page, and Google Play listing, in light or dark, for any project language, built from the project's own boards. Mockups are drawn with HTML and CSS (no store artwork or trademarked icons).
@@ -23,7 +23,7 @@ Help a customer ship screenshots that convert: catch weak headlines before expor
 
 ## Acceptance criteria
 
-- A 7-word headline line, a 3-line headline, 20 px body text on a 2796 px board, white text on a white background, and a German override 60 percent longer than English each produce their issue; a clean board produces none.
+- A 7-word headline line, a 4-line headline, 20 px body text on a 2796 px board, white text on a white background, and a German override 60 percent longer than English each produce their issue; a clean board produces none.
 - The editor lists the active language's issues; clicking one selects the element.
 - Boards 1 to 3 (iOS) and 1 to 2 (Play) carry the "Seen first" marker.
 - The preview page renders all three store mockups for the chosen language and theme.
