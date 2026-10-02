@@ -7,7 +7,8 @@ export class FatalJobError extends Error {}
 /** 1 run + pg-boss retryLimit 3. */
 export const MAX_ATTEMPTS = 4;
 
-export type JobHandler = (input: unknown) => Promise<{ actual: number; output?: unknown }>;
+export type JobContext = { id: string; workspaceId: string; projectId: string | null };
+export type JobHandler = (input: unknown, job: JobContext) => Promise<{ actual: number; output?: unknown }>;
 
 /** Moves a running job to its final status; true only for the one delivery that did it. */
 async function finish(tx: Db, jobId: string, set: Partial<typeof schema.jobs.$inferInsert>): Promise<boolean> {
@@ -27,7 +28,7 @@ export async function runJob(jobId: string, handler: JobHandler): Promise<void> 
   if (!job) return; // already done or failed: a redelivery
 
   try {
-    const result = await handler(job.input);
+    const result = await handler(job.input, { id: job.id, workspaceId: job.workspaceId, projectId: job.projectId });
     await withTx(async ({ db: tx }) => {
       if (await finish(tx, jobId, { status: "done", output: result.output ?? null })) await settle(tx, jobId, result.actual);
     });

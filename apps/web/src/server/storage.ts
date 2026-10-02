@@ -8,9 +8,12 @@ export interface ObjectStorage {
   /** Fails if `to` already exists. */
   move(from: string, to: string): Promise<void>;
   signedUrls(paths: string[]): Promise<string[]>;
+  /** A 5-minute link that downloads an export ZIP under `filename`. */
+  signedDownload(path: string, filename: string): Promise<string>;
 }
 
 export const UPLOADS_BUCKET = "uploads";
+export const EXPORTS_BUCKET = "exports";
 
 export function supabaseStorage(): ObjectStorage {
   const bucket = () => adminClient().storage.from(UPLOADS_BUCKET);
@@ -33,6 +36,11 @@ export function supabaseStorage(): ObjectStorage {
     async move(from, to) {
       const { error } = await bucket().move(from, to);
       if (error) throw error;
+    },
+    async signedDownload(path, filename) {
+      const { data, error } = await adminClient().storage.from(EXPORTS_BUCKET).createSignedUrl(path, 300, { download: filename });
+      if (error) throw error;
+      return data.signedUrl;
     },
     async signedUrls(paths) {
       if (!paths.length) return [];

@@ -398,7 +398,8 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   alt={`${element.deviceType} screenshot`}
                   style={{
                     cursor: 'inherit',
-                    opacity: 0,
+                    // Chitrapx: no fade-in. On a server-rendered page the image can finish loading
+                    // before React attaches onLoad, which left exported screens black.
                     width: '100%',
                     height: '100%',
                     objectFit: element.screenshotObjectFit || "cover",
@@ -406,7 +407,6 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                     top: 0,
                     left: 0,
                   }}
-                  onLoad={e => { (e.currentTarget as HTMLImageElement).style.opacity = '1'; }}
                   data-ai-hint="app interface mobile"
                   draggable={false}
                 />

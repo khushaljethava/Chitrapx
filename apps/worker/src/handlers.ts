@@ -1,4 +1,5 @@
 import { PRICES, type JobType } from "@chitrapx/db";
+import { runExport } from "./export.ts";
 import { FatalJobError, type JobHandler } from "./runJob.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -10,6 +11,5 @@ export const handlers: Record<JobType, JobHandler> = {
     if ((input as { fail?: boolean } | null)?.fail) throw new FatalJobError("noop failed on request");
     return { actual: PRICES.noop, output: { ok: true } };
   },
-  // Replaced by the real exporter in the next task of sub-project 2.
-  export: async () => { throw new FatalJobError("export is not available yet"); },
+  export: runExport,
 };

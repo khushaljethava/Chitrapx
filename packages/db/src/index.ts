@@ -6,3 +6,4 @@ export * from "./credits.ts";
 export * from "./onboarding.ts";
 export * from "./grants.ts";
 export * from "./month.ts";
+export * from "./renderSig.ts";

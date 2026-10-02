@@ -35,6 +35,7 @@ class MemoryStorage implements ObjectStorage {
     this.files.set(to, f); this.files.delete(from);
   }
   async signedUrls(paths: string[]) { return paths.map((p) => `mem://${p}`); }
+  async signedDownload(path: string) { return `mem://${path}`; }
 }
 
 async function setup(plan: Ctx["plan"] = "free") {

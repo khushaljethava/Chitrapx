@@ -1,15 +1,20 @@
+import { eq } from "drizzle-orm";
 import { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
-import { enqueueNoop, listJobs } from "@/server/jobs.ts";
+import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs } from "@/server/jobs.ts";
+import { createApp } from "@/server/apps.ts";
+import { createProject } from "@/server/projects.ts";
+import { seedTemplates } from "@chitrapx/db/seed";
 
 let boss: PgBoss;
 beforeAll(async () => {
   boss = new PgBoss({ connectionString: process.env.DATABASE_URL!, schema: "pgboss_test" });
   await boss.start();
   await boss.createQueue("noop");
+  await boss.createQueue("export");
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
 
@@ -40,5 +45,32 @@ describe("jobs", () => {
     const b = await ctxWith(3);
     await enqueueNoop(a, boss, { fail: false });
     expect(await listJobs(b)).toEqual([]);
+  });
+
+  it("export charges 1 credit, validates locales, refuses empty projects", async () => {
+    await seedTemplates();
+    const ctx = await ctxWith(5);
+    const app = await createApp(ctx, { name: "A" });
+    const blank = await createProject(ctx, app.id, { name: "Blank", kind: "screenshots" });
+    await expect(enqueueExport(ctx, boss, blank.id, {})).rejects.toMatchObject({ status: 400, code: "project_is_empty" });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    await expect(enqueueExport(ctx, boss, p.id, { locales: ["xx-XX"] })).rejects.toMatchObject({ code: "unknown_locale" });
+    const { jobId } = await enqueueExport(ctx, boss, p.id, {});
+    expect(await balance(db, ctx.workspaceId)).toBe(4);
+    expect(await listJobs(ctx, { projectId: p.id })).toEqual([expect.objectContaining({ id: jobId, type: "export", status: "queued" })]);
+  });
+
+  it("download links only for this workspace's finished exports", async () => {
+    await seedTemplates();
+    const ctx = await ctxWith(5);
+    const app = await createApp(ctx, { name: "A" });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    const { jobId } = await enqueueExport(ctx, boss, p.id, {});
+    const storage = { signedDownload: async (path: string) => `signed://${path}` };
+    await expect(exportDownloadUrl(ctx, storage, jobId)).rejects.toMatchObject({ status: 409 });
+    await db.update(schema.jobs).set({ status: "done" }).where(eq(schema.jobs.id, jobId));
+    expect(await exportDownloadUrl(ctx, storage, jobId)).toBe(`signed://${ctx.workspaceId}/${jobId}.zip`);
+    const other = await ctxWith(0);
+    await expect(exportDownloadUrl(other, storage, jobId)).rejects.toMatchObject({ status: 404 });
   });
 });
