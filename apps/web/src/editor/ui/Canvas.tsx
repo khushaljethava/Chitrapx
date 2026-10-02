@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { ArtboardElement } from "@chitrapx/document";
+import { MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/document";
 import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
@@ -36,11 +36,17 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
   const boardW = group?.boards[0]?.size.width ?? 1;
   const boardH = group?.boards[0]?.size.height ?? 1;
 
-  // Fit the strip's height to the viewport the first time a group is shown.
+  // Fit the strip's height to the viewport the first time each group is shown, never on edits.
+  const fitted = useRef<string | null>(null);
   useEffect(() => {
     const h = viewport.current?.clientHeight;
-    if (h && group) store.getState().setZoom((h - 64) / boardH);
-  }, [groupId, boardH, store, group]);
+    if (!h || !groupId || fitted.current === groupId) return;
+    fitted.current = groupId;
+    store.getState().setZoom((h - 64) / boardH);
+  }, [groupId, boardH, store]);
+
+  /** A focused inspector field owns the open gesture; end it before the canvas starts its own. */
+  const releaseField = () => (document.activeElement as HTMLElement | null)?.blur?.();
 
   // ctrl/cmd + wheel zooms; plain wheel scrolls.
   useEffect(() => {
@@ -78,6 +84,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
     s.select(next);
     if (ref.boardId) s.setActiveBoard(ref.boardId);
     if (e.shiftKey && already) return;
+    releaseField();
     const it = items.find((x) => sameRef(x.ref, ref))!;
     const boardOffset = ref.boardId ? it.offset : Math.floor(it.el.position.x / boardW) * boardW;
     const others = items.filter((x) => !next.some((r) => sameRef(r, x.ref)) && x.offset === it.offset).map((x) => boxOf(x.el, x.offset));
@@ -91,6 +98,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
     e.stopPropagation();
     if (!single) return;
     const p = toStrip(e);
+    releaseField();
     const lock = single.el.type === "device" || single.el.type === "image";
     drag.current = { kind: "resize", handle, startX: p.x, startY: p.y, start: boxOf(single.el, single.offset), offset: single.offset, ref: single.ref, scale: single.el.scale || 1, lock };
     store.getState().beginGesture();
@@ -100,6 +108,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
   function startRotate(e: React.PointerEvent) {
     e.stopPropagation();
     if (!single) return;
+    releaseField();
     const b = boxOf(single.el, single.offset);
     drag.current = { kind: "rotate", center: { x: b.x + b.w / 2, y: b.y + b.h / 2 }, ref: single.ref };
     store.getState().beginGesture();
@@ -122,7 +131,8 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
       if (step.x || step.y) s.apply({ type: "moveElements", refs: s.selection, dx: step.x, dy: step.y }, { transient: true });
       d.applied = { x: dx, y: dy };
     } else if (d.kind === "resize") {
-      const b = resizeBox(d.start, d.handle, p.x - d.startX, p.y - d.startY, d.lock || e.shiftKey);
+      const r = resizeBox(d.start, d.handle, p.x - d.startX, p.y - d.startY, d.lock || e.shiftKey);
+      const b = { ...r, w: Math.min(r.w, MAX_BOARD_EDGE), h: Math.min(r.h, MAX_BOARD_EDGE) };
       s.apply({ type: "updateElement", ref: d.ref, props: { position: { x: b.x - d.offset, y: b.y }, size: { width: b.w / d.scale, height: b.h / d.scale } } }, { transient: true });
     } else {
       s.apply({ type: "updateElement", ref: d.ref, props: { rotation: rotationFromPointer(d.center, p, e.shiftKey) } }, { transient: true });

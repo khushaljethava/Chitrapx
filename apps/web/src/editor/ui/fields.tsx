@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { isColor } from "@chitrapx/document";
 import { useEditorStore } from "../context.tsx";
 
 /** Form controls whose whole edit (focus to blur) is one undo step. */
@@ -29,14 +31,19 @@ export function NumberField({ id, label, value, onChange, step = 1, min, max }: 
   );
 }
 
+/** Free text is applied only once it is a colour the document accepts, so a half-typed value never breaks saving. */
 export function ColorField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
   const g = useGesture();
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
   const hex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000";
+  const valid = text === "" || isColor(text);
   return (
     <Row label={label} htmlFor={id}>
       <div className="flex gap-2">
         <input type="color" aria-label={`${label} picker`} className="h-9 w-10 shrink-0 rounded border border-neutral-300 dark:border-neutral-700" value={hex} onChange={(e) => onChange(e.target.value)} {...g} />
-        <input id={id} className="input" value={value} onChange={(e) => onChange(e.target.value)} {...g} />
+        <input id={id} className={`input ${valid ? "" : "border-red-500"}`} aria-invalid={!valid} value={text}
+          onChange={(e) => { setText(e.target.value); if (e.target.value === "" || isColor(e.target.value)) onChange(e.target.value); }} {...g} />
       </div>
     </Row>
   );

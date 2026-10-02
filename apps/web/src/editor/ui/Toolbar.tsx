@@ -10,7 +10,7 @@ const STATUS: Record<SaveStatus, string> = {
   conflict: "Changed elsewhere", error: "Could not save",
 };
 
-export function Toolbar({ name, projectId, status }: { name: string; projectId: string; status: SaveStatus }) {
+export function Toolbar({ name, projectId, status, error }: { name: string; projectId: string; status: SaveStatus; error?: string }) {
   const store = useEditorStore();
   const zoom = useEditor((s) => s.zoom);
   const canUndo = useEditor((s) => s.past.length > 0);
@@ -50,7 +50,7 @@ export function Toolbar({ name, projectId, status }: { name: string; projectId: 
           {LOCALES.filter((l) => !codes.includes(l.code)).map((l) => <option key={l.code} value={l.code}>{l.nativeName} ({l.code})</option>)}
         </select>
       </nav>
-      <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status">{STATUS[status]}</span>
+      <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
       <Link href={`/dashboard/projects/${projectId}`} className="btn py-1.5">Export</Link>
     </header>
   );

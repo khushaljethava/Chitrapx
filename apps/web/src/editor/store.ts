@@ -19,6 +19,8 @@ export type EditorState = {
   past: ChitrapxDoc[];
   future: ChitrapxDoc[];
   gestureBase: ChitrapxDoc | null;
+  /** True while a save conflict is unresolved: nothing may change the document. */
+  locked: boolean;
 
   apply(cmd: Command, opts?: { transient?: boolean }): void;
   undo(): void;
@@ -30,6 +32,7 @@ export type EditorState = {
   setActiveBoard(id: string | null): void;
   setLocale(code: string): void;
   setZoom(z: number): void;
+  setLocked(locked: boolean): void;
   /** After a save: the server now holds this revision of `savedDoc`. */
   markSaved(revision: number, savedDoc: ChitrapxDoc): void;
   /** Replace everything (load from server or from the local buffer). */
@@ -63,9 +66,11 @@ export function createEditorStore(init: { projectId: string; doc: ChitrapxDoc; r
     past: [],
     future: [],
     gestureBase: null,
+    locked: false,
 
     apply(cmd, opts) {
       const s = get();
+      if (s.locked) return;
       const doc = applyCommand(s.doc, cmd);
       if (doc === s.doc) return;
       const history = opts?.transient || s.gestureBase ? {} : { past: [...s.past, s.doc].slice(-HISTORY_LIMIT), future: [] };
@@ -73,12 +78,14 @@ export function createEditorStore(init: { projectId: string; doc: ChitrapxDoc; r
     },
     undo() {
       const s = get();
+      if (s.locked) return;
       const prev = s.past.at(-1);
       if (!prev) return;
       set({ doc: prev, past: s.past.slice(0, -1), future: [s.doc, ...s.future], dirty: true, ...normalize({ ...s, doc: prev }) });
     },
     redo() {
       const s = get();
+      if (s.locked) return;
       const next = s.future[0];
       if (!next) return;
       set({ doc: next, past: [...s.past, s.doc], future: s.future.slice(1), dirty: true, ...normalize({ ...s, doc: next }) });
@@ -94,6 +101,7 @@ export function createEditorStore(init: { projectId: string; doc: ChitrapxDoc; r
     setActiveBoard(id) { set({ activeBoardId: id }); },
     setLocale(code) { set({ ...normalize({ ...get(), locale: code }) }); },
     setZoom(z) { set({ zoom: Math.min(2, Math.max(0.05, z)) }); },
+    setLocked(locked) { set({ locked }); },
     markSaved(revision, savedDoc) { set({ revision, dirty: get().doc !== savedDoc }); },
     replaceDoc(doc, revision, dirty) { set({ doc, revision, dirty, past: [], future: [], ...normalize({ ...get(), doc }) }); },
   }));

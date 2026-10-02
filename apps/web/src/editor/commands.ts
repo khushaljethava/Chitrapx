@@ -73,6 +73,11 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           const src = els[i]!;
           const copy = { ...JSON.parse(JSON.stringify(src)), id: cmd.newIds[n], position: { x: src.position.x + cmd.offset, y: src.position.y + cmd.offset } };
           els.splice(i + 1, 0, copy);
+          // Translations follow the copy.
+          const b = ref.boardId ? findBoard(d, ref.groupId, ref.boardId) : undefined;
+          for (const byEl of Object.values(b?.localized ?? {})) {
+            if (byEl[src.id]) byEl[cmd.newIds[n]!] = JSON.parse(JSON.stringify(byEl[src.id]));
+          }
         });
         return;
       case "reorderElement": {
@@ -104,18 +109,27 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         g.boards.splice(i + 1, 0, copy as Draft<ArtboardState>);
         return;
       }
-      case "deleteBoard": {
-        const g = d.groups.find((x) => x.id === cmd.groupId);
-        if (!g || g.boards.length <= 1) return; // a group always keeps one board
-        g.boards = g.boards.filter((b) => b.id !== cmd.boardId);
-        return;
-      }
+      case "deleteBoard":
       case "moveBoard": {
         const g = d.groups.find((x) => x.id === cmd.groupId);
         const i = g?.boards.findIndex((b) => b.id === cmd.boardId) ?? -1;
         if (!g || i < 0) return;
-        const [b] = g.boards.splice(i, 1);
-        g.boards.splice(Math.max(0, Math.min(g.boards.length, cmd.toIndex)), 0, b!);
+        if (cmd.type === "deleteBoard" && g.boards.length <= 1) return; // a group always keeps one board
+        const w = g.boards[0]!.size.width;
+        const before = g.boards.map((b) => b.id);
+        if (cmd.type === "deleteBoard") g.boards.splice(i, 1);
+        else {
+          const [b] = g.boards.splice(i, 1);
+          g.boards.splice(Math.max(0, Math.min(g.boards.length, cmd.toIndex)), 0, b!);
+        }
+        // Span elements are in strip coordinates: keep each on the board it started on.
+        const after = g.boards.map((b) => b.id);
+        for (const el of g.spanElements) {
+          const from = Math.max(0, Math.min(before.length - 1, Math.floor(el.position.x / w)));
+          const to = after.indexOf(before[from]!);
+          const target = to >= 0 ? to : Math.min(from, after.length - 1); // its board is gone: stay in that slot
+          el.position = { ...el.position, x: el.position.x + (target - from) * w };
+        }
         return;
       }
       case "updateBoard": {

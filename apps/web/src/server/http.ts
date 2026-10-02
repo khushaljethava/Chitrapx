@@ -31,3 +31,19 @@ export function route<A extends unknown[]>(fn: (...args: A) => Promise<unknown>)
 export async function readJson(req: Request): Promise<unknown> {
   try { return await req.json(); } catch { throw badRequest("invalid_json"); }
 }
+
+/** Reads at most `maxBytes` of the body (whatever Content-Length claims), then parses it as JSON. */
+export async function readJsonLimited(req: Request, maxBytes: number): Promise<unknown> {
+  if (!req.body) throw badRequest("invalid_json");
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let size = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    size += value.byteLength;
+    if (size > maxBytes) { await reader.cancel(); throw new HttpError(413, "too_large", "This project is too large to save"); }
+    chunks.push(value);
+  }
+  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { throw badRequest("invalid_json"); }
+}

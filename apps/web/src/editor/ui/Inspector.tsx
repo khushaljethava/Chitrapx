@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { MAX_BOARD_EDGE } from "@chitrapx/document";
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
 import { ALL_FONTS } from "@chitrapx/renderer";
 import { findElement, type Ref } from "../commands.ts";
@@ -19,6 +20,9 @@ const POSES = (["classic", "front", "upright", "side", "tilted", "reclined", "la
 /** Every element type's fields, optional: the inspector shows only the ones that apply. */
 type AnyFields = Partial<Omit<TextElementProps, "type"> & Omit<ShapeElementProps, "type" | "borderRadius"> & Omit<DeviceFrameElementProps, "type"> & Omit<ImageElementProps, "type" | "opacity" | "borderRadius">>
   & { borderRadius?: number | string };
+
+/** Sizes the document accepts: at least 8 px, at most the largest board edge. */
+const clampEdge = (v: number) => Math.min(MAX_BOARD_EDGE, Math.max(8, v));
 
 /** Options plus the current value when a template uses something outside the list, so it still shows. */
 const withCurrent = (options: ReadonlyArray<readonly [string, string]>, value: string): ReadonlyArray<readonly [string, string]> =>
@@ -166,8 +170,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
       <div className="grid grid-cols-2 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
         <NumberField id="i-x" label="X" value={el.position.x} onChange={(v) => set({ position: { ...el.position, x: v } })} />
         <NumberField id="i-y" label="Y" value={el.position.y} onChange={(v) => set({ position: { ...el.position, y: v } })} />
-        <NumberField id="i-w" label="Width" value={sz.w} min={8} onChange={(v) => set({ size: { ...el.size, width: Math.max(8, v) / (el.scale || 1) } })} />
-        <NumberField id="i-h" label="Height" value={sz.h} min={8} onChange={(v) => set({ size: { ...el.size, height: Math.max(8, v) / (el.scale || 1) } })} />
+        <NumberField id="i-w" label="Width" value={sz.w} min={8} max={MAX_BOARD_EDGE} onChange={(v) => set({ size: { ...el.size, width: clampEdge(v) / (el.scale || 1) } })} />
+        <NumberField id="i-h" label="Height" value={sz.h} min={8} max={MAX_BOARD_EDGE} onChange={(v) => set({ size: { ...el.size, height: clampEdge(v) / (el.scale || 1) } })} />
         <NumberField id="i-rot" label="Rotation" value={el.rotation || 0} onChange={(v) => set({ rotation: v })} />
         <NumberField id="i-op" label="Opacity %" value={Math.round((el.opacity ?? 1) * 100)} min={0} max={100} onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
       </div>

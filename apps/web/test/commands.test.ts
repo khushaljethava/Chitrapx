@@ -100,3 +100,21 @@ describe("commands", () => {
     expect(applyCommand(d, { type: "deleteGroup", groupId: "g2" }).groups).toHaveLength(1);
   });
 });
+
+describe("review fixes", () => {
+  it("removing or moving a board keeps span elements on the board they started on", () => {
+    const d = { ...doc(), groups: [{ ...doc().groups[0]!, boards: [board("b1"), board("b2"), board("b3")], spanElements: [el("onB3", 2 * 1290 + 100), el("onB1", 100)] }] };
+    const removed = applyCommand(d, { type: "deleteBoard", groupId: "g", boardId: "b2" });
+    expect(removed.groups[0]!.spanElements.find((e) => e.id === "onB3")!.position.x).toBe(1290 + 100);
+    expect(removed.groups[0]!.spanElements.find((e) => e.id === "onB1")!.position.x).toBe(100);
+    const moved = applyCommand(d, { type: "moveBoard", groupId: "g", boardId: "b3", toIndex: 0 });
+    expect(moved.groups[0]!.spanElements.find((e) => e.id === "onB3")!.position.x).toBe(100);
+    expect(moved.groups[0]!.spanElements.find((e) => e.id === "onB1")!.position.x).toBe(1290 + 100);
+  });
+
+  it("duplicating an element copies its translations to the copy", () => {
+    let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } });
+    d = applyCommand(d, { type: "duplicateElements", refs: [r("a")], newIds: ["a2"], offset: 10 });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo" });
+  });
+});
