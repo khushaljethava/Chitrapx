@@ -1,0 +1,1089 @@
+{
+ "slug": "lingua-learn",
+ "name": "Lingua Learn",
+ "description": "App Store & Play Store screenshots for a language learning app. Alternating lavender and violet panels with two-tone headlines, pill highlights, doodle accents and centered phones.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "lingua-learn-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_lng_ab1",
+      "name": "Learn",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab1_blob",
+        "type": "shape",
+        "position": {
+         "x": -280,
+         "y": 2080
+        },
+        "size": {
+         "width": 920,
+         "height": 820
+        },
+        "name": "Blob Bottom Left",
+        "rotation": 14,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#DCD3F8",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab1_sparkle_big",
+        "type": "shape",
+        "position": {
+         "x": 1000,
+         "y": 90
+        },
+        "size": {
+         "width": 140,
+         "height": 140
+        },
+        "name": "Sparkle Big",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#6C57E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 0 C55 35 65 45 100 50 C65 55 55 65 50 100 C45 65 35 55 0 50 C35 45 45 35 50 0 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_lng_ab1_sparkle_small",
+        "type": "shape",
+        "position": {
+         "x": 1140,
+         "y": 230
+        },
+        "size": {
+         "width": 80,
+         "height": 80
+        },
+        "name": "Sparkle Small",
+        "rotation": 18,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#6C57E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 0 C55 35 65 45 100 50 C65 55 55 65 50 100 C45 65 35 55 0 50 C35 45 45 35 50 0 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_lng_ab1_headline_a",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 100
+        },
+        "size": {
+         "width": 1100,
+         "height": 180
+        },
+        "name": "Headline Accent",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Learn",
+        "fontSize": 42,
+        "color": "#A79BF0",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab1_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 265
+        },
+        "size": {
+         "width": 1100,
+         "height": 340
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Languages in\nMinutes",
+        "fontSize": 42,
+        "color": "#6C57E6",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab1_squiggle",
+        "type": "shape",
+        "position": {
+         "x": 75,
+         "y": 640
+        },
+        "size": {
+         "width": 430,
+         "height": 50
+        },
+        "name": "Squiggle Underline",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#6C57E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 5,
+        "customPath": "M2 12 Q 10 4 18 12 T 34 12 T 50 12 T 66 12 T 82 12 T 98 12",
+        "specialProps": {
+         "viewBox": "0 0 100 20",
+         "strokeOnly": true,
+         "baseStrokeWidth": 5
+        }
+       },
+       {
+        "id": "tpl_lng_ab1_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#E9E4FA",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab2",
+      "name": "Speak",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab2_blob_top",
+        "type": "shape",
+        "position": {
+         "x": -240,
+         "y": 420
+        },
+        "size": {
+         "width": 720,
+         "height": 640
+        },
+        "name": "Blob Top Left",
+        "rotation": -20,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "fillOpacity": 0.18,
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab2_blob_bottom",
+        "type": "shape",
+        "position": {
+         "x": 880,
+         "y": 2280
+        },
+        "size": {
+         "width": 720,
+         "height": 660
+        },
+        "name": "Blob Bottom Right",
+        "rotation": 35,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "fillOpacity": 0.18,
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab2_headline_a",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 100
+        },
+        "size": {
+         "width": 1100,
+         "height": 180
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Speak With",
+        "fontSize": 42,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab2_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 265
+        },
+        "size": {
+         "width": 1100,
+         "height": 180
+        },
+        "name": "Headline Accent",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Confidence",
+        "fontSize": 42,
+        "color": "#D6CCFA",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab2_subtitle",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 500
+        },
+        "size": {
+         "width": 1100,
+         "height": 90
+        },
+        "name": "Subtitle",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Quick sessions fit busy days",
+        "fontSize": 15,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "tpl_lng_ab2_arrow",
+        "type": "shape",
+        "position": {
+         "x": 1000,
+         "y": 560
+        },
+        "size": {
+         "width": 250,
+         "height": 280
+        },
+        "name": "Arrow Doodle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 5,
+        "customPath": "M74 4 C 92 26, 90 54, 56 68 M56 68 L74 58 M56 68 L72 82",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 5
+        }
+       },
+       {
+        "id": "tpl_lng_ab2_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#6C57E6",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab3",
+      "name": "Rewards",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab3_blob",
+        "type": "shape",
+        "position": {
+         "x": 860,
+         "y": 2160
+        },
+        "size": {
+         "width": 780,
+         "height": 720
+        },
+        "name": "Blob Bottom Right",
+        "rotation": -10,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "fillOpacity": 0.18,
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab3_curl",
+        "type": "shape",
+        "position": {
+         "x": 1050,
+         "y": 420
+        },
+        "size": {
+         "width": 200,
+         "height": 240
+        },
+        "name": "Curl Doodle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 5,
+        "customPath": "M20 6 C 70 10, 80 40, 46 48 C 20 54, 22 78, 58 84",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 5
+        }
+       },
+       {
+        "id": "tpl_lng_ab3_headline_a",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 100
+        },
+        "size": {
+         "width": 1150,
+         "height": 180
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Track Progress",
+        "fontSize": 42,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab3_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 265
+        },
+        "size": {
+         "width": 1150,
+         "height": 180
+        },
+        "name": "Headline Accent",
+        "rotation": 0,
+        "scale": 1,
+        "content": "With Rewards",
+        "fontSize": 42,
+        "color": "#D6CCFA",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab3_subtitle",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 500
+        },
+        "size": {
+         "width": 1100,
+         "height": 90
+        },
+        "name": "Subtitle",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Earn achievements for your skills",
+        "fontSize": 15,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "tpl_lng_ab3_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#6C57E6",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab4",
+      "name": "40 Languages",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab4_blob",
+        "type": "shape",
+        "position": {
+         "x": -300,
+         "y": 2200
+        },
+        "size": {
+         "width": 860,
+         "height": 760
+        },
+        "name": "Blob Bottom Left",
+        "rotation": 24,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#DCD3F8",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab4_pill",
+        "type": "shape",
+        "position": {
+         "x": 150,
+         "y": 170
+        },
+        "size": {
+         "width": 990,
+         "height": 175
+        },
+        "name": "Highlight Pill",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#6C57E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 48
+       },
+       {
+        "id": "tpl_lng_ab4_headline_a",
+        "type": "text",
+        "position": {
+         "x": 150,
+         "y": 170
+        },
+        "size": {
+         "width": 990,
+         "height": 175
+        },
+        "name": "Headline Pill Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Learn 40 plus",
+        "fontSize": 40,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab4_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 360
+        },
+        "size": {
+         "width": 1150,
+         "height": 175
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "languages free",
+        "fontSize": 40,
+        "color": "#2B2350",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab4_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#E9E4FA",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab5",
+      "name": "Game Learning",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab5_scribble",
+        "type": "shape",
+        "position": {
+         "x": 960,
+         "y": 1160
+        },
+        "size": {
+         "width": 280,
+         "height": 320
+        },
+        "name": "Scribble Accent",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 6,
+        "customPath": "M18 96 L74 8 M40 98 L96 14 M2 86 L54 4",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 6
+        }
+       },
+       {
+        "id": "tpl_lng_ab5_headline",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 100
+        },
+        "size": {
+         "width": 1100,
+         "height": 340
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Enjoy Game\nLike Learning",
+        "fontSize": 42,
+        "color": "#2B2350",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab5_subtitle",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 470
+        },
+        "size": {
+         "width": 1100,
+         "height": 90
+        },
+        "name": "Subtitle",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Fun challenges keep motivation high",
+        "fontSize": 15,
+        "color": "#2B2350",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "tpl_lng_ab5_dashes",
+        "type": "shape",
+        "position": {
+         "x": 60,
+         "y": 640
+        },
+        "size": {
+         "width": 230,
+         "height": 230
+        },
+        "name": "Dash Burst",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#6C57E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 7,
+        "customPath": "M8 92 L22 66 M30 54 L36 28 M54 46 L58 16 M76 50 L88 26",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 7
+        }
+       },
+       {
+        "id": "tpl_lng_ab5_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#E9E4FA",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab6",
+      "name": "Skills",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab6_blob",
+        "type": "shape",
+        "position": {
+         "x": -260,
+         "y": 2140
+        },
+        "size": {
+         "width": 800,
+         "height": 740
+        },
+        "name": "Blob Bottom Left",
+        "rotation": -28,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "fillOpacity": 0.18,
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M45.4,-59.3C57.4,-49.5,64.6,-33.8,68.5,-17.1C72.4,-0.4,73,17.3,66.1,31.3C59.2,45.3,44.8,55.6,29.2,62.3C13.6,69,-3.2,72.1,-19.2,68.4C-35.2,64.7,-50.4,54.2,-59.7,40.1C-69,26,-72.4,8.3,-69.9,-8.2C-67.4,-24.7,-59,-40,-46.6,-49.9C-34.2,-59.8,-17.1,-64.3,-0.2,-64.1C16.7,-63.9,33.4,-69.1,45.4,-59.3Z",
+        "specialProps": {
+         "viewBox": "-75 -75 150 150"
+        }
+       },
+       {
+        "id": "tpl_lng_ab6_headline_a",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 100
+        },
+        "size": {
+         "width": 1150,
+         "height": 180
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Build language",
+        "fontSize": 42,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab6_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 265
+        },
+        "size": {
+         "width": 1150,
+         "height": 180
+        },
+        "name": "Headline Accent",
+        "rotation": 0,
+        "scale": 1,
+        "content": "skills in minutes",
+        "fontSize": 42,
+        "color": "#D6CCFA",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab6_subtitle",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 500
+        },
+        "size": {
+         "width": 1100,
+         "height": 90
+        },
+        "name": "Subtitle",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Quick lessons fit busy days",
+        "fontSize": 15,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "tpl_lng_ab6_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#6C57E6",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_lng_ab7",
+      "name": "Math & Music",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_lng_ab7_pill",
+        "type": "shape",
+        "position": {
+         "x": 255,
+         "y": 150
+        },
+        "size": {
+         "width": 780,
+         "height": 175
+        },
+        "name": "Highlight Pill",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 48
+       },
+       {
+        "id": "tpl_lng_ab7_headline_a",
+        "type": "text",
+        "position": {
+         "x": 255,
+         "y": 150
+        },
+        "size": {
+         "width": 780,
+         "height": 175
+        },
+        "name": "Headline Pill Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Train math",
+        "fontSize": 40,
+        "color": "#6C57E6",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab7_headline_b",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 340
+        },
+        "size": {
+         "width": 1150,
+         "height": 175
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "and music",
+        "fontSize": 40,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_lng_ab7_underline",
+        "type": "shape",
+        "position": {
+         "x": 245,
+         "y": 560
+        },
+        "size": {
+         "width": 800,
+         "height": 60
+        },
+        "name": "Underline Stroke",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 12,
+        "customPath": "M4 14 Q 50 4 96 11",
+        "specialProps": {
+         "viewBox": "0 0 100 20",
+         "strokeOnly": true,
+         "baseStrokeWidth": 12
+        }
+       },
+       {
+        "id": "tpl_lng_ab7_device",
+        "type": "device",
+        "position": {
+         "x": 195,
+         "y": 790
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#2E2E33",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#6C57E6",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

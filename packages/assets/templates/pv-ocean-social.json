@@ -1,0 +1,601 @@
+{
+ "slug": "pv-ocean-social",
+ "name": "Ocean Social",
+ "description": "Playful App Preview layout for social and chat apps. Paint splats, heavy grotesque headlines and sky blues. Drop your screen recording into the phone and export the MP4.",
+ "category": "app-preview",
+ "platforms": [
+  "preview"
+ ],
+ "kind": "video",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "video",
+  "groups": [
+   {
+    "id": "pv-ocean-social-app-preview-portrait",
+    "target": "app-preview-portrait",
+    "boards": [
+     {
+      "id": "tpl_pv_ocean_social_0",
+      "name": "Together",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 886,
+       "height": 1920
+      },
+      "elements": [
+       {
+        "id": "s_29",
+        "type": "shape",
+        "position": {
+         "x": 596,
+         "y": -80
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Splat Blue",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#1D9BF0",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "fillOpacity": 0.9,
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "animation": {
+         "enter": "fade",
+         "enterDelay": 0.2,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "s_2a",
+        "type": "shape",
+        "position": {
+         "x": -110,
+         "y": 1580
+        },
+        "size": {
+         "width": 380,
+         "height": 380
+        },
+        "name": "Splat Lavender",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#8AB4F8",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "fillOpacity": 0.85,
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "animation": {
+         "enter": "fade",
+         "enterDelay": 0.35,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "t_2b",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 180
+        },
+        "size": {
+         "width": 560,
+         "height": 117
+        },
+        "name": "Headline Ink",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Your people,",
+        "fontSize": 24.6,
+        "color": "#08213A",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "left",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.15,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "t_2c",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 297
+        },
+        "size": {
+         "width": 560,
+         "height": 117
+        },
+        "name": "Headline Sky",
+        "rotation": 0,
+        "scale": 1,
+        "content": "one tap away",
+        "fontSize": 24.6,
+        "color": "#1D9BF0",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "left",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.3,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "t_2d",
+        "type": "text",
+        "position": {
+         "x": 62,
+         "y": 454
+        },
+        "size": {
+         "width": 600,
+         "height": 49
+        },
+        "name": "Subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Group chats that actually stay fun",
+        "fontSize": 10.2,
+        "color": "#5B7290",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "fade",
+         "enterDelay": 0.65,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "v_26",
+        "type": "video-device",
+        "position": {
+         "x": 143,
+         "y": 600
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone (drop your recording here)",
+        "rotation": -4,
+        "scale": 1.02,
+        "deviceType": "iphone-15",
+        "naturalVideoWidth": 1692,
+        "naturalVideoHeight": 3420,
+        "objectFit": "cover",
+        "frameColor": "#0B2942",
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.05,
+         "enterDuration": 0.9
+        }
+       },
+       {
+        "id": "g_2e",
+        "type": "gesture",
+        "position": {
+         "x": 384,
+         "y": 1207
+        },
+        "size": {
+         "width": 130,
+         "height": 130
+        },
+        "name": "Gesture hint",
+        "rotation": 0,
+        "scale": 1,
+        "gestureType": "tap",
+        "color": "#1D9BF0",
+        "triggerTime": 1.8,
+        "gestureDuration": 1.3
+       }
+      ],
+      "backgroundColor": "#E7F4FE",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_pv_ocean_social_1",
+      "name": "Share",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 886,
+       "height": 1920
+      },
+      "elements": [
+       {
+        "id": "s_2f",
+        "type": "shape",
+        "position": {
+         "x": 700,
+         "y": 300
+        },
+        "size": {
+         "width": 110,
+         "height": 110
+        },
+        "name": "Heart",
+        "rotation": 12,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FF6584",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 88 C20 65 8 45 8 30 C8 16 19 8 30 8 C40 8 47 14 50 20 C53 14 60 8 70 8 C81 8 92 16 92 30 C92 45 80 65 50 88 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "animation": {
+         "enter": "pop",
+         "enterDelay": 1.1,
+         "enterDuration": 0.6
+        }
+       },
+       {
+        "id": "s_2g",
+        "type": "shape",
+        "position": {
+         "x": 70,
+         "y": 452
+        },
+        "size": {
+         "width": 60,
+         "height": 60
+        },
+        "name": "Sparkle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#BFE3FF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 2 Q54.41 45.59 98 50 Q54.41 54.41 50 98 Q45.59 54.41 2 50 Q45.59 45.59 50 2 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "animation": {
+         "enter": "pop",
+         "enterDelay": 1.25,
+         "enterDuration": 0.6
+        }
+       },
+       {
+        "id": "t_2h",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 180
+        },
+        "size": {
+         "width": 600,
+         "height": 117
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Share the",
+        "fontSize": 24.6,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "left",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.15,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "t_2i",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 297
+        },
+        "size": {
+         "width": 600,
+         "height": 117
+        },
+        "name": "Headline Pale",
+        "rotation": 0,
+        "scale": 1,
+        "content": "moment, live",
+        "fontSize": 24.6,
+        "color": "#BFE3FF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "left",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.3,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "v_27",
+        "type": "video-device",
+        "position": {
+         "x": 143,
+         "y": 610
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone (drop your recording here)",
+        "rotation": 4,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "naturalVideoWidth": 1692,
+        "naturalVideoHeight": 3420,
+        "objectFit": "cover",
+        "frameColor": "#F2F2F4",
+        "animation": {
+         "enter": "scale-up",
+         "enterDelay": 0.05,
+         "enterDuration": 0.9
+        }
+       },
+       {
+        "id": "g_2j",
+        "type": "gesture",
+        "position": {
+         "x": 378,
+         "y": 1185
+        },
+        "size": {
+         "width": 130,
+         "height": 130
+        },
+        "name": "Gesture hint",
+        "rotation": 0,
+        "scale": 1,
+        "gestureType": "double-tap",
+        "color": "#FF6584",
+        "triggerTime": 1.9,
+        "gestureDuration": 1.4
+       }
+      ],
+      "backgroundColor": "#0B3C74",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#0B3C74",
+       "color2": "#1D9BF0",
+       "angle": 170
+      }
+     },
+     {
+      "id": "tpl_pv_ocean_social_2",
+      "name": "Community",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 886,
+       "height": 1920
+      },
+      "elements": [
+       {
+        "id": "s_2k",
+        "type": "shape",
+        "position": {
+         "x": 640,
+         "y": 1560
+        },
+        "size": {
+         "width": 360,
+         "height": 360
+        },
+        "name": "Splat Green",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#3DD68C",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "fillOpacity": 0.85,
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "animation": {
+         "enter": "fade",
+         "enterDelay": 0.5,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "v_28",
+        "type": "video-device",
+        "position": {
+         "x": 143,
+         "y": 140
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone (drop your recording here)",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "naturalVideoWidth": 1692,
+        "naturalVideoHeight": 3420,
+        "objectFit": "cover",
+        "frameColor": "#0B2942",
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.05,
+         "enterDuration": 0.9
+        }
+       },
+       {
+        "id": "t_2l",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 1480
+        },
+        "size": {
+         "width": 766,
+         "height": 100
+        },
+        "name": "Headline Ink",
+        "rotation": 0,
+        "scale": 1,
+        "content": "2 million people",
+        "fontSize": 21,
+        "color": "#08213A",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.55,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "t_2m",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 1580
+        },
+        "size": {
+         "width": 766,
+         "height": 100
+        },
+        "name": "Headline Sky",
+        "rotation": 0,
+        "scale": 1,
+        "content": "already here",
+        "fontSize": 21,
+        "color": "#1D9BF0",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "800",
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "animation": {
+         "enter": "slide-up",
+         "enterDelay": 0.68,
+         "enterDuration": 0.7
+        }
+       },
+       {
+        "id": "r_2n",
+        "type": "shape",
+        "position": {
+         "x": 313,
+         "y": 1720
+        },
+        "size": {
+         "width": 260,
+         "height": 70
+        },
+        "name": "Pill Join free",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#1D9BF0",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 35,
+        "animation": {
+         "enter": "pop",
+         "enterDelay": 1,
+         "enterDuration": 0.6
+        }
+       },
+       {
+        "id": "t_2o",
+        "type": "text",
+        "position": {
+         "x": 313,
+         "y": 1733
+        },
+        "size": {
+         "width": 260,
+         "height": 45
+        },
+        "name": "Pill Label Join free",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Join free",
+        "fontSize": 9,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15,
+        "animation": {
+         "enter": "pop",
+         "enterDelay": 1,
+         "enterDuration": 0.6
+        }
+       },
+       {
+        "id": "g_2p",
+        "type": "gesture",
+        "position": {
+         "x": 313,
+         "y": 710
+        },
+        "size": {
+         "width": 260,
+         "height": 300
+        },
+        "name": "Gesture hint",
+        "rotation": 0,
+        "scale": 1,
+        "gestureType": "swipe-up",
+        "color": "#1D9BF0",
+        "triggerTime": 1.8,
+        "gestureDuration": 1.5
+       }
+      ],
+      "backgroundColor": "#E7F4FE",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

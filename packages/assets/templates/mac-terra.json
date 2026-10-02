@@ -1,0 +1,527 @@
+{
+ "slug": "mac-terra",
+ "name": "Terra Impact",
+ "description": "Mac App Store screenshots for a sustainability app: soft green gradient, bold left-aligned eco headlines, and overlapping 3D MacBook and iMac mockups running green accent screens. Swap each screen to your own app UI.",
+ "category": "mac",
+ "platforms": [
+  "mac"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "mac-terra-mac-2560",
+    "target": "mac-2560",
+    "boards": [
+     {
+      "id": "artboard-1",
+      "name": "Eco-friendly",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 2560,
+       "height": 1600
+      },
+      "elements": [
+       {
+        "id": "Headline-4e",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 200
+        },
+        "size": {
+         "width": 1000,
+         "height": 177
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Eco-friendly",
+        "fontSize": 36,
+        "color": "#14291C",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Sub-4f",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 430
+        },
+        "size": {
+         "width": 900,
+         "height": 69
+        },
+        "name": "Sub",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Make conscious decisions.",
+        "fontSize": 14,
+        "color": "#365544",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Mac top-4g",
+        "type": "device",
+        "position": {
+         "x": 1120,
+         "y": 160
+        },
+        "size": {
+         "width": 1200,
+         "height": 866
+        },
+        "name": "MacBook",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "macbook",
+        "styleType": "3d-left",
+        "pose3d": "side",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       },
+       {
+        "id": "Mac bottom-4h",
+        "type": "device",
+        "position": {
+         "x": 1310,
+         "y": 720
+        },
+        "size": {
+         "width": 1200,
+         "height": 880
+        },
+        "name": "MacBook",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "macbook",
+        "styleType": "3d-right",
+        "pose3d": "tilted",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       }
+      ],
+      "backgroundColor": "#8AD8A6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8AD8A6",
+       "color2": "#F6FCF8",
+       "angle": 180
+      }
+     },
+     {
+      "id": "artboard-2",
+      "name": "Build greener",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 2560,
+       "height": 1600
+      },
+      "elements": [
+       {
+        "id": "Headline-4i",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 200
+        },
+        "size": {
+         "width": 1000,
+         "height": 177
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Build greener",
+        "fontSize": 36,
+        "color": "#14291C",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Sub-4j",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 430
+        },
+        "size": {
+         "width": 900,
+         "height": 121
+        },
+        "name": "Sub",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Sustainable choices for\nyour whole team.",
+        "fontSize": 14,
+        "color": "#365544",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Mac-4k",
+        "type": "device",
+        "position": {
+         "x": 800,
+         "y": 300
+        },
+        "size": {
+         "width": 1700,
+         "height": 1360
+        },
+        "name": "MacBook",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "macbook",
+        "styleType": "3d-left",
+        "pose3d": "reclined",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       }
+      ],
+      "backgroundColor": "#8AD8A6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8AD8A6",
+       "color2": "#F6FCF8",
+       "angle": 180
+      }
+     },
+     {
+      "id": "artboard-3",
+      "name": "Reduce",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 2560,
+       "height": 1600
+      },
+      "elements": [
+       {
+        "id": "Headline-4l",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 200
+        },
+        "size": {
+         "width": 1000,
+         "height": 177
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Reduce",
+        "fontSize": 36,
+        "color": "#14291C",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Sub-4m",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 430
+        },
+        "size": {
+         "width": 900,
+         "height": 121
+        },
+        "name": "Sub",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Reduce your consumption\nto save the planet.",
+        "fontSize": 14,
+        "color": "#365544",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Mac-4n",
+        "type": "device",
+        "position": {
+         "x": 1020,
+         "y": 340
+        },
+        "size": {
+         "width": 1350,
+         "height": 982
+        },
+        "name": "MacBook",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "macbook",
+        "styleType": "3d-right",
+        "pose3d": "front",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       }
+      ],
+      "backgroundColor": "#8AD8A6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8AD8A6",
+       "color2": "#F6FCF8",
+       "angle": 180
+      }
+     },
+     {
+      "id": "artboard-4",
+      "name": "Re-use",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 2560,
+       "height": 1600
+      },
+      "elements": [
+       {
+        "id": "Headline-4o",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 200
+        },
+        "size": {
+         "width": 1000,
+         "height": 177
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Re-use",
+        "fontSize": 36,
+        "color": "#14291C",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Sub-4p",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 430
+        },
+        "size": {
+         "width": 900,
+         "height": 121
+        },
+        "name": "Sub",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Re-use materials to help\nthe environment.",
+        "fontSize": 14,
+        "color": "#365544",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Mac-4q",
+        "type": "device",
+        "position": {
+         "x": 1180,
+         "y": 380
+        },
+        "size": {
+         "width": 1050,
+         "height": 819
+        },
+        "name": "iMac",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "imac",
+        "styleType": "3d-right",
+        "pose3d": "front",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       }
+      ],
+      "backgroundColor": "#8AD8A6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8AD8A6",
+       "color2": "#F6FCF8",
+       "angle": 180
+      }
+     },
+     {
+      "id": "artboard-5",
+      "name": "Recycle",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 2560,
+       "height": 1600
+      },
+      "elements": [
+       {
+        "id": "Headline-4r",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 200
+        },
+        "size": {
+         "width": 1000,
+         "height": 177
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Recycle",
+        "fontSize": 36,
+        "color": "#14291C",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Sub-4s",
+        "type": "text",
+        "position": {
+         "x": 220,
+         "y": 430
+        },
+        "size": {
+         "width": 900,
+         "height": 121
+        },
+        "name": "Sub",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Recycle to save money\nand help the world.",
+        "fontSize": 14,
+        "color": "#365544",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "Mac-4t",
+        "type": "device",
+        "position": {
+         "x": 980,
+         "y": 400
+        },
+        "size": {
+         "width": 1400,
+         "height": 974
+        },
+        "name": "MacBook",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "macbook",
+        "styleType": "3d-right",
+        "pose3d": "upright",
+        "frameColor3d": "black",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        },
+        "naturalScreenshotWidth": 2560,
+        "naturalScreenshotHeight": 1600
+       }
+      ],
+      "backgroundColor": "#8AD8A6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8AD8A6",
+       "color2": "#F6FCF8",
+       "angle": 180
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

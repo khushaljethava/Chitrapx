@@ -1,0 +1,924 @@
+{
+ "slug": "inquira",
+ "name": "Inquira",
+ "description": "App Store & Play Store screenshots for an AI search app. Neon lime and black panels with serif headlines and playful doodle accents.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "inquira-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_inq_ab1",
+      "name": "Hero",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_inq_ab1_logomark",
+        "type": "shape",
+        "position": {
+         "x": 395,
+         "y": 155
+        },
+        "size": {
+         "width": 100,
+         "height": 100
+        },
+        "name": "Logo Mark",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 8,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_logotext",
+        "type": "text",
+        "position": {
+         "x": 515,
+         "y": 150
+        },
+        "size": {
+         "width": 430,
+         "height": 120
+        },
+        "name": "Logo Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Inquira",
+        "fontSize": 36,
+        "color": "#141414",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "bold",
+        "textAlign": "left",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_inq_ab1_headline",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 290
+        },
+        "size": {
+         "width": 1160,
+         "height": 380
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Discover\ntopics faster",
+        "fontSize": 48,
+        "color": "#141414",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_inq_ab1_device",
+        "type": "device",
+        "position": {
+         "x": 270,
+         "y": 730
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": -18,
+        "scale": 1.3,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_inq_ab1_star1",
+        "type": "shape",
+        "position": {
+         "x": 343,
+         "y": 2400
+        },
+        "size": {
+         "width": 92,
+         "height": 92
+        },
+        "name": "Rating Star 1",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_star2",
+        "type": "shape",
+        "position": {
+         "x": 471,
+         "y": 2400
+        },
+        "size": {
+         "width": 92,
+         "height": 92
+        },
+        "name": "Rating Star 2",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_star3",
+        "type": "shape",
+        "position": {
+         "x": 599,
+         "y": 2400
+        },
+        "size": {
+         "width": 92,
+         "height": 92
+        },
+        "name": "Rating Star 3",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_star4",
+        "type": "shape",
+        "position": {
+         "x": 727,
+         "y": 2400
+        },
+        "size": {
+         "width": 92,
+         "height": 92
+        },
+        "name": "Rating Star 4",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_star5",
+        "type": "shape",
+        "position": {
+         "x": 855,
+         "y": 2400
+        },
+        "size": {
+         "width": 92,
+         "height": 92
+        },
+        "name": "Rating Star 5",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#141414",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab1_rating",
+        "type": "text",
+        "position": {
+         "x": 145,
+         "y": 2540
+        },
+        "size": {
+         "width": 1000,
+         "height": 200
+        },
+        "name": "Rating Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "4.5 Rating",
+        "fontSize": 40,
+        "color": "#141414",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "bold",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       }
+      ],
+      "backgroundColor": "#DDF247",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_inq_ab2",
+      "name": "Search",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_inq_ab2_eyebrow",
+        "type": "text",
+        "position": {
+         "x": 345,
+         "y": 150
+        },
+        "size": {
+         "width": 600,
+         "height": 130
+        },
+        "name": "Eyebrow Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Search",
+        "fontSize": 30,
+        "color": "#141414",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "bold",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_inq_ab2_headline",
+        "type": "text",
+        "position": {
+         "x": 95,
+         "y": 300
+        },
+        "size": {
+         "width": 1100,
+         "height": 360
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Speed meets\nintelligence",
+        "fontSize": 44,
+        "color": "#141414",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_inq_ab2_device",
+        "type": "device",
+        "position": {
+         "x": 135,
+         "y": 760
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.7,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_inq_ab2_band",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2510
+        },
+        "size": {
+         "width": 1290,
+         "height": 286
+        },
+        "name": "Caption Band",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0D0D0D",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_inq_ab2_caption",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 2560
+        },
+        "size": {
+         "width": 1170,
+         "height": 190
+        },
+        "name": "Caption",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Get accurate AI powered answers\ninstantly without endless searching online",
+        "fontSize": 15,
+        "color": "#DDF247",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#DDF247",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_inq_ab3",
+      "name": "Discover",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_inq_ab3_eyebrow",
+        "type": "text",
+        "position": {
+         "x": 345,
+         "y": 140
+        },
+        "size": {
+         "width": 600,
+         "height": 140
+        },
+        "name": "Eyebrow Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Discover",
+        "fontSize": 30,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_inq_ab3_headline",
+        "type": "text",
+        "position": {
+         "x": 95,
+         "y": 300
+        },
+        "size": {
+         "width": 1100,
+         "height": 340
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Find trusted\nanswers faster",
+        "fontSize": 42,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "textAlign": "center",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "tpl_inq_ab3_scribble",
+        "type": "shape",
+        "position": {
+         "x": 700,
+         "y": 450
+        },
+        "size": {
+         "width": 480,
+         "height": 180
+        },
+        "name": "Scribble Ellipse",
+        "rotation": -4,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M14.73 64.51 L12.59 60.94 L11.06 57.32 L10.16 53.84 L9.87 50.82 L9.97 48.27 L10.43 45.51 L11.45 42.42 L13.06 39.2 L15.26 36.01 L17.99 32.96 L21.22 30.13 L24.89 27.58 L28.94 25.36 L33.32 23.51 L37.96 22.06 L42.79 21.04 L47.74 20.46 L52.74 20.35 L57.72 20.7 L62.6 21.51 L67.31 22.77 L71.78 24.48 L75.94 26.6 L79.73 29.1 L83.09 31.95 L85.96 35.08 L88.29 38.42 L90.04 41.88 L91.18 45.28 L91.74 48.47 L91.81 51.49 L91.41 54.66 L90.44 58.12 L88.85 61.73 L86.66 65.31 L83.91 68.74 L80.64 71.93 L76.89 74.82 L72.74 77.35 L68.23 79.48 L63.44 81.16 L58.44 82.37 L53.3 83.09 L48.09 83.3 L42.9 82.99 L37.8 82.17 L32.85 80.84 L28.15 79.02 L23.75 76.73 L19.74 74.02 L16.15 70.92 L13.03 67.71 L10.39 64.43 L8.3 60.9 L6.76 57.14 L5.77 53.04 L5.4 53.54 L6.11 58.35 L7.52 63.21 L9.57 67.89 L12.22 72.29 L15.44 76.13 L19.16 79.36 L23.3 82.15 L27.8 84.49 L32.6 86.35 L37.63 87.7 L42.81 88.54 L48.09 88.85 L53.37 88.64 L58.59 87.92 L63.67 86.68 L68.55 84.97 L73.15 82.8 L77.41 80.2 L81.28 77.22 L84.7 73.87 L87.64 70.21 L90.07 66.24 L91.94 61.96 L93.24 57.3 L93.88 52.25 L93.76 47.06 L92.9 42.17 L91.43 37.74 L89.39 33.72 L86.84 30.05 L83.79 26.72 L80.29 23.76 L76.38 21.17 L72.12 19 L67.56 17.26 L62.77 15.97 L57.81 15.15 L52.76 14.79 L47.68 14.91 L42.66 15.49 L37.75 16.53 L33.04 18.01 L28.57 19.9 L24.42 22.17 L20.64 24.8 L17.27 27.75 L14.37 30.99 L11.95 34.51 L10.05 38.31 L8.69 42.46 L7.94 47.05 L8.01 51.84 L8.87 56.06 L10.28 59.62 L12.18 62.73 L14.54 65.49 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_inq_ab3_outline",
+        "type": "shape",
+        "position": {
+         "x": 115,
+         "y": 775
+        },
+        "size": {
+         "width": 1060,
+         "height": 1800
+        },
+        "name": "Phone Outline",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "transparent",
+        "strokeColor": "#DDF247",
+        "strokeWidth": 12,
+        "borderRadius": 140
+       },
+       {
+        "id": "tpl_inq_ab3_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 800
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.65,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_inq_ab3_band",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2470
+        },
+        "size": {
+         "width": 1290,
+         "height": 326
+        },
+        "name": "Scalloped Band",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(0% 15%, 2.5% 6.8%, 5% 1.7%, 7.5% 1.7%, 10% 6.8%, 12.5% 15%, 15% 6.8%, 17.5% 1.7%, 20% 1.7%, 22.5% 6.8%, 25% 15%, 27.5% 6.8%, 30% 1.7%, 32.5% 1.7%, 35% 6.8%, 37.5% 15%, 40% 6.8%, 42.5% 1.7%, 45% 1.7%, 47.5% 6.8%, 50% 15%, 52.5% 6.8%, 55% 1.7%, 57.5% 1.7%, 60% 6.8%, 62.5% 15%, 65% 6.8%, 67.5% 1.7%, 70% 1.7%, 72.5% 6.8%, 75% 15%, 77.5% 6.8%, 80% 1.7%, 82.5% 1.7%, 85% 6.8%, 87.5% 15%, 90% 6.8%, 92.5% 1.7%, 95% 1.7%, 97.5% 6.8%, 100% 15%, 100% 100%, 0% 100%)"
+       },
+       {
+        "id": "tpl_inq_ab3_caption",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 2580
+        },
+        "size": {
+         "width": 1170,
+         "height": 180
+        },
+        "name": "Caption",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Explore complex topics easily with\nconversational AI and trusted sources",
+        "fontSize": 15,
+        "color": "#0D0D0D",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#0D0D0D",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_inq_ab4",
+      "name": "Answers",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_inq_ab4_doodle_arrow",
+        "type": "shape",
+        "position": {
+         "x": 75,
+         "y": 70
+        },
+        "size": {
+         "width": 240,
+         "height": 260
+        },
+        "name": "Doodle Loop Arrow",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M16.2 17.53 L18.37 16.91 L21.15 15.8 L24.37 14.42 L27.87 12.97 L31.49 11.65 L35.03 10.66 L38.18 9.92 L40.94 9.61 L43.93 9.8 L47.43 10.35 L51.14 11.25 L54.87 12.45 L58.43 13.91 L61.63 15.57 L64.31 17.34 L66.29 19.15 L67.88 21.28 L69.32 24 L70.51 27.12 L71.36 30.44 L71.84 33.75 L71.89 36.86 L71.52 39.53 L70.79 41.57 L69.48 43.42 L67.32 45.49 L64.49 47.57 L61.21 49.5 L57.71 51.14 L54.22 52.41 L51 53.2 L48.35 53.46 L45.79 53.19 L42.77 52.36 L39.52 51.04 L36.28 49.34 L33.27 47.38 L30.68 45.31 L28.72 43.3 L27.57 41.62 L27.01 39.94 L26.82 37.74 L27.03 35.17 L27.64 32.42 L28.6 29.67 L29.83 27.09 L31.25 24.87 L32.72 23.15 L34.51 21.69 L36.9 20.23 L39.71 18.88 L42.79 17.74 L45.96 16.88 L49.04 16.36 L51.85 16.22 L54.21 16.46 L56.46 17.14 L58.93 18.31 L61.51 19.94 L64.09 21.93 L66.56 24.2 L68.85 26.65 L70.87 29.18 L72.54 31.66 L73.88 34.25 L74.99 37.19 L75.9 40.43 L76.61 43.84 L77.15 47.31 L77.53 50.74 L77.77 54.02 L77.92 56.96 L77.85 59.66 L77.71 62.4 L77.62 65.23 L77.4 68.02 L77.12 70.66 L76.86 73.06 L76.71 75.14 L76.77 76.76 L78.23 77.09 L79.07 75.72 L80.11 73.92 L81.27 71.72 L82.49 69.19 L83.68 66.39 L84.76 63.36 L85.34 60.12 L85.42 56.88 L85.26 53.62 L85 50.15 L84.59 46.47 L84.01 42.7 L83.22 38.91 L82.17 35.19 L80.82 31.62 L79.12 28.34 L77.08 25.29 L74.71 22.33 L72.05 19.48 L69.14 16.82 L66.04 14.42 L62.77 12.37 L59.36 10.75 L55.79 9.69 L52.04 9.3 L48.15 9.49 L44.22 10.15 L40.34 11.2 L36.59 12.58 L33.1 14.26 L29.96 16.19 L27.28 18.39 L25.05 20.97 L23.15 23.94 L21.59 27.21 L20.38 30.66 L19.6 34.21 L19.32 37.76 L19.65 41.24 L20.76 44.53 L22.76 47.5 L25.44 50.26 L28.65 52.83 L32.26 55.18 L36.14 57.22 L40.18 58.86 L44.26 59.96 L48.32 60.38 L52.39 60 L56.57 58.98 L60.8 57.46 L64.93 55.5 L68.84 53.21 L72.36 50.62 L75.33 47.75 L77.54 44.58 L78.84 41.05 L79.38 37.23 L79.32 33.24 L78.74 29.18 L77.7 25.17 L76.24 21.33 L74.36 17.8 L72.04 14.7 L69.13 12.04 L65.66 9.72 L61.78 7.72 L57.63 6.01 L53.33 4.63 L49.02 3.59 L44.82 2.93 L40.73 2.69 L36.58 3.16 L32.5 4.51 L28.75 6.53 L25.26 8.76 L22.09 11.04 L19.34 13.17 L17.11 14.98 L15.47 16.32 Z M66.67 74.62 L87.5 73.08 L77.5 91.54 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_inq_ab4_eyebrow",
+        "type": "text",
+        "position": {
+         "x": 345,
+         "y": 140
+        },
+        "size": {
+         "width": 600,
+         "height": 140
+        },
+        "name": "Eyebrow Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Answers",
+        "fontSize": 30,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_inq_ab4_headline",
+        "type": "text",
+        "position": {
+         "x": 95,
+         "y": 300
+        },
+        "size": {
+         "width": 1100,
+         "height": 340
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Skip endless\nsearch results",
+        "fontSize": 42,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "textAlign": "center",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "tpl_inq_ab4_outline",
+        "type": "shape",
+        "position": {
+         "x": 115,
+         "y": 775
+        },
+        "size": {
+         "width": 1060,
+         "height": 1800
+        },
+        "name": "Phone Outline",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "transparent",
+        "strokeColor": "#DDF247",
+        "strokeWidth": 12,
+        "borderRadius": 140
+       },
+       {
+        "id": "tpl_inq_ab4_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 800
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.65,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_inq_ab4_band",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2470
+        },
+        "size": {
+         "width": 1290,
+         "height": 326
+        },
+        "name": "Scalloped Band",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(0% 15%, 2.5% 6.8%, 5% 1.7%, 7.5% 1.7%, 10% 6.8%, 12.5% 15%, 15% 6.8%, 17.5% 1.7%, 20% 1.7%, 22.5% 6.8%, 25% 15%, 27.5% 6.8%, 30% 1.7%, 32.5% 1.7%, 35% 6.8%, 37.5% 15%, 40% 6.8%, 42.5% 1.7%, 45% 1.7%, 47.5% 6.8%, 50% 15%, 52.5% 6.8%, 55% 1.7%, 57.5% 1.7%, 60% 6.8%, 62.5% 15%, 65% 6.8%, 67.5% 1.7%, 70% 1.7%, 72.5% 6.8%, 75% 15%, 77.5% 6.8%, 80% 1.7%, 82.5% 1.7%, 85% 6.8%, 87.5% 15%, 90% 6.8%, 92.5% 1.7%, 95% 1.7%, 97.5% 6.8%, 100% 15%, 100% 100%, 0% 100%)"
+       },
+       {
+        "id": "tpl_inq_ab4_caption",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 2580
+        },
+        "size": {
+         "width": 1170,
+         "height": 180
+        },
+        "name": "Caption",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Find reliable information faster using\nadvanced AI powered search technology",
+        "fontSize": 15,
+        "color": "#0D0D0D",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#0D0D0D",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_inq_ab5",
+      "name": "Trusted",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_inq_ab5_arrow",
+        "type": "shape",
+        "position": {
+         "x": 950,
+         "y": 85
+        },
+        "size": {
+         "width": 270,
+         "height": 190
+        },
+        "name": "Corner Arrow",
+        "rotation": -45,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(0% 35%, 60% 35%, 60% 10%, 100% 50%, 60% 90%, 60% 65%, 0% 65%)"
+       },
+       {
+        "id": "tpl_inq_ab5_eyebrow",
+        "type": "text",
+        "position": {
+         "x": 345,
+         "y": 140
+        },
+        "size": {
+         "width": 600,
+         "height": 140
+        },
+        "name": "Eyebrow Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Trusted",
+        "fontSize": 30,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_inq_ab5_headline",
+        "type": "text",
+        "position": {
+         "x": 95,
+         "y": 300
+        },
+        "size": {
+         "width": 1100,
+         "height": 340
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Explore topics\nwithout limits",
+        "fontSize": 42,
+        "color": "#F2EFE2",
+        "fontFamily": "DM Serif Display",
+        "fontWeight": "normal",
+        "textAlign": "center",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "tpl_inq_ab5_underline",
+        "type": "shape",
+        "position": {
+         "x": 790,
+         "y": 608
+        },
+        "size": {
+         "width": 350,
+         "height": 60
+        },
+        "name": "Squiggle Underline",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(0% 45%, 12.5% 5%, 25% 45%, 37.5% 5%, 50% 45%, 62.5% 5%, 75% 45%, 87.5% 5%, 100% 45%, 100% 95%, 87.5% 55%, 75% 95%, 62.5% 55%, 50% 95%, 37.5% 55%, 25% 95%, 12.5% 55%, 0% 95%)"
+       },
+       {
+        "id": "tpl_inq_ab5_outline",
+        "type": "shape",
+        "position": {
+         "x": 115,
+         "y": 775
+        },
+        "size": {
+         "width": 1060,
+         "height": 1800
+        },
+        "name": "Phone Outline",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "transparent",
+        "strokeColor": "#DDF247",
+        "strokeWidth": 12,
+        "borderRadius": 140
+       },
+       {
+        "id": "tpl_inq_ab5_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 800
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.65,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_inq_ab5_band",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2470
+        },
+        "size": {
+         "width": 1290,
+         "height": 326
+        },
+        "name": "Scalloped Band",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#DDF247",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(0% 15%, 2.5% 6.8%, 5% 1.7%, 7.5% 1.7%, 10% 6.8%, 12.5% 15%, 15% 6.8%, 17.5% 1.7%, 20% 1.7%, 22.5% 6.8%, 25% 15%, 27.5% 6.8%, 30% 1.7%, 32.5% 1.7%, 35% 6.8%, 37.5% 15%, 40% 6.8%, 42.5% 1.7%, 45% 1.7%, 47.5% 6.8%, 50% 15%, 52.5% 6.8%, 55% 1.7%, 57.5% 1.7%, 60% 6.8%, 62.5% 15%, 65% 6.8%, 67.5% 1.7%, 70% 1.7%, 72.5% 6.8%, 75% 15%, 77.5% 6.8%, 80% 1.7%, 82.5% 1.7%, 85% 6.8%, 87.5% 15%, 90% 6.8%, 92.5% 1.7%, 95% 1.7%, 97.5% 6.8%, 100% 15%, 100% 100%, 0% 100%)"
+       },
+       {
+        "id": "tpl_inq_ab5_caption",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 2580
+        },
+        "size": {
+         "width": 1170,
+         "height": 180
+        },
+        "name": "Caption",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Discover trusted insights backed by\ntransparent and verified online sources",
+        "fontSize": 15,
+        "color": "#0D0D0D",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#0D0D0D",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

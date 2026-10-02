@@ -1,0 +1,2508 @@
+{
+ "slug": "kassa-money",
+ "name": "Kassa Money",
+ "description": "App Store & Play Store screenshots for a neobank and everyday banking app. Swiss International Style poster set: warm paper, ink hairline grid with crosshair marks, one fearless cobalt, a five-board MONEY marquee passing behind the phones, stamp seals and giant Anton numerals.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "kassa-money-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "kassa-board-1",
+      "name": "Money minus the noise",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "kassa-rule-top-1",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-top",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-bottom-2",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2619
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-bottom",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-left-3",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-left",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-right-4",
+        "type": "shape",
+        "position": {
+         "x": 1199,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-right",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-crosshair-5",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-6",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-7",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-8",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-9",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-10",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-11",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-12",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-ledger-bar-13",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2686
+        },
+        "size": {
+         "width": 1290,
+         "height": 26
+        },
+        "name": "ledger-bar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-mega-M-14",
+        "type": "text",
+        "position": {
+         "x": -300,
+         "y": 510
+        },
+        "size": {
+         "width": 1700,
+         "height": 1900
+        },
+        "name": "mega-M",
+        "rotation": 0,
+        "scale": 1,
+        "content": "M",
+        "fontSize": 560,
+        "color": "#2036E6",
+        "fontFamily": "Anton",
+        "fontWeight": "400",
+        "textAlign": "left",
+        "lineHeight": 1
+       },
+       {
+        "id": "kassa-circle-outline-15",
+        "type": "shape",
+        "position": {
+         "x": 100,
+         "y": 2180
+        },
+        "size": {
+         "width": 240,
+         "height": 240
+        },
+        "name": "circle-outline",
+        "rotation": -8,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 6,
+        "customPath": "M5 50 A45 45 0 1 0 95 50 A45 45 0 1 0 5 50 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 4
+        }
+       },
+       {
+        "id": "kassa-seal-label-16",
+        "type": "text",
+        "position": {
+         "x": 68.0515765865591,
+         "y": 2190.136247037618
+        },
+        "size": {
+         "width": 300,
+         "height": 192
+        },
+        "name": "seal-label",
+        "rotation": -8,
+        "scale": 1,
+        "content": "4.9",
+        "fontSize": 27,
+        "color": "#101010",
+        "fontFamily": "Anton",
+        "fontWeight": "400",
+        "textAlign": "center",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "kassa-star-17",
+        "type": "shape",
+        "position": {
+         "x": 208.02046326912472,
+         "y": 2349.299300949393
+        },
+        "size": {
+         "width": 44,
+         "height": 44
+        },
+        "name": "star",
+        "rotation": -8,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#2036E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "kassa-b1-headline-18",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 240
+        },
+        "size": {
+         "width": 1000,
+         "height": 300
+        },
+        "name": "b1-headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Money minus\nthe noise",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "kassa-b1-subline-19",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 545
+        },
+        "size": {
+         "width": 950,
+         "height": 80
+        },
+        "name": "b1-subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "One clear home for every account",
+        "fontSize": 16,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-phone-20",
+        "type": "device",
+        "position": {
+         "x": 420,
+         "y": 880
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone",
+        "rotation": 4,
+        "scale": 1.42,
+        "deviceType": "iphone-17-pro-max",
+        "styleType": "normal",
+        "frameColor": "#101010",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#F2EFE6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#F2EFE6",
+       "color2": "#F2EFE6",
+       "angle": 180
+      }
+     },
+     {
+      "id": "kassa-board-2",
+      "name": "Every cent accounted",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "kassa-rule-top-21",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-top",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-bottom-22",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2619
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-bottom",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-left-23",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-left",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-right-24",
+        "type": "shape",
+        "position": {
+         "x": 1199,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-right",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-crosshair-25",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-26",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-27",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-28",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-29",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-30",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-31",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-32",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-ledger-bar-33",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2686
+        },
+        "size": {
+         "width": 1290,
+         "height": 26
+        },
+        "name": "ledger-bar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-bullet-34",
+        "type": "shape",
+        "position": {
+         "x": 77,
+         "y": 650
+        },
+        "size": {
+         "width": 26,
+         "height": 26
+        },
+        "name": "bullet",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-bullet-35",
+        "type": "shape",
+        "position": {
+         "x": 77,
+         "y": 704
+        },
+        "size": {
+         "width": 26,
+         "height": 26
+        },
+        "name": "bullet",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-bullet-36",
+        "type": "shape",
+        "position": {
+         "x": 77,
+         "y": 758
+        },
+        "size": {
+         "width": 26,
+         "height": 26
+        },
+        "name": "bullet",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-ghost-O-37",
+        "type": "shape",
+        "position": {
+         "x": 55,
+         "y": 665
+        },
+        "size": {
+         "width": 1180,
+         "height": 2060
+        },
+        "name": "ghost-O",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 140,
+        "customPath": "M50 2 A48 48 0 1 1 50 98 A48 48 0 1 1 50 2 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-b2-headline-38",
+        "type": "text",
+        "position": {
+         "x": 145,
+         "y": 240
+        },
+        "size": {
+         "width": 1000,
+         "height": 300
+        },
+        "name": "b2-headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Every cent\naccounted",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "kassa-b2-subline-39",
+        "type": "text",
+        "position": {
+         "x": 145,
+         "y": 545
+        },
+        "size": {
+         "width": 1000,
+         "height": 80
+        },
+        "name": "b2-subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Live spending, sorted itself",
+        "fontSize": 16,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-phone-40",
+        "type": "device",
+        "position": {
+         "x": 253,
+         "y": 937
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone",
+        "rotation": 0,
+        "scale": 1.305,
+        "deviceType": "iphone-17-pro-max",
+        "styleType": "normal",
+        "frameColor": "#101010",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#F2EFE6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#F2EFE6",
+       "color2": "#F2EFE6",
+       "angle": 180
+      }
+     },
+     {
+      "id": "kassa-board-3",
+      "name": "Save on autopilot",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "kassa-rule-top-41",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-top",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-bottom-42",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2619
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-bottom",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-left-43",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-left",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-right-44",
+        "type": "shape",
+        "position": {
+         "x": 1199,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-right",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-crosshair-45",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-46",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-47",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-48",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-49",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-50",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-51",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-52",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-ledger-bar-53",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2686
+        },
+        "size": {
+         "width": 1290,
+         "height": 26
+        },
+        "name": "ledger-bar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-mega-N-54",
+        "type": "text",
+        "position": {
+         "x": 40,
+         "y": 470
+        },
+        "size": {
+         "width": 1420,
+         "height": 2220
+        },
+        "name": "mega-N",
+        "rotation": 0,
+        "scale": 1,
+        "content": "N",
+        "fontSize": 620,
+        "color": "#2036E6",
+        "fontFamily": "Anton",
+        "fontWeight": "400",
+        "textAlign": "right",
+        "lineHeight": 1
+       },
+       {
+        "id": "kassa-b3-headline-55",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 240
+        },
+        "size": {
+         "width": 1000,
+         "height": 300
+        },
+        "name": "b3-headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Save on\nautopilot",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "kassa-b3-rule-56",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 552
+        },
+        "size": {
+         "width": 520,
+         "height": 3
+        },
+        "name": "b3-rule",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010"
+       },
+       {
+        "id": "kassa-b3-subline-57",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 585
+        },
+        "size": {
+         "width": 950,
+         "height": 80
+        },
+        "name": "b3-subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Rules that quietly move money",
+        "fontSize": 16,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-arrow-down-58",
+        "type": "shape",
+        "position": {
+         "x": 108,
+         "y": 665
+        },
+        "size": {
+         "width": 84,
+         "height": 150
+        },
+        "name": "arrow-down",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M35 6 V58 H15 L50 94 L85 58 H65 V6 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "kassa-phone-59",
+        "type": "device",
+        "position": {
+         "x": 60,
+         "y": 1010
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone",
+        "rotation": -8,
+        "scale": 1.22,
+        "deviceType": "iphone-17-pro-max",
+        "styleType": "normal",
+        "frameColor": "#101010",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#F2EFE6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#F2EFE6",
+       "color2": "#F2EFE6",
+       "angle": 180
+      }
+     },
+     {
+      "id": "kassa-board-4",
+      "name": "Split bills in seconds",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "kassa-rule-top-60",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-top",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-bottom-61",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2619
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-bottom",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-left-62",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-left",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-right-63",
+        "type": "shape",
+        "position": {
+         "x": 1199,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-right",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-crosshair-64",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-65",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-66",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-67",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-68",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-69",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-70",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-71",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-ledger-bar-72",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2686
+        },
+        "size": {
+         "width": 1290,
+         "height": 26
+        },
+        "name": "ledger-bar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-ghost-E-73",
+        "type": "shape",
+        "position": {
+         "x": -80,
+         "y": 620
+        },
+        "size": {
+         "width": 950,
+         "height": 1660
+        },
+        "name": "ghost-E",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 H950 V330 H330 V665 H760 V995 H330 V1330 H950 V1660 H0 Z M80 80 H870 V250 H250 V745 H680 V915 H250 V1410 H870 V1580 H80 Z",
+        "specialProps": {
+         "viewBox": "0 0 950 1660",
+         "fillRule": "evenodd"
+        }
+       },
+       {
+        "id": "kassa-b4-split-box-74",
+        "type": "shape",
+        "position": {
+         "x": 510,
+         "y": 235
+        },
+        "size": {
+         "width": 360,
+         "height": 170
+        },
+        "name": "b4-split-box",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 14,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-b4-split-75",
+        "type": "text",
+        "position": {
+         "x": 510,
+         "y": 240
+        },
+        "size": {
+         "width": 360,
+         "height": 160
+        },
+        "name": "b4-split",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Split",
+        "fontSize": 40,
+        "color": "#F2EFE6",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-b4-bills-76",
+        "type": "text",
+        "position": {
+         "x": 890,
+         "y": 240
+        },
+        "size": {
+         "width": 310,
+         "height": 160
+        },
+        "name": "b4-bills",
+        "rotation": 0,
+        "scale": 1,
+        "content": "bills",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "right",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-b4-line2-77",
+        "type": "text",
+        "position": {
+         "x": 450,
+         "y": 415
+        },
+        "size": {
+         "width": 750,
+         "height": 160
+        },
+        "name": "b4-line2",
+        "rotation": 0,
+        "scale": 1,
+        "content": "in seconds",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "right",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-b4-subline-78",
+        "type": "text",
+        "position": {
+         "x": 500,
+         "y": 615
+        },
+        "size": {
+         "width": 700,
+         "height": 80
+        },
+        "name": "b4-subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Tap friends, send the ask",
+        "fontSize": 16,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "right",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-phone-79",
+        "type": "device",
+        "position": {
+         "x": 430,
+         "y": 850
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone",
+        "rotation": 6,
+        "scale": 1.35,
+        "deviceType": "iphone-17-pro-max",
+        "styleType": "normal",
+        "frameColor": "#101010",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#F2EFE6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#F2EFE6",
+       "color2": "#F2EFE6",
+       "angle": 180
+      }
+     },
+     {
+      "id": "kassa-board-5",
+      "name": "Rated 4.9 by savers",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "kassa-rule-top-80",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-top",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-bottom-81",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2619
+        },
+        "size": {
+         "width": 1109,
+         "height": 2
+        },
+        "name": "rule-bottom",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-left-82",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-left",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-rule-right-83",
+        "type": "shape",
+        "position": {
+         "x": 1199,
+         "y": 199
+        },
+        "size": {
+         "width": 2,
+         "height": 2420
+        },
+        "name": "rule-right",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#101010",
+        "opacity": 0.8
+       },
+       {
+        "id": "kassa-crosshair-84",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-85",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-86",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 183
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-87",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-88",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 1392
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-89",
+        "type": "shape",
+        "position": {
+         "x": 74,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-90",
+        "type": "shape",
+        "position": {
+         "x": 628,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-crosshair-91",
+        "type": "shape",
+        "position": {
+         "x": 1183,
+         "y": 2603
+        },
+        "size": {
+         "width": 34,
+         "height": 34
+        },
+        "name": "crosshair",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 3,
+        "opacity": 0.9,
+        "customPath": "M50 8 L50 92 M8 50 L92 50",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 2
+        }
+       },
+       {
+        "id": "kassa-ledger-bar-92",
+        "type": "shape",
+        "position": {
+         "x": 0,
+         "y": 2686
+        },
+        "size": {
+         "width": 1290,
+         "height": 26
+        },
+        "name": "ledger-bar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "borderRadius": 0,
+        "fillColor": "#2036E6"
+       },
+       {
+        "id": "kassa-mega-Y-93",
+        "type": "text",
+        "position": {
+         "x": -105,
+         "y": 1200
+        },
+        "size": {
+         "width": 1500,
+         "height": 2100
+        },
+        "name": "mega-Y",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Y",
+        "fontSize": 600,
+        "color": "#2036E6",
+        "fontFamily": "Anton",
+        "fontWeight": "400",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "kassa-b5-headline-94",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 240
+        },
+        "size": {
+         "width": 1000,
+         "height": 300
+        },
+        "name": "b5-headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Rated 4.9\nby savers",
+        "fontSize": 40,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "left",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "kassa-b5-subline-95",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 545
+        },
+        "size": {
+         "width": 950,
+         "height": 80
+        },
+        "name": "b5-subline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Join two million careful people",
+        "fontSize": 16,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-b5-big49-96",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 650
+        },
+        "size": {
+         "width": 470,
+         "height": 300
+        },
+        "name": "b5-big49",
+        "rotation": 0,
+        "scale": 1,
+        "content": "4.9",
+        "fontSize": 84,
+        "color": "#101010",
+        "fontFamily": "Anton",
+        "fontWeight": "400",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-star-97",
+        "type": "shape",
+        "position": {
+         "x": 580,
+         "y": 700
+        },
+        "size": {
+         "width": 110,
+         "height": 110
+        },
+        "name": "star",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#2036E6",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M50 2 L63.54 31.36 L95.65 35.17 L71.91 57.12 L78.21 88.83 L50 73.04 L21.79 88.83 L28.09 57.12 L4.35 35.17 L36.46 31.36 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "kassa-b5-quote-98",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 960
+        },
+        "size": {
+         "width": 860,
+         "height": 70
+        },
+        "name": "b5-quote",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Feels like my money got a designer",
+        "fontSize": 14,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "500",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "kassa-circle-outline-99",
+        "type": "shape",
+        "position": {
+         "x": 900,
+         "y": 620
+        },
+        "size": {
+         "width": 200,
+         "height": 200
+        },
+        "name": "circle-outline",
+        "rotation": -8,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 5,
+        "customPath": "M5 50 A45 45 0 1 0 95 50 A45 45 0 1 0 5 50 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 4
+        }
+       },
+       {
+        "id": "kassa-seal-label-100",
+        "type": "text",
+        "position": {
+         "x": 870,
+         "y": 640
+        },
+        "size": {
+         "width": 260,
+         "height": 160
+        },
+        "name": "seal-label",
+        "rotation": -8,
+        "scale": 1,
+        "content": "EDITORS\nPICK",
+        "fontSize": 8.5,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "kassa-circle-outline-101",
+        "type": "shape",
+        "position": {
+         "x": 1040,
+         "y": 890
+        },
+        "size": {
+         "width": 200,
+         "height": 200
+        },
+        "name": "circle-outline",
+        "rotation": 6,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#101010",
+        "strokeColor": "transparent",
+        "strokeWidth": 5,
+        "customPath": "M5 50 A45 45 0 1 0 95 50 A45 45 0 1 0 5 50 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "strokeOnly": true,
+         "baseStrokeWidth": 4
+        }
+       },
+       {
+        "id": "kassa-seal-label-102",
+        "type": "text",
+        "position": {
+         "x": 1010,
+         "y": 910
+        },
+        "size": {
+         "width": 260,
+         "height": 160
+        },
+        "name": "seal-label",
+        "rotation": 6,
+        "scale": 1,
+        "content": "BEST OF\nBANKING",
+        "fontSize": 8.5,
+        "color": "#101010",
+        "fontFamily": "Space Grotesk",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.2
+       },
+       {
+        "id": "kassa-phone3d-103",
+        "type": "device",
+        "position": {
+         "x": 309,
+         "y": 1220
+        },
+        "size": {
+         "width": 600,
+         "height": 1300
+        },
+        "name": "iPhone 3D",
+        "rotation": 8,
+        "scale": 1.12,
+        "deviceType": "iphone-17-pro-max",
+        "styleType": "3d-right",
+        "pose3d": "upright",
+        "frameColor3d": "black",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#F2EFE6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#F2EFE6",
+       "color2": "#F2EFE6",
+       "angle": 180
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

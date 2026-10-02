@@ -1,0 +1,829 @@
+{
+ "slug": "cinevault-stream",
+ "name": "Cinevault",
+ "description": "App Store & Play Store screenshots for a movie streaming app. Jet black panels with condensed white and gold caps headlines and genre pills.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "cinevault-stream-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_cv_ab1",
+      "name": "Iconic",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cv_ab1_h_white",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 120
+        },
+        "size": {
+         "width": 900,
+         "height": 290
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ICONIC STORIES\nLEGENDARY",
+        "fontSize": 34,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab1_h_gold",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 410
+        },
+        "size": {
+         "width": 900,
+         "height": 290
+        },
+        "name": "Headline Gold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ENTERTAINMENT\nDAILY",
+        "fontSize": 34,
+        "color": "#F3B71B",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab1_device",
+        "type": "device",
+        "position": {
+         "x": 170,
+         "y": 850
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": -14,
+        "scale": 1.7,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#E8E8EA",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#050506",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_cv_ab2",
+      "name": "Watch More",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cv_ab2_device",
+        "type": "device",
+        "position": {
+         "x": 40,
+         "y": -260
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": -25,
+        "scale": 1.75,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#E8E8EA",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_h_white",
+        "type": "text",
+        "position": {
+         "x": 350,
+         "y": 2000
+        },
+        "size": {
+         "width": 870,
+         "height": 150
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "WATCH MORE",
+        "fontSize": 34,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "right",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab2_h_gold",
+        "type": "text",
+        "position": {
+         "x": 350,
+         "y": 2150
+        },
+        "size": {
+         "width": 870,
+         "height": 290
+        },
+        "name": "Headline Gold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ANYTIME\nANYWHERE",
+        "fontSize": 34,
+        "color": "#F3B71B",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "right",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab2_pill_action",
+        "type": "shape",
+        "position": {
+         "x": 90,
+         "y": 2382
+        },
+        "size": {
+         "width": 250,
+         "height": 250
+        },
+        "name": "Pill Action",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_action_txt",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 2478
+        },
+        "size": {
+         "width": 250,
+         "height": 60
+        },
+        "name": "Pill Label Action",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ACTION",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_drama",
+        "type": "shape",
+        "position": {
+         "x": 370,
+         "y": 2382
+        },
+        "size": {
+         "width": 250,
+         "height": 250
+        },
+        "name": "Pill Drama",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_drama_txt",
+        "type": "text",
+        "position": {
+         "x": 370,
+         "y": 2478
+        },
+        "size": {
+         "width": 250,
+         "height": 60
+        },
+        "name": "Pill Label Drama",
+        "rotation": 0,
+        "scale": 1,
+        "content": "DRAMA",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_thriller",
+        "type": "shape",
+        "position": {
+         "x": 650,
+         "y": 2382
+        },
+        "size": {
+         "width": 300,
+         "height": 250
+        },
+        "name": "Pill Thriller",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_thriller_txt",
+        "type": "text",
+        "position": {
+         "x": 650,
+         "y": 2478
+        },
+        "size": {
+         "width": 300,
+         "height": 60
+        },
+        "name": "Pill Label Thriller",
+        "rotation": 0,
+        "scale": 1,
+        "content": "THRILLER",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_comedy",
+        "type": "shape",
+        "position": {
+         "x": 250,
+         "y": 2497
+        },
+        "size": {
+         "width": 280,
+         "height": 250
+        },
+        "name": "Pill Comedy",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_comedy_txt",
+        "type": "text",
+        "position": {
+         "x": 250,
+         "y": 2593
+        },
+        "size": {
+         "width": 280,
+         "height": 60
+        },
+        "name": "Pill Label Comedy",
+        "rotation": 0,
+        "scale": 1,
+        "content": "COMEDY",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_romance",
+        "type": "shape",
+        "position": {
+         "x": 560,
+         "y": 2497
+        },
+        "size": {
+         "width": 300,
+         "height": 250
+        },
+        "name": "Pill Romance",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_romance_txt",
+        "type": "text",
+        "position": {
+         "x": 560,
+         "y": 2593
+        },
+        "size": {
+         "width": 300,
+         "height": 60
+        },
+        "name": "Pill Label Romance",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ROMANCE",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_scifi",
+        "type": "shape",
+        "position": {
+         "x": 890,
+         "y": 2497
+        },
+        "size": {
+         "width": 250,
+         "height": 250
+        },
+        "name": "Pill SciFi",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_scifi_txt",
+        "type": "text",
+        "position": {
+         "x": 890,
+         "y": 2593
+        },
+        "size": {
+         "width": 250,
+         "height": 60
+        },
+        "name": "Pill Label SciFi",
+        "rotation": 0,
+        "scale": 1,
+        "content": "SCI-FI",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_horror",
+        "type": "shape",
+        "position": {
+         "x": 400,
+         "y": 2612
+        },
+        "size": {
+         "width": 280,
+         "height": 250
+        },
+        "name": "Pill Horror",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_horror_txt",
+        "type": "text",
+        "position": {
+         "x": 400,
+         "y": 2708
+        },
+        "size": {
+         "width": 280,
+         "height": 60
+        },
+        "name": "Pill Label Horror",
+        "rotation": 0,
+        "scale": 1,
+        "content": "HORROR",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "tpl_cv_ab2_pill_mystery",
+        "type": "shape",
+        "position": {
+         "x": 710,
+         "y": 2612
+        },
+        "size": {
+         "width": 300,
+         "height": 250
+        },
+        "name": "Pill Mystery",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M23 31 H77 A19 19 0 0 1 96 50 V50 A19 19 0 0 1 77 69 H23 A19 19 0 0 1 4 50 V50 A19 19 0 0 1 23 31 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "tpl_cv_ab2_pill_mystery_txt",
+        "type": "text",
+        "position": {
+         "x": 710,
+         "y": 2708
+        },
+        "size": {
+         "width": 300,
+         "height": 60
+        },
+        "name": "Pill Label Mystery",
+        "rotation": 0,
+        "scale": 1,
+        "content": "MYSTERY",
+        "fontSize": 16,
+        "color": "#050506",
+        "fontFamily": "Oswald",
+        "fontWeight": "500",
+        "textAlign": "center",
+        "lineHeight": 1
+       }
+      ],
+      "backgroundColor": "#050506",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_cv_ab3",
+      "name": "Awarded",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cv_ab3_h_white",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 120
+        },
+        "size": {
+         "width": 900,
+         "height": 150
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "AWARD WINNING",
+        "fontSize": 34,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab3_h_gold",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 270
+        },
+        "size": {
+         "width": 900,
+         "height": 290
+        },
+        "name": "Headline Gold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ENTERTAINMENT\nDELIVERED",
+        "fontSize": 34,
+        "color": "#F3B71B",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab3_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 660
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.65,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#1A1A1A",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#050506",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_cv_ab4",
+      "name": "Prestige",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cv_ab4_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": -350
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 18,
+        "scale": 1.7,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#E8E8EA",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_cv_ab4_h_white",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 1900
+        },
+        "size": {
+         "width": 900,
+         "height": 290
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "PRESTIGE\nSTORYTELLING",
+        "fontSize": 34,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab4_h_gold",
+        "type": "text",
+        "position": {
+         "x": 90,
+         "y": 2135
+        },
+        "size": {
+         "width": 900,
+         "height": 290
+        },
+        "name": "Headline Gold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "WITHOUT\nCOMPROMISE",
+        "fontSize": 34,
+        "color": "#F3B71B",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       }
+      ],
+      "backgroundColor": "#050506",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_cv_ab5",
+      "name": "Big Screen",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cv_ab5_h_white",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 120
+        },
+        "size": {
+         "width": 700,
+         "height": 290
+        },
+        "name": "Headline White",
+        "rotation": 0,
+        "scale": 1,
+        "content": "BIG SCREEN\nMAGIC",
+        "fontSize": 34,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab5_h_gold",
+        "type": "text",
+        "position": {
+         "x": 70,
+         "y": 410
+        },
+        "size": {
+         "width": 700,
+         "height": 150
+        },
+        "name": "Headline Gold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "AT HOME",
+        "fontSize": 34,
+        "color": "#F3B71B",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "tpl_cv_ab5_device",
+        "type": "device",
+        "position": {
+         "x": 165,
+         "y": 680
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "frameColor": "#1A1A1A",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#050506",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

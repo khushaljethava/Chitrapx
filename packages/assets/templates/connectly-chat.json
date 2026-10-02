@@ -1,0 +1,1027 @@
+{
+ "slug": "connectly-chat",
+ "name": "Connectly Chat",
+ "description": "Appscreens-inspired App Store & Play Store screenshot set. Deep indigo panels with bold uppercase headlines, pink petal accents and tilted frameless skeleton app screens so users see exactly how their layout will look.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "connectly-chat-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_cc_ab1",
+      "name": "Hero",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab1_petal1",
+        "type": "shape",
+        "position": {
+         "x": 580,
+         "y": 360
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Petal Magenta",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.55
+       },
+       {
+        "id": "tpl_cc_ab1_petal2",
+        "type": "shape",
+        "position": {
+         "x": 980,
+         "y": 760
+        },
+        "size": {
+         "width": 380,
+         "height": 380
+        },
+        "name": "Petal Pink",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.4
+       },
+       {
+        "id": "tpl_cc_ab1_petal3",
+        "type": "shape",
+        "position": {
+         "x": 640,
+         "y": 760
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Purple",
+        "rotation": 90,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#7B1FA2",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.5
+       },
+       {
+        "id": "tpl_cc_ab1_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 124,
+         "y": 664
+        },
+        "size": {
+         "width": 1070,
+         "height": 2160
+        },
+        "name": "Screen Shadow",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab1_wordmark",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 110
+        },
+        "size": {
+         "width": 1190,
+         "height": 140
+        },
+        "name": "Wordmark",
+        "rotation": 0,
+        "scale": 1,
+        "content": "connectly",
+        "fontSize": 36,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_cc_ab1_tagline",
+        "type": "text",
+        "position": {
+         "x": 145,
+         "y": 310
+        },
+        "size": {
+         "width": 1000,
+         "height": 190
+        },
+        "name": "Tagline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "SERIOUS CHAT ENERGY\nAT YOUR FINGERTIPS!",
+        "fontSize": 17,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.35
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab2",
+      "name": "Journey",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab2_petal1",
+        "type": "shape",
+        "position": {
+         "x": 780,
+         "y": 750
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Petal Magenta",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.85
+       },
+       {
+        "id": "tpl_cc_ab2_petal2",
+        "type": "shape",
+        "position": {
+         "x": 840,
+         "y": 1150
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Purple",
+        "rotation": 90,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#7B1FA2",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.8
+       },
+       {
+        "id": "tpl_cc_ab2_petal3",
+        "type": "shape",
+        "position": {
+         "x": -230,
+         "y": 2080
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Petal Magenta BL",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.9
+       },
+       {
+        "id": "tpl_cc_ab2_petal4",
+        "type": "shape",
+        "position": {
+         "x": 170,
+         "y": 2480
+        },
+        "size": {
+         "width": 360,
+         "height": 360
+        },
+        "name": "Petal Pink BL",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.75
+       },
+       {
+        "id": "tpl_cc_ab2_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": 976
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab2_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 110
+        },
+        "size": {
+         "width": 1190,
+         "height": 680
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "START YOUR\nCONNECTLY JOURNEY,\nUSE OUR TEMPLATES\nAND STAND OUT\nFROM THE CROWD",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab3",
+      "name": "Community",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab3_petal1",
+        "type": "shape",
+        "position": {
+         "x": -180,
+         "y": -80
+        },
+        "size": {
+         "width": 380,
+         "height": 380
+        },
+        "name": "Petal Magenta TL",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.8
+       },
+       {
+        "id": "tpl_cc_ab3_petal2",
+        "type": "shape",
+        "position": {
+         "x": -140,
+         "y": 300
+        },
+        "size": {
+         "width": 320,
+         "height": 320
+        },
+        "name": "Petal Purple TL",
+        "rotation": 90,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#7B1FA2",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.7
+       },
+       {
+        "id": "tpl_cc_ab3_petal3",
+        "type": "shape",
+        "position": {
+         "x": 120,
+         "y": 2560
+        },
+        "size": {
+         "width": 360,
+         "height": 360
+        },
+        "name": "Petal Pink Bottom",
+        "rotation": 270,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.6
+       },
+       {
+        "id": "tpl_cc_ab3_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": -44
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab3_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 2150
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "CHAT WITH FRIENDS\nAND BUILD YOUR\nCOMMUNITY",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab4",
+      "name": "Discover",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab4_petal1",
+        "type": "shape",
+        "position": {
+         "x": 1050,
+         "y": 240
+        },
+        "size": {
+         "width": 320,
+         "height": 320
+        },
+        "name": "Petal Pink TR",
+        "rotation": 270,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.8
+       },
+       {
+        "id": "tpl_cc_ab4_petal2",
+        "type": "shape",
+        "position": {
+         "x": -160,
+         "y": 2180
+        },
+        "size": {
+         "width": 420,
+         "height": 420
+        },
+        "name": "Petal Magenta BL",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.85
+       },
+       {
+        "id": "tpl_cc_ab4_petal3",
+        "type": "shape",
+        "position": {
+         "x": 60,
+         "y": 2440
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Purple BL",
+        "rotation": 90,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#7B1FA2",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.75
+       },
+       {
+        "id": "tpl_cc_ab4_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": 896
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab4_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 170
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "DISCOVER PEOPLE\nWHO SHARE\nYOUR PASSIONS",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab5",
+      "name": "In Sync",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab5_petal1",
+        "type": "shape",
+        "position": {
+         "x": 1010,
+         "y": 1660
+        },
+        "size": {
+         "width": 380,
+         "height": 380
+        },
+        "name": "Petal Magenta R",
+        "rotation": 270,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.85
+       },
+       {
+        "id": "tpl_cc_ab5_petal2",
+        "type": "shape",
+        "position": {
+         "x": 1020,
+         "y": 2040
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Pink R",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.7
+       },
+       {
+        "id": "tpl_cc_ab5_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": -74
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab5_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 2150
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "STAY IN SYNC\nWITH EVERY\nCONVERSATION",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab6",
+      "name": "Smart Inbox",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab6_petal1",
+        "type": "shape",
+        "position": {
+         "x": 990,
+         "y": 80
+        },
+        "size": {
+         "width": 380,
+         "height": 380
+        },
+        "name": "Petal Magenta TR",
+        "rotation": 270,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.8
+       },
+       {
+        "id": "tpl_cc_ab6_petal2",
+        "type": "shape",
+        "position": {
+         "x": 1000,
+         "y": 460
+        },
+        "size": {
+         "width": 320,
+         "height": 320
+        },
+        "name": "Petal Purple TR",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#7B1FA2",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.7
+       },
+       {
+        "id": "tpl_cc_ab6_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": 946
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab6_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 170
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "SMART INBOX\nTHAT KEEPS\nYOU FOCUSED",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab7",
+      "name": "Privacy",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab7_petal1",
+        "type": "shape",
+        "position": {
+         "x": 980,
+         "y": 1990
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Pink R",
+        "rotation": 270,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.7
+       },
+       {
+        "id": "tpl_cc_ab7_petal2",
+        "type": "shape",
+        "position": {
+         "x": 960,
+         "y": 2380
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Petal Magenta BR",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.85
+       },
+       {
+        "id": "tpl_cc_ab7_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": -54
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab7_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 2150
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "YOUR PRIVACY,\nPROTECTED\nBY DESIGN",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     },
+     {
+      "id": "tpl_cc_ab8",
+      "name": "Join Millions",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_cc_ab8_petal1",
+        "type": "shape",
+        "position": {
+         "x": -200,
+         "y": 1030
+        },
+        "size": {
+         "width": 400,
+         "height": 400
+        },
+        "name": "Petal Magenta L",
+        "rotation": 180,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E0218A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.85
+       },
+       {
+        "id": "tpl_cc_ab8_petal2",
+        "type": "shape",
+        "position": {
+         "x": -180,
+         "y": 1430
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Petal Pink L",
+        "rotation": 90,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#E85D8A",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M0 0 L100 0 A100 100 0 0 1 0 100 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillOpacity": 0.75
+       },
+       {
+        "id": "tpl_cc_ab8_screen_shadow",
+        "type": "shape",
+        "position": {
+         "x": 190,
+         "y": 926
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "name": "Screen Shadow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#0E0838",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 64,
+        "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab8_headline",
+        "type": "text",
+        "position": {
+         "x": 50,
+         "y": 170
+        },
+        "size": {
+         "width": 1190,
+         "height": 420
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "JOIN MILLIONS\nAND STAND OUT\nFROM THE CROWD",
+        "fontSize": 30,
+        "color": "#FFFFFF",
+        "fontFamily": "Oswald",
+        "fontWeight": "600",
+        "textAlign": "center",
+        "lineHeight": 1.3
+       }
+      ],
+      "backgroundColor": "#241B7E",
+      "zoom": 1
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

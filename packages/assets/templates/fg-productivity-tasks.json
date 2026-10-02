@@ -1,0 +1,228 @@
+{
+ "slug": "fg-productivity-tasks",
+ "name": "Productivity Tasks",
+ "description": "Google Play feature graphic (1024x500) for a productivity or to-do app. Clean blue hero with a bolt accent, a CTA and a phone. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+ "category": "play-feature-graphic",
+ "platforms": [
+  "play"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "fg-productivity-tasks-play-feature",
+    "target": "play-feature",
+    "boards": [
+     {
+      "id": "fg_productivity-tasks_ab",
+      "name": "Productivity Tasks",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1024,
+       "height": 500
+      },
+      "elements": [
+       {
+        "id": "c128",
+        "type": "shape",
+        "position": {
+         "x": 900,
+         "y": 380
+        },
+        "size": {
+         "width": 420,
+         "height": 420
+        },
+        "name": "Glow",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "fillOpacity": 0.1
+       },
+       {
+        "id": "dev129",
+        "type": "device",
+        "position": {
+         "x": 744,
+         "y": 66
+        },
+        "size": {
+         "width": 224,
+         "height": 500
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1B1B1D",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "c130",
+        "type": "shape",
+        "position": {
+         "x": 564,
+         "y": 96
+        },
+        "size": {
+         "width": 72,
+         "height": 72
+        },
+        "name": "Badge",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FACC15",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "s131",
+        "type": "shape",
+        "position": {
+         "x": 582,
+         "y": 114
+        },
+        "size": {
+         "width": 36,
+         "height": 36
+        },
+        "name": "Bolt",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#5A4408",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M55 2 L20 55 L42 55 L35 98 L78 40 L52 40 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        }
+       },
+       {
+        "id": "t132",
+        "type": "text",
+        "position": {
+         "x": 58,
+         "y": 140
+        },
+        "size": {
+         "width": 460,
+         "height": 130
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Get things\ndone, faster",
+        "fontSize": 18,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.12
+       },
+       {
+        "id": "t133",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 296
+        },
+        "size": {
+         "width": 440,
+         "height": 66
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Tasks, notes and reminders,\nall in one place.",
+        "fontSize": 10,
+        "color": "#DCE9FF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.35
+       },
+       {
+        "id": "r134",
+        "type": "shape",
+        "position": {
+         "x": 60,
+         "y": 398
+        },
+        "size": {
+         "width": 168,
+         "height": 52
+        },
+        "name": "Pill",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 26,
+        "borderRadiusType": "uniform"
+       },
+       {
+        "id": "t135",
+        "type": "text",
+        "position": {
+         "x": 60,
+         "y": 398
+        },
+        "size": {
+         "width": 168,
+         "height": 52
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Start free",
+        "fontSize": 10,
+        "color": "#2563EB",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "lineHeight": 1
+       }
+      ],
+      "backgroundColor": "#3B82F6",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#3B82F6",
+       "color2": "#2563EB",
+       "angle": 150
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

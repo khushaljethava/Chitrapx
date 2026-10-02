@@ -1,0 +1,682 @@
+{
+ "slug": "nexmind",
+ "name": "NexMind",
+ "description": "App Store & Play Store screenshots for an AI answers app. Cream and orange panels with condensed uppercase headlines and puzzle shaped accents.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "nexmind-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_nxm_ab1",
+      "name": "Hero",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_nxm_ab1_logo",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 110
+        },
+        "size": {
+         "width": 1160,
+         "height": 260
+        },
+        "name": "Logo Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "NexMind!",
+        "fontSize": 62,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_nxm_ab1_laurel_left",
+        "type": "shape",
+        "position": {
+         "x": 210,
+         "y": 400
+        },
+        "size": {
+         "width": 110,
+         "height": 220
+        },
+        "name": "Laurel Left",
+        "rotation": -20,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M47.27 6.36 L52.73 6.36 L52.73 94.55 L47.27 94.55 Z M50 93.18 Q35.79 83.42 13.64 78.64 Q27.84 88.39 50 93.18 Z M50 93.18 Q72.16 88.39 86.36 78.64 Q64.21 83.42 50 93.18 Z M50 78.64 Q36.85 69.47 16.18 64.96 Q29.33 74.13 50 78.64 Z M50 78.64 Q70.67 74.13 83.82 64.96 Q63.15 69.47 50 78.64 Z M50 64.09 Q37.91 55.52 18.73 51.29 Q30.82 59.86 50 64.09 Z M50 64.09 Q69.18 59.86 81.27 51.29 Q62.09 55.52 50 64.09 Z M50 49.55 Q38.97 41.57 21.27 37.62 Q32.3 45.59 50 49.55 Z M50 49.55 Q67.7 45.59 78.73 37.62 Q61.03 41.57 50 49.55 Z M50 35 Q40.03 27.63 23.82 23.95 Q33.79 31.32 50 35 Z M50 35 Q66.21 31.32 76.18 23.95 Q59.97 27.63 50 35 Z M50 20.45 Q41.09 13.68 26.36 10.27 Q35.27 17.05 50 20.45 Z M50 20.45 Q64.73 17.05 73.64 10.27 Q58.91 13.68 50 20.45 Z M50 19.09 Q55.91 11.36 50 3.64 Q44.09 11.36 50 19.09 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_laurel_right",
+        "type": "shape",
+        "position": {
+         "x": 970,
+         "y": 400
+        },
+        "size": {
+         "width": 110,
+         "height": 220
+        },
+        "name": "Laurel Right",
+        "rotation": 20,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M47.27 6.36 L52.73 6.36 L52.73 94.55 L47.27 94.55 Z M50 93.18 Q35.79 83.42 13.64 78.64 Q27.84 88.39 50 93.18 Z M50 93.18 Q72.16 88.39 86.36 78.64 Q64.21 83.42 50 93.18 Z M50 78.64 Q36.85 69.47 16.18 64.96 Q29.33 74.13 50 78.64 Z M50 78.64 Q70.67 74.13 83.82 64.96 Q63.15 69.47 50 78.64 Z M50 64.09 Q37.91 55.52 18.73 51.29 Q30.82 59.86 50 64.09 Z M50 64.09 Q69.18 59.86 81.27 51.29 Q62.09 55.52 50 64.09 Z M50 49.55 Q38.97 41.57 21.27 37.62 Q32.3 45.59 50 49.55 Z M50 49.55 Q67.7 45.59 78.73 37.62 Q61.03 41.57 50 49.55 Z M50 35 Q40.03 27.63 23.82 23.95 Q33.79 31.32 50 35 Z M50 35 Q66.21 31.32 76.18 23.95 Q59.97 27.63 50 35 Z M50 20.45 Q41.09 13.68 26.36 10.27 Q35.27 17.05 50 20.45 Z M50 20.45 Q64.73 17.05 73.64 10.27 Q58.91 13.68 50 20.45 Z M50 19.09 Q55.91 11.36 50 3.64 Q44.09 11.36 50 19.09 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_rating_number",
+        "type": "text",
+        "position": {
+         "x": 350,
+         "y": 400
+        },
+        "size": {
+         "width": 280,
+         "height": 170
+        },
+        "name": "Rating Number",
+        "rotation": 0,
+        "scale": 1,
+        "content": "4.8",
+        "fontSize": 52,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.1
+       },
+       {
+        "id": "tpl_nxm_ab1_rating_label",
+        "type": "text",
+        "position": {
+         "x": 645,
+         "y": 432
+        },
+        "size": {
+         "width": 370,
+         "height": 150
+        },
+        "name": "Rating Label",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Rating in the\nApp Store",
+        "fontSize": 14,
+        "color": "#B25F0E",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "textAlign": "left",
+        "lineHeight": 1.25
+       },
+       {
+        "id": "tpl_nxm_ab1_star1",
+        "type": "shape",
+        "position": {
+         "x": 415,
+         "y": 610
+        },
+        "size": {
+         "width": 76,
+         "height": 76
+        },
+        "name": "Rating Star 1",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_star2",
+        "type": "shape",
+        "position": {
+         "x": 511,
+         "y": 610
+        },
+        "size": {
+         "width": 76,
+         "height": 76
+        },
+        "name": "Rating Star 2",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_star3",
+        "type": "shape",
+        "position": {
+         "x": 607,
+         "y": 610
+        },
+        "size": {
+         "width": 76,
+         "height": 76
+        },
+        "name": "Rating Star 3",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_star4",
+        "type": "shape",
+        "position": {
+         "x": 703,
+         "y": 610
+        },
+        "size": {
+         "width": 76,
+         "height": 76
+        },
+        "name": "Rating Star 4",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_star5",
+        "type": "shape",
+        "position": {
+         "x": 799,
+         "y": 610
+        },
+        "size": {
+         "width": 76,
+         "height": 76
+        },
+        "name": "Rating Star 5",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 5,
+        "fillColor": "#B25F0E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_nxm_ab1_blob",
+        "type": "shape",
+        "position": {
+         "x": 80,
+         "y": 950
+        },
+        "size": {
+         "width": 1130,
+         "height": 1450
+        },
+        "name": "Puzzle Blob",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#F6871F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(28% 0%, 72% 0%, 72% 18%, 100% 18%, 100% 55%, 82% 55%, 82% 82%, 100% 82%, 100% 100%, 0% 100%, 0% 78%, 18% 78%, 18% 42%, 0% 42%, 0% 18%, 28% 18%)"
+       },
+       {
+        "id": "tpl_nxm_ab1_device",
+        "type": "device",
+        "position": {
+         "x": 245,
+         "y": 880
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": -14,
+        "scale": 1.35,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_nxm_ab1_caption",
+        "type": "text",
+        "position": {
+         "x": 80,
+         "y": 2560
+        },
+        "size": {
+         "width": 1130,
+         "height": 180
+        },
+        "name": "Caption",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Understand complex topics\nthrough simple AI explanations",
+        "fontSize": 19,
+        "color": "#B25F0E",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "textAlign": "center",
+        "lineHeight": 1.25
+       }
+      ],
+      "backgroundColor": "#FBEFDF",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_nxm_ab2",
+      "name": "Speed",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_nxm_ab2_headline",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 170
+        },
+        "size": {
+         "width": 1160,
+         "height": 380
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "SPEED MEETS\nINTELLIGENCE",
+        "fontSize": 46,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.08
+       },
+       {
+        "id": "tpl_nxm_ab2_blob",
+        "type": "shape",
+        "position": {
+         "x": 120,
+         "y": 640
+        },
+        "size": {
+         "width": 1050,
+         "height": 1750
+        },
+        "name": "Puzzle Blob",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#F6871F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(28% 0%, 72% 0%, 72% 14%, 100% 14%, 100% 48%, 84% 48%, 84% 74%, 100% 74%, 100% 100%, 0% 100%, 0% 80%, 16% 80%, 16% 40%, 0% 40%, 0% 14%, 28% 14%)"
+       },
+       {
+        "id": "tpl_nxm_ab2_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 760
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#FBEFDF",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_nxm_ab3",
+      "name": "Ask AI",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_nxm_ab3_headline",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 170
+        },
+        "size": {
+         "width": 1160,
+         "height": 380
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "ASK AI\nANYTHING",
+        "fontSize": 46,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.08
+       },
+       {
+        "id": "tpl_nxm_ab3_blob",
+        "type": "shape",
+        "position": {
+         "x": 120,
+         "y": 640
+        },
+        "size": {
+         "width": 1050,
+         "height": 1750
+        },
+        "name": "Puzzle Blob",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#F6871F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(28% 0%, 72% 0%, 72% 14%, 100% 14%, 100% 48%, 84% 48%, 84% 74%, 100% 74%, 100% 100%, 0% 100%, 0% 80%, 16% 80%, 16% 40%, 0% 40%, 0% 14%, 28% 14%)"
+       },
+       {
+        "id": "tpl_nxm_ab3_device",
+        "type": "device",
+        "position": {
+         "x": 175,
+         "y": 800
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 12,
+        "scale": 1.5,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#FBEFDF",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_nxm_ab4",
+      "name": "Trusted",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_nxm_ab4_headline",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 170
+        },
+        "size": {
+         "width": 1160,
+         "height": 380
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "FIND TRUSTED\nINFORMATION",
+        "fontSize": 46,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.08
+       },
+       {
+        "id": "tpl_nxm_ab4_blob",
+        "type": "shape",
+        "position": {
+         "x": 120,
+         "y": 640
+        },
+        "size": {
+         "width": 1050,
+         "height": 1750
+        },
+        "name": "Puzzle Blob",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#F6871F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(28% 0%, 72% 0%, 72% 14%, 100% 14%, 100% 48%, 84% 48%, 84% 74%, 100% 74%, 100% 100%, 0% 100%, 0% 80%, 16% 80%, 16% 40%, 0% 40%, 0% 14%, 28% 14%)"
+       },
+       {
+        "id": "tpl_nxm_ab4_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 760
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#FBEFDF",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_nxm_ab5",
+      "name": "Discover",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_nxm_ab5_headline",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 170
+        },
+        "size": {
+         "width": 1160,
+         "height": 380
+        },
+        "name": "Headline",
+        "rotation": 0,
+        "scale": 1,
+        "content": "DISCOVER\nREAL ANSWERS",
+        "fontSize": 46,
+        "color": "#B25F0E",
+        "fontFamily": "Oswald",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.08
+       },
+       {
+        "id": "tpl_nxm_ab5_blob",
+        "type": "shape",
+        "position": {
+         "x": 120,
+         "y": 640
+        },
+        "size": {
+         "width": 1050,
+         "height": 1750
+        },
+        "name": "Puzzle Blob",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-polygon",
+        "fillColor": "#F6871F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "clipPath": "polygon(28% 0%, 72% 0%, 72% 14%, 100% 14%, 100% 48%, 84% 48%, 84% 74%, 100% 74%, 100% 100%, 0% 100%, 0% 80%, 16% 80%, 16% 40%, 0% 40%, 0% 14%, 28% 14%)"
+       },
+       {
+        "id": "tpl_nxm_ab5_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 760
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "tpl_nxm_ab5_photo",
+        "type": "image",
+        "position": {
+         "x": 860,
+         "y": 1040
+        },
+        "size": {
+         "width": 430,
+         "height": 1756
+        },
+        "name": "Lifestyle Photo",
+        "rotation": 0,
+        "scale": 1,
+        "objectFit": "cover"
+       }
+      ],
+      "backgroundColor": "#FBEFDF",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

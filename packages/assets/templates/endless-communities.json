@@ -1,0 +1,738 @@
+{
+ "slug": "endless-communities",
+ "name": "Endless Communities",
+ "description": "App Store & Play Store screenshots for a social communities app. Navy panels mixing bold and script headlines with colorful splat accents.",
+ "category": "screenshots",
+ "platforms": [
+  "ios"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "endless-communities-iphone-6.9",
+    "target": "iphone-6.9",
+    "boards": [
+     {
+      "id": "tpl_end_ab1",
+      "name": "Communities",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_end_ab1_splat_pink",
+        "type": "shape",
+        "position": {
+         "x": -110,
+         "y": 2280
+        },
+        "size": {
+         "width": 420,
+         "height": 420
+        },
+        "name": "Splat Pink",
+        "rotation": 15,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#E94FB4",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab1_splat_yellow",
+        "type": "shape",
+        "position": {
+         "x": 60,
+         "y": 2500
+        },
+        "size": {
+         "width": 260,
+         "height": 260
+        },
+        "name": "Splat Yellow",
+        "rotation": -20,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#F8C822",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab1_splat_blue",
+        "type": "shape",
+        "position": {
+         "x": 1020,
+         "y": 2380
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Splat Blue",
+        "rotation": 10,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#8E9BF5",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab1_headline_bold",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 130
+        },
+        "size": {
+         "width": 1160,
+         "height": 230
+        },
+        "name": "Headline Bold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Endless",
+        "fontSize": 60,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab1_headline_script",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 340
+        },
+        "size": {
+         "width": 1160,
+         "height": 200
+        },
+        "name": "Headline Script",
+        "rotation": 0,
+        "scale": 1,
+        "content": "communities",
+        "fontSize": 46,
+        "color": "#FFFFFF",
+        "fontFamily": "Calistoga",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab1_device",
+        "type": "device",
+        "position": {
+         "x": 230,
+         "y": 700
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": -12,
+        "scale": 1.4,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#1A1F4E",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_end_ab2",
+      "name": "Post",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_end_ab2_splat_orange",
+        "type": "shape",
+        "position": {
+         "x": 1060,
+         "y": 480
+        },
+        "size": {
+         "width": 340,
+         "height": 340
+        },
+        "name": "Splat Orange",
+        "rotation": 12,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#F58A2E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab2_splat_green",
+        "type": "shape",
+        "position": {
+         "x": 1100,
+         "y": 2450
+        },
+        "size": {
+         "width": 300,
+         "height": 300
+        },
+        "name": "Splat Green",
+        "rotation": -15,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#3BD273",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab2_headline_bold",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 140
+        },
+        "size": {
+         "width": 1160,
+         "height": 220
+        },
+        "name": "Headline Bold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Post your",
+        "fontSize": 56,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab2_headline_script",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 350
+        },
+        "size": {
+         "width": 1160,
+         "height": 200
+        },
+        "name": "Headline Script",
+        "rotation": 0,
+        "scale": 1,
+        "content": "thoughts",
+        "fontSize": 48,
+        "color": "#FFFFFF",
+        "fontFamily": "Calistoga",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab2_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 720
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#1A1F4E",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_end_ab3",
+      "name": "Opinions",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_end_ab3_splat_lavender",
+        "type": "shape",
+        "position": {
+         "x": 1040,
+         "y": 360
+        },
+        "size": {
+         "width": 300,
+         "height": 300
+        },
+        "name": "Splat Lavender",
+        "rotation": 8,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#8E9BF5",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab3_splat_pink",
+        "type": "shape",
+        "position": {
+         "x": 1130,
+         "y": 560
+        },
+        "size": {
+         "width": 220,
+         "height": 220
+        },
+        "name": "Splat Pink",
+        "rotation": -18,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#E94FB4",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab3_headline_script",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 150
+        },
+        "size": {
+         "width": 1160,
+         "height": 200
+        },
+        "name": "Headline Script",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Read real",
+        "fontSize": 48,
+        "color": "#FFFFFF",
+        "fontFamily": "Calistoga",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab3_headline_bold",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 340
+        },
+        "size": {
+         "width": 1160,
+         "height": 220
+        },
+        "name": "Headline Bold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "opinions",
+        "fontSize": 56,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab3_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 720
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#1A1F4E",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_end_ab4",
+      "name": "Answers",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_end_ab4_spark_yellow",
+        "type": "shape",
+        "position": {
+         "x": 1020,
+         "y": -60
+        },
+        "size": {
+         "width": 320,
+         "height": 320
+        },
+        "name": "Spark Yellow",
+        "rotation": 25,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 4,
+        "fillColor": "#F8C822",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab4_spark_orange",
+        "type": "shape",
+        "position": {
+         "x": 1130,
+         "y": 200
+        },
+        "size": {
+         "width": 220,
+         "height": 220
+        },
+        "name": "Spark Orange",
+        "rotation": -10,
+        "scale": 1,
+        "shapeType": "star",
+        "customPoints": 4,
+        "fillColor": "#F58A2E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab4_headline_bold1",
+        "type": "text",
+        "position": {
+         "x": 165,
+         "y": 140
+        },
+        "size": {
+         "width": 450,
+         "height": 220
+        },
+        "name": "Headline Bold 1",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Find",
+        "fontSize": 56,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "right",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab4_headline_script",
+        "type": "text",
+        "position": {
+         "x": 660,
+         "y": 155
+        },
+        "size": {
+         "width": 460,
+         "height": 200
+        },
+        "name": "Headline Script",
+        "rotation": 0,
+        "scale": 1,
+        "content": "real",
+        "fontSize": 48,
+        "color": "#FFFFFF",
+        "fontFamily": "Calistoga",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "left",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab4_headline_bold2",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 340
+        },
+        "size": {
+         "width": 1160,
+         "height": 220
+        },
+        "name": "Headline Bold 2",
+        "rotation": 0,
+        "scale": 1,
+        "content": "answers",
+        "fontSize": 56,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab4_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 720
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#1A1F4E",
+      "zoom": 1,
+      "backgroundType": "solid"
+     },
+     {
+      "id": "tpl_end_ab5",
+      "name": "Share",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1290,
+       "height": 2796
+      },
+      "elements": [
+       {
+        "id": "tpl_end_ab5_splat_green",
+        "type": "shape",
+        "position": {
+         "x": 1060,
+         "y": 100
+        },
+        "size": {
+         "width": 360,
+         "height": 360
+        },
+        "name": "Splat Green",
+        "rotation": -12,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#3BD273",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab5_splat_pink",
+        "type": "shape",
+        "position": {
+         "x": -90,
+         "y": 2420
+        },
+        "size": {
+         "width": 320,
+         "height": 320
+        },
+        "name": "Splat Pink",
+        "rotation": 20,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "customPath": "M50 29 C56.27 -9.67 98.54 14.73 68.19 39.5 C104.81 25.6 104.81 74.4 68.19 60.5 C98.54 85.27 56.27 109.67 50 71 C43.73 109.67 1.46 85.27 31.81 60.5 C-4.81 74.4 -4.81 25.6 31.81 39.5 C1.46 14.73 43.73 -9.67 50 29 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100"
+        },
+        "fillColor": "#E94FB4",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "tpl_end_ab5_headline_bold",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 140
+        },
+        "size": {
+         "width": 1160,
+         "height": 220
+        },
+        "name": "Headline Bold",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Post your",
+        "fontSize": 56,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "bold",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab5_headline_script",
+        "type": "text",
+        "position": {
+         "x": 65,
+         "y": 350
+        },
+        "size": {
+         "width": 1160,
+         "height": 200
+        },
+        "name": "Headline Script",
+        "rotation": 0,
+        "scale": 1,
+        "content": "thoughts",
+        "fontSize": 48,
+        "color": "#FFFFFF",
+        "fontFamily": "Calistoga",
+        "fontWeight": "normal",
+        "fontStyle": "italic",
+        "textAlign": "center",
+        "lineHeight": 1.05
+       },
+       {
+        "id": "tpl_end_ab5_device",
+        "type": "device",
+        "position": {
+         "x": 150,
+         "y": 720
+        },
+        "size": {
+         "width": 600,
+         "height": 1200
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1.6,
+        "deviceType": "iphone-15",
+        "naturalScreenshotWidth": 1692,
+        "naturalScreenshotHeight": 3420,
+        "styleType": "normal",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#1A1F4E",
+      "zoom": 1,
+      "backgroundType": "solid"
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

@@ -132,6 +132,8 @@ export const creditLedger = pgTable("credit_ledger", {
 export const templates = pgTable("templates", {
   id: id(),
   slug: text("slug").notNull().unique(),
+  name: text("name").notNull().default(""),
+  description: text("description").notNull().default(""),
   category: text("category").notNull(),
   platforms: text("platforms").array().notNull().default(sql`'{}'::text[]`),
   kind: projectKindEnum("kind").notNull(),

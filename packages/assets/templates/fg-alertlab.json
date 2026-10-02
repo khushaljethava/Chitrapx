@@ -1,0 +1,273 @@
+{
+ "slug": "fg-alertlab",
+ "name": "AlertLab",
+ "description": "Google Play feature graphic (1024x500) for an alerts or monitoring app. Dark-red hero, radar rings and a tilted phone with a feature list. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+ "category": "play-feature-graphic",
+ "platforms": [
+  "play"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "fg-alertlab-play-feature",
+    "target": "play-feature",
+    "boards": [
+     {
+      "id": "fg_alertlab_ab",
+      "name": "AlertLab",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1024,
+       "height": 500
+      },
+      "elements": [
+       {
+        "id": "s43",
+        "type": "shape",
+        "position": {
+         "x": 560,
+         "y": -120
+        },
+        "size": {
+         "width": 720,
+         "height": 720
+        },
+        "name": "Radar",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "custom-svg",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "customPath": "M4 50 A46 46 0 1 0 96 50 A46 46 0 1 0 4 50 ZM14 50 A36 36 0 1 0 86 50 A36 36 0 1 0 14 50 ZM24 50 A26 26 0 1 0 76 50 A26 26 0 1 0 24 50 ZM34 50 A16 16 0 1 0 66 50 A16 16 0 1 0 34 50 ZM44 50 A6 6 0 1 0 56 50 A6 6 0 1 0 44 50 Z",
+        "specialProps": {
+         "viewBox": "0 0 100 100",
+         "fillRule": "evenodd"
+        },
+        "fillOpacity": 0.08
+       },
+       {
+        "id": "dev44",
+        "type": "device",
+        "position": {
+         "x": 748,
+         "y": 74
+        },
+        "size": {
+         "width": 226,
+         "height": 500
+        },
+        "name": "Phone Mockup",
+        "rotation": -15,
+        "scale": 1,
+        "deviceType": "android-punch-hole",
+        "styleType": "normal",
+        "frameColor": "#1A1113",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "t45",
+        "type": "text",
+        "position": {
+         "x": 54,
+         "y": 78
+        },
+        "size": {
+         "width": 460,
+         "height": 60
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "AlertLab",
+        "fontSize": 22,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1
+       },
+       {
+        "id": "t46",
+        "type": "text",
+        "position": {
+         "x": 56,
+         "y": 158
+        },
+        "size": {
+         "width": 430,
+         "height": 60
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "The only alert app you\nwill ever need!",
+        "fontSize": 10,
+        "color": "#F4CBCD",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "normal",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.35
+       },
+       {
+        "id": "c47",
+        "type": "shape",
+        "position": {
+         "x": 58,
+         "y": 286
+        },
+        "size": {
+         "width": 18,
+         "height": 18
+        },
+        "name": "Circle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FF3B3F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "t48",
+        "type": "text",
+        "position": {
+         "x": 92,
+         "y": 278
+        },
+        "size": {
+         "width": 320,
+         "height": 34
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Warning Alerts",
+        "fontSize": 11.5,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "c49",
+        "type": "shape",
+        "position": {
+         "x": 58,
+         "y": 340
+        },
+        "size": {
+         "width": 18,
+         "height": 18
+        },
+        "name": "Circle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FF3B3F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "t50",
+        "type": "text",
+        "position": {
+         "x": 92,
+         "y": 332
+        },
+        "size": {
+         "width": 320,
+         "height": 34
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Quick Alerts",
+        "fontSize": 11.5,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       },
+       {
+        "id": "c51",
+        "type": "shape",
+        "position": {
+         "x": 58,
+         "y": 394
+        },
+        "size": {
+         "width": 18,
+         "height": 18
+        },
+        "name": "Circle",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FF3B3F",
+        "strokeColor": "transparent",
+        "strokeWidth": 0
+       },
+       {
+        "id": "t52",
+        "type": "text",
+        "position": {
+         "x": 92,
+         "y": 386
+        },
+        "size": {
+         "width": 320,
+         "height": 34
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Danger Alerts",
+        "fontSize": 11.5,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.15
+       }
+      ],
+      "backgroundColor": "#280A0C",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#2A090B",
+       "color2": "#7C1418",
+       "angle": 130
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

@@ -1,0 +1,169 @@
+{
+ "slug": "fg-wallet-your-app",
+ "name": "Wallet Your App",
+ "description": "Google Play feature graphic (1024x500) for a wallet or fintech app. Soft blue-violet hero with a centered headline over a three-phone fan. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+ "category": "play-feature-graphic",
+ "platforms": [
+  "play"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "fg-wallet-your-app-play-feature",
+    "target": "play-feature",
+    "boards": [
+     {
+      "id": "fg_wallet-your-app_ab",
+      "name": "Wallet Your App",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1024,
+       "height": 500
+      },
+      "elements": [
+       {
+        "id": "c53",
+        "type": "shape",
+        "position": {
+         "x": 500,
+         "y": 300
+        },
+        "size": {
+         "width": 520,
+         "height": 520
+        },
+        "name": "Glow",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "circle",
+        "fillColor": "#FFFFFF",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "fillOpacity": 0.1
+       },
+       {
+        "id": "t54",
+        "type": "text",
+        "position": {
+         "x": 112,
+         "y": 40
+        },
+        "size": {
+         "width": 800,
+         "height": 60
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Your Wallet. Your App.",
+        "fontSize": 15,
+        "color": "#20263A",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "center",
+        "lineHeight": 1
+       },
+       {
+        "id": "dev55",
+        "type": "device",
+        "position": {
+         "x": 239,
+         "y": 162
+        },
+        "size": {
+         "width": 194,
+         "height": 405
+        },
+        "name": "Phone Mockup",
+        "rotation": -7,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1C1C1E",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "dev56",
+        "type": "device",
+        "position": {
+         "x": 591,
+         "y": 162
+        },
+        "size": {
+         "width": 194,
+         "height": 405
+        },
+        "name": "Phone Mockup",
+        "rotation": 7,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1C1C1E",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "dev57",
+        "type": "device",
+        "position": {
+         "x": 400,
+         "y": 128
+        },
+        "size": {
+         "width": 224,
+         "height": 470
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1C1C1E",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       }
+      ],
+      "backgroundColor": "#8FB6F7",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8FB6F7",
+       "color2": "#B49BF3",
+       "angle": 135
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

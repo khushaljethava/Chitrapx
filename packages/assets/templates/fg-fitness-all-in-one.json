@@ -1,0 +1,256 @@
+{
+ "slug": "fg-fitness-all-in-one",
+ "name": "Fitness All-In-One",
+ "description": "Google Play feature graphic (1024x500) for a fitness app. Bold violet hero, lime accents and a three-phone fan. The phone screens are placeholder skeletons you can replace by selecting a mockup and clicking Change Screenshot.",
+ "category": "play-feature-graphic",
+ "platforms": [
+  "play"
+ ],
+ "kind": "screenshots",
+ "source": "osg",
+ "licenseNote": "Layout from open-screenshot-generator (MIT, Copyright (c) 2026 Idrees Khan); artwork removed.",
+ "doc": {
+  "schemaVersion": 1,
+  "kind": "screenshots",
+  "groups": [
+   {
+    "id": "fg-fitness-all-in-one-play-feature",
+    "target": "play-feature",
+    "boards": [
+     {
+      "id": "fg_fitness-all-in-one_ab",
+      "name": "Fitness All-In-One",
+      "position": {
+       "x": 0,
+       "y": 0
+      },
+      "size": {
+       "width": 1024,
+       "height": 500
+      },
+      "elements": [
+       {
+        "id": "r20",
+        "type": "shape",
+        "position": {
+         "x": 930,
+         "y": 54
+        },
+        "size": {
+         "width": 78,
+         "height": 16
+        },
+        "name": "Accent",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#C6F24E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 8,
+        "borderRadiusType": "uniform"
+       },
+       {
+        "id": "r21",
+        "type": "shape",
+        "position": {
+         "x": 898,
+         "y": 84
+        },
+        "size": {
+         "width": 54,
+         "height": 16
+        },
+        "name": "Accent",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#C6F24E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 8,
+        "borderRadiusType": "uniform"
+       },
+       {
+        "id": "r22",
+        "type": "shape",
+        "position": {
+         "x": 24,
+         "y": 402
+        },
+        "size": {
+         "width": 78,
+         "height": 16
+        },
+        "name": "Accent",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#C6F24E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 8,
+        "borderRadiusType": "uniform"
+       },
+       {
+        "id": "r23",
+        "type": "shape",
+        "position": {
+         "x": 56,
+         "y": 432
+        },
+        "size": {
+         "width": 54,
+         "height": 16
+        },
+        "name": "Accent",
+        "rotation": 0,
+        "scale": 1,
+        "shapeType": "rectangle",
+        "fillColor": "#C6F24E",
+        "strokeColor": "transparent",
+        "strokeWidth": 0,
+        "borderRadius": 8,
+        "borderRadiusType": "uniform"
+       },
+       {
+        "id": "dev24",
+        "type": "device",
+        "position": {
+         "x": 554,
+         "y": 94
+        },
+        "size": {
+         "width": 180,
+         "height": 415
+        },
+        "name": "Phone Mockup",
+        "rotation": -9,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1B1B1D",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "dev25",
+        "type": "device",
+        "position": {
+         "x": 850,
+         "y": 94
+        },
+        "size": {
+         "width": 180,
+         "height": 415
+        },
+        "name": "Phone Mockup",
+        "rotation": 9,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1B1B1D",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "dev26",
+        "type": "device",
+        "position": {
+         "x": 687,
+         "y": 60
+        },
+        "size": {
+         "width": 210,
+         "height": 480
+        },
+        "name": "Phone Mockup",
+        "rotation": 0,
+        "scale": 1,
+        "deviceType": "iphone-15",
+        "styleType": "normal",
+        "frameColor": "#1B1B1D",
+        "screenshotObjectFit": "cover",
+        "screenshotRect": {
+         "left": 0,
+         "top": 0,
+         "width": 100,
+         "height": 100
+        }
+       },
+       {
+        "id": "t27",
+        "type": "text",
+        "position": {
+         "x": 56,
+         "y": 148
+        },
+        "size": {
+         "width": 470,
+         "height": 140
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Your All-In-One\nFitness App",
+        "fontSize": 18,
+        "color": "#FFFFFF",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.14
+       },
+       {
+        "id": "t28",
+        "type": "text",
+        "position": {
+         "x": 58,
+         "y": 302
+        },
+        "size": {
+         "width": 540,
+         "height": 46
+        },
+        "name": "Text",
+        "rotation": 0,
+        "scale": 1,
+        "content": "Workouts · Meals · Progress",
+        "fontSize": 10,
+        "color": "#DFFB7A",
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "700",
+        "fontStyle": "normal",
+        "textAlign": "left",
+        "lineHeight": 1.2
+       }
+      ],
+      "backgroundColor": "#7A5AF5",
+      "zoom": 1,
+      "backgroundType": "gradient",
+      "backgroundGradient": {
+       "color1": "#8468FF",
+       "color2": "#5E3FE6",
+       "angle": 150
+      }
+     }
+    ],
+    "spanElements": []
+   }
+  ],
+  "localization": {
+   "baseLocale": "en-US",
+   "locales": []
+  }
+ }
+}

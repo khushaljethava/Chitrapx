@@ -10,7 +10,8 @@
     "typecheck": "tsc",
     "test": "vitest run",
     "generate": "drizzle-kit generate",
-    "migrate": "drizzle-kit migrate"
+    "migrate": "drizzle-kit migrate",
+    "seed": "tsx --env-file-if-exists=../../.env src/seed.ts"
   },
   "dependencies": {
     "@chitrapx/document": "workspace:^",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@types/pg": "^8.23.1",
-    "drizzle-kit": "^0.31.11"
+    "drizzle-kit": "^0.31.11",
+    "tsx": "^4.23.15"
   }
 }

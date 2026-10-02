@@ -1,0 +1,608 @@
+[
+ {
+  "slug": "amoura-dating",
+  "droppedImages": 2,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "answerly-ai",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "beatforge-studio",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "beauty-glam",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "blogio-articles",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "breathora-breathing",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "budgetly-finance",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "calora-macros",
+  "droppedImages": 8,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "castique-podcast",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "cinevault-stream",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "coinly-crypto",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "connectly-chat",
+  "droppedImages": 8,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 0
+ },
+ {
+  "slug": "cryptix",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "cvcraft-resume",
+  "droppedImages": 6,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "darzi-studio",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "droply-habits",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "endless-communities",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "endless-podcasts",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "feasto",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "fg-alertlab",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-chat-connect",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-crypto-portfolio",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-expense-tracking",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "fg-fitness-all-in-one",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "fg-food-delivery",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-habit-tracker",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-music-stream",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-paws-hearts",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 0
+ },
+ {
+  "slug": "fg-productivity-tasks",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-trading-app",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-travel-explore",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-wallet-protected",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 1
+ },
+ {
+  "slug": "fg-wallet-your-app",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "fg-work-play-happy",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 0
+ },
+ {
+  "slug": "finexa-crypto",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "flixio-kids",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "inboxly-mail",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 8
+ },
+ {
+  "slug": "inquira",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "kassa-money",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "kicksy-sneakers",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "lingua-learn",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 7
+ },
+ {
+  "slug": "listenly-audio",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "listly-tasks",
+  "droppedImages": 10,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 0
+ },
+ {
+  "slug": "lotus-calm",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "lumina-search",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "luxe-glow",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-atelier",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "mac-boardly",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "mac-everglade",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "mac-festivo",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-flowdesk",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-inkpress",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-ledgerly",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "mac-loopchat",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-postbox",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "mac-pulseform",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "mac-skyfit",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "mac-terra",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "nexmind",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "nookly-focus",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "nutrio-fitness",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 9
+ },
+ {
+  "slug": "pixara-ai",
+  "droppedImages": 16,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "plannio-student",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "playpop-intro",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "playverse-games",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "podly-podcasts",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "puzzlo-word",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "pv-forest-wellness",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "pv-midnight-launch",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "pv-minimal-light",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "pv-ocean-social",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "pv-royal-shop",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "pv-sunrise-fitness",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "readly-books",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "roomora-home",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "runzo-coach",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "scrappi-journal",
+  "droppedImages": 44,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 8
+ },
+ {
+  "slug": "sereno-mind",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 9
+ },
+ {
+  "slug": "somnia-sleep",
+  "droppedImages": 5,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "sproutly-parenting",
+  "droppedImages": 1,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 2
+ },
+ {
+  "slug": "stockio-invest",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "storybuzz-kids",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "streamio-binge",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "streamio-movies",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "threadly-social",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "trackio-fitness",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "tripora-travel",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "tunio-music",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "verda-eco",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 11
+ },
+ {
+  "slug": "vowly-wedding",
+  "droppedImages": 2,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ },
+ {
+  "slug": "voyago-travel",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "watch-dark-aso",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "watch-editors-choice",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "watch-lavender",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "watch-smart-appscreens",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "watch-sunset",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "watch-ultra-showcase",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "zapio-remote",
+  "droppedImages": 3,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 3
+ },
+ {
+  "slug": "zeeb-fashion",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 6
+ },
+ {
+  "slug": "zenfit-yoga",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 5
+ },
+ {
+  "slug": "zyluxe-beauty",
+  "droppedImages": 0,
+  "droppedBackgrounds": 0,
+  "clearedScreens": 4
+ }
+]
