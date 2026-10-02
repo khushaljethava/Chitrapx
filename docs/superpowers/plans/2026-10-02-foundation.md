@@ -72,19 +72,19 @@ Chitrapx/
 
 ### Task 1: Monorepo scaffold + local Supabase
 
-- [ ] `pnpm-workspace.yaml` with `apps/*`, `packages/*`. Root scripts: `typecheck`, `lint`, `test`, `db:start`, `db:migrate`.
-- [ ] `tsconfig.base.json`: `strict`, `target ES2023`, `module ESNext`, `moduleResolution Bundler`, `noUncheckedIndexedAccess`, `skipLibCheck`.
-- [ ] ESLint flat config with `typescript-eslint` recommended.
-- [ ] `supabase init`; add private `uploads` bucket (500MiB limit) in `supabase/config.toml`; `supabase start`.
-- [ ] `.env.example`, `NOTICES.md`, `README.md` setup section.
-- [ ] Commit `chore: scaffold monorepo and local supabase`.
+- [x] `pnpm-workspace.yaml` with `apps/*`, `packages/*`. Root scripts: `typecheck`, `lint`, `test`, `db:start`, `db:migrate`.
+- [x] `tsconfig.base.json`: `strict`, `target ES2023`, `module ESNext`, `moduleResolution Bundler`, `noUncheckedIndexedAccess`, `skipLibCheck`.
+- [x] ESLint flat config with `typescript-eslint` recommended.
+- [x] `supabase init`; add private `uploads` bucket (500MiB limit) in `supabase/config.toml`; `supabase start`.
+- [x] `.env.example`, `NOTICES.md`, `README.md` setup section.
+- [x] Commit `chore: scaffold monorepo and local supabase`.
 
 ### Task 2: Schema, client, migrations
 
 **Produces:** `pool`, `db: Db`, `type Tx = { db: Db; client: pg.PoolClient }`, `withTx<T>(fn: (tx: Tx) => Promise<T>)`; all A4 tables (assets unique `(workspaceId, appId, sha256)` nulls not distinct; ledger unique `(jobId, reason)`; app FKs cascade); `emptyDoc(kind)`.
 
-- [ ] Test: duplicate `(workspace, app, sha)` throws; different app succeeds; both-null app twice throws.
-- [ ] FAIL → implement → `drizzle-kit generate` + `migrate` → PASS. Commit `feat(db): schema, client, migrations`.
+- [x] Test: duplicate `(workspace, app, sha)` throws; different app succeeds; both-null app twice throws.
+- [x] FAIL → implement → `drizzle-kit generate` + `migrate` → PASS. Commit `feat(db): schema, client, migrations`.
 
 ### Task 3: RLS + credits + pricing + plans
 
@@ -92,47 +92,47 @@ Chitrapx/
 
 RLS: `is_member(ws)` security definer; member `for all` on `apps, projects, project_versions, assets`; `workspaces` select/update; `memberships, jobs, credit_ledger` select only; `profiles` own row; `templates` select.
 
-- [ ] Tests (`rls.test.ts`): for every table A reading B → 0 rows; A inserting with B's id → throws; A updating/deleting B → 0 rows; A inserting ledger/jobs for own workspace → throws.
-- [ ] Tests (`credits.test.ts`): grant 50 → 50; reserve -1; refund restores; double refund idempotent; balance 0 → error and no job row; two parallel reserves at balance 1 → exactly one job.
-- [ ] FAIL → implement → PASS. Commit `feat(db): rls, credit ledger, plans, pricing`.
+- [x] Tests (`rls.test.ts`): for every table A reading B → 0 rows; A inserting with B's id → throws; A updating/deleting B → 0 rows; A inserting ledger/jobs for own workspace → throws.
+- [x] Tests (`credits.test.ts`): grant 50 → 50; reserve -1; refund restores; double refund idempotent; balance 0 → error and no job row; two parallel reserves at balance 1 → exactly one job.
+- [x] FAIL → implement → PASS. Commit `feat(db): rls, credit ledger, plans, pricing`.
 
 ### Task 4: Onboarding + monthly grants
 
 **Produces:** `ensureWorkspace(user) → { workspaceId, created }` (advisory lock on user id); `isGrantDay(createdAt, today)` (UTC, clamps to month end); `grantMonthlyCredits(today) → number` (top up to allowance, once per `YYYY-MM`).
 
-- [ ] Tests: second call same workspace, one grant; parallel calls → one workspace; `isGrantDay` Jan 31 → Feb 28 true, Feb 27 false; grant twice in a month → once; balance 10 → +40; balance 60 → 0 marker row.
-- [ ] FAIL → implement → PASS. Commit `feat(db): onboarding and monthly grants`.
+- [x] Tests: second call same workspace, one grant; parallel calls → one workspace; `isGrantDay` Jan 31 → Feb 28 true, Feb 27 false; grant twice in a month → once; balance 10 → +40; balance 60 → 0 marker row.
+- [x] FAIL → implement → PASS. Commit `feat(db): onboarding and monthly grants`.
 
 ### Task 5: Worker
 
 **Produces:** `FatalJobError`, `MAX_ATTEMPTS = 4`, `runJob(jobId, handler)`; `noop` handler; `index.ts` with queues, schedule `0 3 * * *`, graceful SIGTERM; Dockerfile.
 
-- [ ] Tests: success → done, net -1; fatal → failed, balance restored; transient attempt 1 rethrows; transient attempt 4 → failed + refund; done job re-run is a no-op.
-- [ ] FAIL → implement → PASS. Commit `feat(worker): job runner, noop, monthly grant schedule`.
+- [x] Tests: success → done, net -1; fatal → failed, balance restored; transient attempt 1 rethrows; transient attempt 4 → failed + refund; done job re-run is a no-op.
+- [x] FAIL → implement → PASS. Commit `feat(worker): job runner, noop, monthly grant schedule`.
 
 ### Task 6: Web app, auth, apps and projects
 
 **Produces:** `HttpError`, `route(fn)`, `requireContext()`, app and project services (404 on foreign ids, 403 `plan_limit`), Supabase auth (magic link, Google, GitHub), proxy session refresh + `/dashboard` guard, callback → `ensureWorkspace`.
 
-- [ ] Tests: free 2nd app → 403; foreign app id → 404 on update/delete/createProject; 4th project → 403; new project doc equals `emptyDoc(kind)`, revision 0; bad hex colour → 400.
-- [ ] FAIL → implement → PASS; `next build` succeeds. Commit `feat(web): auth, apps, projects`.
+- [x] Tests: free 2nd app → 403; foreign app id → 404 on update/delete/createProject; 4th project → 403; new project doc equals `emptyDoc(kind)`, revision 0; bad hex colour → 400.
+- [x] FAIL → implement → PASS; `next build` succeeds. Commit `feat(web): auth, apps, projects`.
 
 ### Task 7: Uploads
 
 **Produces:** `ObjectStorage` interface + Supabase implementation; `signUpload`, `completeUpload`, `listAssets`.
 
-- [ ] Tests (in-memory storage): same image twice → one row; 26 MB → 413; PNG declared but text bytes → 400 + removed; sha mismatch → 400; foreign app → 404; real PNG gets width/height.
-- [ ] FAIL → implement → PASS; drop zone UI. Commit `feat(web): screenshot uploads`.
+- [x] Tests (in-memory storage): same image twice → one row; 26 MB → 413; PNG declared but text bytes → 400 + removed; sha mismatch → 400; foreign app → 404; real PNG gets width/height.
+- [x] FAIL → implement → PASS; drop zone UI. Commit `feat(web): screenshot uploads`.
 
 ### Task 8: Credits badge, jobs, health, dev noop
 
 **Produces:** `enqueueNoop(ctx, boss, { fail })`, `listJobs(ctx)`, `getBoss()`, `/api/credits`, `/api/jobs`, `/api/dev/noop` (404 unless `ENABLE_DEV_TOOLS=1`), `/api/health` (503 on failure).
 
-- [ ] Tests: balance 0 → error, no job; success → queued job, balance -1.
-- [ ] FAIL → implement → PASS; manual worker run. Commit `feat(web): credits badge, jobs panel, health route`.
+- [x] Tests: balance 0 → error, no job; success → queued job, balance -1.
+- [x] FAIL → implement → PASS; manual worker run. Commit `feat(web): credits badge, jobs panel, health route`.
 
 ### Task 9: CI and deploy docs
 
-- [ ] GitHub Actions: pnpm, Node 24, `supabase start`, migrate, typecheck, lint, test, web build.
-- [ ] README deploy section (Vercel, Supabase cloud, worker container).
-- [ ] Commit `ci: typecheck, lint, test with local supabase`.
+- [x] GitHub Actions: pnpm, Node 24, `supabase start`, migrate, typecheck, lint, test, web build.
+- [x] README deploy section (Vercel, Supabase cloud, worker container).
+- [x] Commit `ci: typecheck, lint, test with local supabase`.
