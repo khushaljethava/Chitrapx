@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 import { db, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
@@ -50,10 +50,10 @@ describe("saveDoc", () => {
 
   it("copies every 20th revision into project versions", async () => {
     const { ctx, project } = await setup();
-    let { doc, revision } = await getProject(ctx, project.id);
+    const { doc, revision: start } = await getProject(ctx, project.id);
+    let revision = start;
     for (let i = 0; i < 20; i++) ({ revision } = await saveDoc(ctx, project.id, { doc, revision }));
     const rows = await db.select().from(schema.projectVersions).where(eq(schema.projectVersions.projectId, project.id));
     expect(rows.map((r) => r.revision)).toEqual([20]);
-    void sql;
   });
 });
