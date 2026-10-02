@@ -2,6 +2,7 @@
 
 import { getTarget, TARGETS, type ArtboardElement, type TargetId } from "@chitrapx/document";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { CopyIdeas } from "./CopyIdeas.tsx";
 
 type NewElement = (w: number, h: number) => Record<string, unknown>;
 const base = (w: number, h: number, ew: number, eh: number) =>
@@ -111,6 +112,8 @@ export function LeftPanel() {
           ))}
         </ol>
       </section>
+
+      <CopyIdeas />
     </aside>
   );
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ExportPanel } from "@/components/ExportPanel.tsx";
+import { ProjectAi } from "@/components/ProjectAi.tsx";
 import { ProjectBoards } from "@/components/ProjectBoards.tsx";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
@@ -20,6 +21,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
           <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
         </div>
       </div>
+      <ProjectAi projectId={project.id} codes={[project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)]} />
       <ExportPanel projectId={project.id}
         boardCount={project.doc.groups.reduce((n, g) => n + g.boards.length, 0)}
         localeCount={1 + project.doc.localization.locales.length} />

@@ -11,6 +11,7 @@ import { listProjects } from "@/server/projects.ts";
 import { supabaseStorage } from "@/server/storage.ts";
 import { listAssets } from "@/server/uploads.ts";
 import { UploadGrid } from "@/components/UploadGrid.tsx";
+import { AiDesignCard } from "@/components/AiDesignCard.tsx";
 
 export default async function AppPage({ params }: { params: Promise<{ appId: string }> }) {
   const ctx = await requireContext();
@@ -26,6 +27,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
         </div>
         <DeleteAppButton appId={app.id} />
       </div>
+      <AiDesignCard appId={app.id} screenshotCount={assets.filter((a) => a.kind === "screenshot").length} />
       <ProjectList appId={app.id} projects={projects.map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt: updatedAt.toISOString() }))} maxProjects={PLANS[ctx.plan].maxProjects} />
       <UploadGrid appId={app.id} logoAssetId={app.brand.logoAssetId} assets={assets.map(({ id, url, width, height }) => ({ id, url, width, height }))} />
       <BrandForm app={{ id: app.id, name: app.name, description: app.description, platformHint: app.platformHint, brand: app.brand }} />

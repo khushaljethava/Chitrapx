@@ -60,3 +60,13 @@ describe("editor store", () => {
     expect(s.getState().past).toHaveLength(200);
   });
 });
+
+describe("copy variants", () => {
+  it("applying a variant is one undo step", () => {
+    const s = createEditorStore({ projectId: "p", doc: d(), revision: 0 });
+    s.getState().apply({ type: "setTexts", texts: [{ id: "t", text: "Bold new copy" }] });
+    expect(text(s)).toBe("Bold new copy");
+    s.getState().undo();
+    expect(text(s)).toBe("Hi");
+  });
+});

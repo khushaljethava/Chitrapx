@@ -23,19 +23,19 @@
 ---
 
 ### Task 1: Data and pricing
-- [ ] `screen_insights` table + migration; prices; `reserveAndEnqueue` accepts a computed cost (`priceFor`).
+- [x] `screen_insights` table + migration; prices; `reserveAndEnqueue` accepts a computed cost (`priceFor`).
 
 ### Task 2: Catalog
-- [ ] `packages/document/scripts/gen-catalog.ts` writes `packages/assets/catalog.json`; test fails when stale.
+- [x] `packages/document/scripts/gen-catalog.ts` writes `packages/assets/catalog.json`; test fails when stale.
 
 ### Task 3: Planning and applying (pure)
-- [ ] Schemas (ScreenInsight, TemplateChoice, SlotCopy, Translations, Variants); `textSlots(doc)`; `applyDesign`, `applyTranslations`, variants mapping; tests.
+- [x] Schemas (ScreenInsight, TemplateChoice, SlotCopy, Translations, Variants); `textSlots(doc)`; `applyDesign`, `applyTranslations`, variants mapping; tests.
 
 ### Task 4: Model client
-- [ ] `StructuredModel` interface; Anthropic implementation (parse, caching, fallbacks, refusal and error mapping, usage); image preparation with sharp; fake for tests.
+- [x] `StructuredModel` interface; Anthropic implementation (parse, caching, fallbacks, refusal and error mapping, usage); image preparation with sharp; fake for tests.
 
 ### Task 5: Job handlers
-- [ ] `ai_design`, `ai_translate`, `ai_copy` handlers with project locking; tests with the fake model against the real database.
+- [x] `ai_design`, `ai_translate`, `ai_copy` handlers with project locking; tests with the fake model against the real database.
 
 ### Task 6: Web
-- [ ] Routes: `POST /api/apps/[appId]/ai-design`, `POST /api/projects/[id]/translate`, `POST /api/projects/[id]/copy-variants`; UI: AI design card on the app page, job status on the project page, translate and variants panels in the editor.
+- [x] Routes: `POST /api/apps/[appId]/ai-design`, `POST /api/projects/[id]/translate`, `POST /api/projects/[id]/copy-variants`; UI: AI design card on the app page, job status on the project page, translate and variants panels in the editor.

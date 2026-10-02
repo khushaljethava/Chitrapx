@@ -1,6 +1,6 @@
 import { produce, type Draft } from "immer";
 import {
-  retarget, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyTexts, retarget, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
@@ -24,7 +24,8 @@ export type Command =
   | { type: "addLocale"; code: string }
   | { type: "removeLocale"; code: string }
   | { type: "addGroupFromTarget"; fromGroupId: string; target: TargetId; newGroupId: string }
-  | { type: "deleteGroup"; groupId: string };
+  | { type: "deleteGroup"; groupId: string }
+  | { type: "setTexts"; texts: Array<{ id: string; text: string }> };
 
 const FULL_SCREEN = { left: 0, top: 0, width: 100, height: 100 };
 
@@ -42,6 +43,7 @@ const findBoard = (d: Draft<ChitrapxDoc>, groupId: string, boardId: string) =>
 
 /** The only way the document changes. Pure: returns a new document (structurally shared), never mutates. */
 export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
+  if (cmd.type === "setTexts") return applyTexts(doc, cmd.texts);
   return produce(doc, (d) => {
     switch (cmd.type) {
       case "updateElement": {
