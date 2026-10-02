@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import type pg from "pg";
 import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { pool, schema, type Db } from "../src/client.ts";
@@ -19,13 +20,13 @@ export async function makeWorkspace(userId: string, plan: "free" | "pro" | "stud
 }
 
 /** Runs fn as the given user under RLS (role authenticated), always rolled back. */
-export async function asUser<T>(userId: string, fn: (db: Db) => Promise<T>): Promise<T> {
+export async function asUser<T>(userId: string, fn: (db: Db, client: pg.PoolClient) => Promise<T>): Promise<T> {
   const client = await pool.connect();
   try {
     await client.query("begin");
     await client.query("set local role authenticated");
     await client.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: userId, role: "authenticated" })]);
-    return await fn(drizzle(client, { schema }));
+    return await fn(drizzle(client, { schema }), client);
   } finally {
     await client.query("rollback");
     client.release();

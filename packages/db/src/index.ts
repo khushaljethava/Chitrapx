@@ -1,2 +1,5 @@
 export * from "./client.ts";
 export * from "./doc.ts";
+export * from "./plans.ts";
+export * from "./pricing.ts";
+export * from "./credits.ts";
