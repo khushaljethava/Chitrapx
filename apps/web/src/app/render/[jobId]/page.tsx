@@ -4,7 +4,7 @@ import { db, schema, verifyRenderSig } from "@chitrapx/db";
 import { exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
 import { RenderSheet } from "@/components/RenderSheet.tsx";
 import { VideoSheet } from "@/components/VideoSheet.tsx";
-import { assetUrlMap } from "@/server/projects.ts";
+import { assetUrlMap, pendingAssetSrcs } from "@/server/projects.ts";
 import { supabaseStorage } from "@/server/storage.ts";
 
 export const dynamic = "force-dynamic";
@@ -34,11 +34,13 @@ export default async function RenderPage({ params, searchParams }: {
     const group = doc.groups.find((g) => g.id === input.groupId);
     const format = VIDEO_FORMAT_IDS.includes(input.format as VideoFormat) ? (input.format as VideoFormat) : null;
     if (!group || !format) notFound();
-    const urls = await assetUrlMap({ userId: "", workspaceId: job.workspaceId, plan: "free" }, supabaseStorage(), doc);
-    return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} />;
+    const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
+    const [urls, pending] = await Promise.all([assetUrlMap(jobCtx, supabaseStorage(), doc), pendingAssetSrcs(jobCtx, doc)]);
+    return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} pending={pending} />;
   }
   const plan = exportPlan(doc, (job.input as { locales?: string[] }).locales);
   const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
-  const assetUrls = await assetUrlMap({ userId: "", workspaceId: job.workspaceId, plan: "free" }, supabaseStorage(), doc);
-  return <RenderSheet doc={doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} />;
+  const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
+  const [assetUrls, pending] = await Promise.all([assetUrlMap(jobCtx, supabaseStorage(), doc), pendingAssetSrcs(jobCtx, doc)]);
+  return <RenderSheet doc={doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} pending={pending} />;
 }

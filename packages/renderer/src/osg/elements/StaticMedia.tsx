@@ -12,9 +12,15 @@ export function VideoElement({ element }: { element: VideoElementProps } & Commo
   return poster ? <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : null;
 }
 
-export function VideoDeviceElement({ element }: { element: VideoDeviceElementProps } & Common) {
-  const asDevice = { ...element, type: "device", screenshotSrc: element.posterSrc } as unknown as DeviceFrameElementProps;
-  return <DeviceFrameElement element={asDevice} onUpdate={() => {}} isSelected={false} />;
+/** A device frame playing its screen recording (the poster shows until it loads, and in 3D styles). */
+export function VideoDeviceElement({ element, time }: { element: VideoDeviceElementProps; time?: number } & Common) {
+  const src = (element as VideoDeviceElementProps & { videoSrc?: string }).videoSrc;
+  const asDevice = {
+    ...element, type: "device", screenshotSrc: element.posterSrc ?? src,
+    screenshotRect: (element as { screenshotRect?: unknown }).screenshotRect ?? { left: 0, top: 0, width: 100, height: 100 },
+  } as unknown as DeviceFrameElementProps;
+  const flat = !/^3d-/.test((element as { styleType?: string }).styleType ?? "");
+  return <DeviceFrameElement element={asDevice} onUpdate={() => {}} isSelected={false} videoSrc={flat ? src : undefined} videoTime={time} />;
 }
 
 export function GestureElement(_props: { element: GestureElementProps } & Common) {

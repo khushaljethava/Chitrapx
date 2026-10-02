@@ -16,14 +16,18 @@ import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './device
 
 // Chitrapx: imported directly; the app code-splits renderer routes instead of next/dynamic.
 import { Device3DRenderer } from './Device3DRenderer';
+import { VideoScreen } from './VideoScreen';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
   onUpdate: (updatedElement: Partial<DeviceFrameElementType>) => void;
   isSelected: boolean;
+  /** Chitrapx: a screen recording shown in the screen instead of the screenshot (which becomes its poster). */
+  videoSrc?: string;
+  videoTime?: number;
 }
 
-export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFrameElementProps) {
+export function DeviceFrameElement({ element, onUpdate, isSelected, videoSrc, videoTime }: DeviceFrameElementProps) {
   // asset:<id> references resolve to a cached object URL over the Dexie blob;
   // template/public paths pass through untouched. undefined while resolving.
   const screenshot = useImageSrc(element.screenshotSrc);
@@ -393,6 +397,9 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   alignItems: 'center',
                 }}
               >
+                {videoSrc ? (
+                  <VideoScreen src={videoSrc} poster={screenshot} time={videoTime} fit={element.screenshotObjectFit || "cover"} />
+                ) : (
                 <img
                   src={withBasePath(screenshot)}
                   alt={`${element.deviceType} screenshot`}
@@ -410,6 +417,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected }: DeviceFram
                   data-ai-hint="app interface mobile"
                   draggable={false}
                 />
+                )}
               </div>
             ) : (
               // Chitrapx: neutral placeholder until a screenshot is placed; never editor UI in a render.

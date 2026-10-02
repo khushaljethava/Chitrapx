@@ -2,8 +2,9 @@ import type { ArtboardElement } from "./artboard.ts";
 import type { ChitrapxDoc } from "./doc.ts";
 
 export const assetSrc = (assetId: string) => `asset:${assetId}`;
+/** The asset id in `asset:<id>` or `asset:<id>#poster` (a recording's still frame). */
 export const assetIdFromSrc = (src: string | undefined | null): string | null =>
-  src?.startsWith("asset:") ? src.slice("asset:".length) : null;
+  src?.startsWith("asset:") ? src.slice("asset:".length).split("#")[0]! : null;
 
 const isScreen = (el: ArtboardElement) => el.type === "device" || el.type === "video-device";
 

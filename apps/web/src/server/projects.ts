@@ -92,14 +92,33 @@ export function docAssetIds(doc: ChitrapxDoc): string[] {
   return [...ids];
 }
 
-/** Signed URLs for the document's assets that exist in this workspace, keyed by document source. */
+/**
+ * Signed URLs for the document's assets that exist in this workspace, keyed by document source.
+ * A processed recording maps `asset:<id>` to its WebM and `asset:<id>#poster` to its poster.
+ * Paths are always rebuilt from the workspace and hash, never taken from stored values.
+ */
 export async function assetUrlMap(ctx: Ctx, storage: ObjectStorage, doc: ChitrapxDoc): Promise<Record<string, string>> {
   const ids = docAssetIds(doc).filter((id) => z.uuid().safeParse(id).success);
   if (!ids.length) return {};
-  const rows = await db.select({ id: schema.assets.id, sha256: schema.assets.sha256 }).from(schema.assets)
+  const rows = await db.select({ id: schema.assets.id, sha256: schema.assets.sha256, kind: schema.assets.kind, meta: schema.assets.meta }).from(schema.assets)
     .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids)));
-  const urls = await storage.signedUrls(rows.map((r) => `${ctx.workspaceId}/${r.sha256}`));
-  return Object.fromEntries(rows.map((r, i) => [`asset:${r.id}`, urls[i]!]));
+  const entries: Array<[string, string]> = [];
+  for (const r of rows) {
+    const base = `${ctx.workspaceId}/${r.sha256}`;
+    if (r.kind !== "recording") entries.push([`asset:${r.id}`, base]);
+    else if (r.meta?.ready) entries.push([`asset:${r.id}`, `${base}.webm`], [`asset:${r.id}#poster`, `${base}.poster.jpg`]);
+  }
+  const urls = await storage.signedUrls(entries.map(([, path]) => path));
+  return Object.fromEntries(entries.map(([src], i) => [src, urls[i]!]));
+}
+
+/** Document sources of recordings that are still converting: shown as placeholders, never export errors. */
+export async function pendingAssetSrcs(ctx: Ctx, doc: ChitrapxDoc): Promise<string[]> {
+  const ids = docAssetIds(doc).filter((id) => z.uuid().safeParse(id).success);
+  if (!ids.length) return [];
+  const rows = await db.select({ id: schema.assets.id, meta: schema.assets.meta }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids), eq(schema.assets.kind, "recording")));
+  return rows.filter((r) => !r.meta?.ready).flatMap((r) => [`asset:${r.id}`, `asset:${r.id}#poster`]);
 }
 
 export const MAX_DOC_BYTES = 5 * 1024 * 1024;

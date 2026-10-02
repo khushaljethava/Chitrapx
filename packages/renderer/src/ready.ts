@@ -19,6 +19,12 @@ export async function waitForRender(root: ParentNode, timeoutMs = 45_000): Promi
     await sleep(50);
   }
   if (root.querySelector('[data-device3d="error"]')) errors.push("device3d_failed");
+  // Screen recordings: the frame for the current time must be decoded.
+  while ([...root.querySelectorAll<HTMLVideoElement>("video[data-video-ready]")].some((v) => v.dataset.videoReady === "0")) {
+    if (Date.now() > deadline) { errors.push("timeout:video"); break; }
+    await sleep(30);
+  }
+  if (root.querySelector('video[data-video-ready="error"]')) errors.push("video_failed");
   await frame();
   await frame();
   return { ok: errors.length === 0, errors };

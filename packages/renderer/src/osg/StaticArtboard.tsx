@@ -143,6 +143,7 @@ export function StaticArtboard({ artboard, scale, time }: { artboard: ArtboardSt
                 element={element as VideoDeviceElementProps}
                 onUpdate={noop}
                 isSelected={false}
+                time={time}
               />
             )}
             {element.type === 'gesture' && (

@@ -13,8 +13,8 @@ declare global {
 }
 
 /** Headless-only: one video frame at a time; the worker seeks, waits, and captures each frame. */
-export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, assetUrls }: {
-  doc: ChitrapxDoc; groupId: string; locale: string; format: VideoFormat; secondsPerBoard: number; assetUrls: Record<string, string>;
+export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, assetUrls, pending = [] }: {
+  doc: ChitrapxDoc; groupId: string; locale: string; format: VideoFormat; secondsPerBoard: number; assetUrls: Record<string, string>; pending?: string[];
 }) {
   const [time, setTime] = useState(0);
   const { width, height } = VIDEO_FORMATS[format];
@@ -22,12 +22,19 @@ export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, asse
   const timeline = useMemo(() => videoTimeline(group.boards, secondsPerBoard), [group, secondsPerBoard]);
   // Only this workspace's signed assets (see RenderSheet): never a URL the document names.
   const resolveSrc = useMemo(() => (src: string) => assetUrls[src] ?? null, [assetUrls]);
-  const missing = useMemo(() => [...new Set(group.boards.flatMap((_, i) => boardFor(doc, groupId, i, locale, resolveSrc).missing))],
-    [doc, group, groupId, locale, resolveSrc]);
+  // Recordings still converting render as placeholders instead of failing the video.
+  const missing = useMemo(() => [...new Set(group.boards.flatMap((_, i) => boardFor(doc, groupId, i, locale, resolveSrc).missing))].filter((m) => !pending.includes(m)),
+    [doc, group, groupId, locale, resolveSrc, pending]);
 
   useEffect(() => {
     const frame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
-    window.__chitrapxSeek = async (t: number) => { flushSync(() => setTime(t)); await frame(); };
+    const videosSettled = async () => {
+      const until = Date.now() + 5000;
+      while ([...document.querySelectorAll<HTMLVideoElement>("main > div video[data-video-ready]")].some((v) => v.dataset.videoReady === "0") && Date.now() < until) {
+        await new Promise((r) => setTimeout(r, 15));
+      }
+    };
+    window.__chitrapxSeek = async (t: number) => { flushSync(() => setTime(t)); await frame(); await videosSettled(); };
     // Every board is mounted once up front so fonts, images and 3D devices are ready before frame 0.
     waitForRender(document).then((r) => {
       const errors = [...missing.map((m) => `asset_missing:${m}`), ...r.errors];
