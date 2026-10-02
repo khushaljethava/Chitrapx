@@ -32,6 +32,12 @@ importers:
       '@chitrapx/db':
         specifier: workspace:^
         version: link:../../packages/db
+      '@chitrapx/document':
+        specifier: workspace:^
+        version: link:../../packages/document
+      '@chitrapx/renderer':
+        specifier: workspace:^
+        version: link:../../packages/renderer
       '@supabase/ssr':
         specifier: ^0.12.7
         version: 0.12.7(@supabase/supabase-js@2.117.2)
@@ -62,6 +68,9 @@ importers:
       server-only:
         specifier: ^0.0.1
         version: 0.0.1
+      three:
+        specifier: ^0.186.1
+        version: 0.186.1
       zod:
         specifier: ^4.6.5
         version: 4.6.5

@@ -1,12 +1,16 @@
-import { and, count, desc, eq, getTableColumns } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, inArray } from "drizzle-orm";
 import { z } from "zod";
-import { db, emptyDoc, lockWorkspace, PLANS, projectKinds, schema, withTx } from "@chitrapx/db";
+import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
+import { assetIdFromSrc, emptyDoc, fillScreenshots, migrate, projectKinds, type ChitrapxDoc } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
-import { HttpError, notFound } from "./http.ts";
+import { badRequest, HttpError, notFound } from "./http.ts";
+import type { ObjectStorage } from "./storage.ts";
+import { getTemplate } from "./templates.ts";
 
 const name = z.string().trim().min(1).max(120);
-const createInput = z.object({ name, kind: z.enum(projectKinds) });
+const createInput = z.object({ name, kind: z.enum(projectKinds).optional(), templateSlug: z.string().min(1).max(120).optional() })
+  .refine((v) => v.kind || v.templateSlug, { message: "Choose a template or a project type" });
 const updateInput = z.object({ name });
 
 export type Project = typeof schema.projects.$inferSelect;
@@ -23,6 +27,17 @@ export async function listProjects(ctx: Ctx, appId: string): Promise<ProjectSumm
     .orderBy(desc(schema.projects.updatedAt));
 }
 
+/** The starting document: a template with the app's screenshots placed in its device screens, or a blank doc. */
+async function initialDoc(ctx: Ctx, appId: string, input: z.infer<typeof createInput>): Promise<ChitrapxDoc> {
+  if (!input.templateSlug) return emptyDoc(input.kind!);
+  const template = await getTemplate(input.templateSlug);
+  if (!template) throw badRequest("unknown_template");
+  const shots = await db.select({ id: schema.assets.id }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), eq(schema.assets.kind, "screenshot")))
+    .orderBy(asc(schema.assets.createdAt));
+  return { ...fillScreenshots(template.doc, shots.map((a) => a.id)), brand: { appId } };
+}
+
 export async function createProject(ctx: Ctx, appId: string, raw: unknown): Promise<Project> {
   await getApp(ctx, appId);
   return withTx(async ({ db: tx }) => {
@@ -30,8 +45,9 @@ export async function createProject(ctx: Ctx, appId: string, raw: unknown): Prom
     const [{ n }] = (await tx.select({ n: count() }).from(schema.projects).where(eq(schema.projects.workspaceId, ctx.workspaceId))) as [{ n: number }];
     if (n >= PLANS[ctx.plan].maxProjects) throw new HttpError(403, "plan_limit", `Your plan allows ${PLANS[ctx.plan].maxProjects} projects`);
     const input = createInput.parse(raw);
+    const doc = await initialDoc(ctx, appId, input);
     const [project] = await tx.insert(schema.projects).values({
-      workspaceId: ctx.workspaceId, appId, name: input.name, kind: input.kind, doc: emptyDoc(input.kind), updatedBy: ctx.userId,
+      workspaceId: ctx.workspaceId, appId, name: input.name, kind: doc.kind, doc, updatedBy: ctx.userId,
     }).returning();
     return project!;
   });
@@ -51,4 +67,37 @@ export async function deleteProject(ctx: Ctx, projectId: string): Promise<void> 
   valid(projectId);
   const gone = await db.delete(schema.projects).where(own(ctx, projectId)).returning({ id: schema.projects.id });
   if (!gone.length) throw notFound();
+}
+
+export async function getProject(ctx: Ctx, projectId: string): Promise<Omit<Project, "doc"> & { doc: ChitrapxDoc }> {
+  valid(projectId);
+  const [project] = await db.select().from(schema.projects).where(own(ctx, projectId));
+  if (!project) throw notFound();
+  return { ...project, doc: migrate(project.doc) };
+}
+
+/** Every `asset:` source a document can reference, including per-locale overrides. */
+export function docAssetIds(doc: ChitrapxDoc): string[] {
+  const ids = new Set<string>();
+  const add = (v: unknown) => { const id = assetIdFromSrc(typeof v === "string" ? v : null); if (id) ids.add(id); };
+  const visit = (o: Record<string, unknown>) => { for (const k of ["screenshotSrc", "imageSrc", "posterSrc", "customFrameSrc", "backgroundImage"]) add(o[k]); };
+  for (const g of doc.groups) {
+    g.spanElements.forEach((e) => visit(e as unknown as Record<string, unknown>));
+    for (const b of g.boards) {
+      visit(b as unknown as Record<string, unknown>);
+      b.elements.forEach((e) => visit(e as unknown as Record<string, unknown>));
+      for (const byEl of Object.values(b.localized ?? {})) for (const ov of Object.values(byEl)) visit(ov as Record<string, unknown>);
+    }
+  }
+  return [...ids];
+}
+
+/** Signed URLs for the document's assets that exist in this workspace, keyed by document source. */
+export async function assetUrlMap(ctx: Ctx, storage: ObjectStorage, doc: ChitrapxDoc): Promise<Record<string, string>> {
+  const ids = docAssetIds(doc).filter((id) => z.uuid().safeParse(id).success);
+  if (!ids.length) return {};
+  const rows = await db.select({ id: schema.assets.id, sha256: schema.assets.sha256 }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids)));
+  const urls = await storage.signedUrls(rows.map((r) => `${ctx.workspaceId}/${r.sha256}`));
+  return Object.fromEntries(rows.map((r, i) => [`asset:${r.id}`, urls[i]!]));
 }

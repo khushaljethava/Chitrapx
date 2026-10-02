@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/server/api.ts";
@@ -22,7 +23,10 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
 
   return (
     <section className="card space-y-4">
-      <h2 className="font-semibold">Projects</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold">Projects</h2>
+        {projects.length < maxProjects && <Link href={`/dashboard/apps/${appId}/templates`} className="btn">Start from a template</Link>}
+      </div>
       {projects.length === 0 && <p className="text-sm text-neutral-500">No projects yet.</p>}
       <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
         {projects.map((p) => (
@@ -37,10 +41,11 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
                 <button className="btn-ghost">Save</button>
               </form>
             ) : (
-              <button className="flex-1 text-left" onClick={() => setEditing(p.id)} title="Rename">
-                <span className="font-medium">{p.name}</span>
-                <span className="ml-2 text-xs text-neutral-500">{KINDS.find(([k]) => k === p.kind)?.[1]}</span>
-              </button>
+              <div className="flex flex-1 items-center gap-2">
+                <Link href={`/dashboard/projects/${p.id}`} className="font-medium hover:underline">{p.name}</Link>
+                <span className="text-xs text-neutral-500">{KINDS.find(([k]) => k === p.kind)?.[1]}</span>
+                <button className="text-xs text-neutral-500 hover:underline" onClick={() => setEditing(p.id)}>Rename</button>
+              </div>
             )}
             <button className="btn-danger" onBlur={() => setArmed(null)} onClick={() =>
               armed === p.id ? run(() => api(`/api/projects/${p.id}`, "DELETE")) : setArmed(p.id)}>
@@ -55,7 +60,7 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
           run(() => api(`/api/apps/${appId}/projects`, "POST", { name, kind })).then(() => setName(""));
         }}>
           <div className="flex-1">
-            <label className="label" htmlFor="project-name">New project</label>
+            <label className="label" htmlFor="project-name">Or a blank project</label>
             <input id="project-name" className="input" required maxLength={120} value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>

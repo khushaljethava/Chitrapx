@@ -577,8 +577,8 @@ export function unprojectArtboards(
 
   const next = base.map((baseBoard, index) => {
     if (failed) return baseBoard;
-    const projBoard = projected[index];
-    const viewBoard = view[index];
+    const projBoard = projected[index]!;
+    const viewBoard = view[index]!;
     if (projBoard.id !== viewBoard.id) {
       devError('board order changed in a locale view, dropping the commit', {
         locale,

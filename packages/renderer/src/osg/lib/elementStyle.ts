@@ -97,10 +97,10 @@ export function parseCssColorChannels(color: string): { r: number; g: number; b:
   const value = color.trim().toLowerCase();
   const hex = /^#([0-9a-f]{3,8})$/.exec(value);
   if (hex) {
-    const digits = hex[1];
+    const digits = hex[1]!;
     const wide = digits.length >= 6;
     const at = (i: number) =>
-      wide ? parseInt(digits.slice(i * 2, i * 2 + 2), 16) : parseInt(digits[i] + digits[i], 16);
+      wide ? parseInt(digits.slice(i * 2, i * 2 + 2), 16) : parseInt(digits[i]! + digits[i]!, 16);
     if (digits.length === 3 || digits.length === 4 || digits.length === 6 || digits.length === 8) {
       return { r: at(0) / 255, g: at(1) / 255, b: at(2) / 255 };
     }
@@ -108,7 +108,7 @@ export function parseCssColorChannels(color: string): { r: number; g: number; b:
   }
   const rgb = /^rgba?\(([^)]+)\)$/.exec(value);
   if (rgb) {
-    const parts = rgb[1].split(/[\s,/]+/).filter(Boolean).slice(0, 3);
+    const parts = rgb[1]!.split(/[\s,/]+/).filter(Boolean).slice(0, 3);
     if (parts.length !== 3) return null;
     const channel = (raw: string) => {
       const n = parseFloat(raw);
@@ -116,7 +116,7 @@ export function parseCssColorChannels(color: string): { r: number; g: number; b:
       return Math.min(1, Math.max(0, raw.includes('%') ? n / 100 : n / 255));
     };
     const [r, g, b] = parts.map(channel);
-    if (r === null || g === null || b === null) return null;
+    if (r == null || g == null || b == null) return null;
     return { r, g, b };
   }
   return null;

@@ -152,7 +152,7 @@ export function getBaseLocale(artboards: ArtboardState[]): string {
  */
 export function seedBaseLocale(artboards: ArtboardState[]): string {
   if (artboards.length === 0) return DEFAULT_BASE_LOCALE;
-  const first = artboards[0].language;
+  const first = artboards[0]!.language;
   if (!first || artboards.some((board) => board.language !== first)) return DEFAULT_BASE_LOCALE;
   return (
     LOCALES.find((def) => def.code === first)?.code ||

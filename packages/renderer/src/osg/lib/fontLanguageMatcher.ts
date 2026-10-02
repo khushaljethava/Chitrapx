@@ -56,7 +56,7 @@ export function getRecommendedFontForLanguage(targetLanguageCode: string): strin
   // back to the primary subtag.
   const preferredFonts =
     languageFontPreferences[targetLanguageCode] ??
-    languageFontPreferences[targetLanguageCode.split('-')[0]];
+    languageFontPreferences[targetLanguageCode.split('-')[0]!];
 
   if (!preferredFonts) {
     // If we have no specific preference, we return undefined so the caller

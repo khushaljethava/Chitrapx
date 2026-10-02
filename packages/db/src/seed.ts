@@ -10,9 +10,8 @@ type TemplateFile = {
   kind: "screenshots" | "video" | "social"; source: "osg" | "ass" | "pixeldeck" | "chitrapx"; licenseNote: string; doc: unknown;
 };
 
-const dir = join(import.meta.dirname, "../../assets/templates");
-
 export async function seedTemplates(): Promise<number> {
+  const dir = join(import.meta.dirname, "../../assets/templates");
   const files = readdirSync(dir).filter((f) => f.endsWith(".json") && !f.startsWith("_"));
   const rows = files.map((f) => {
     const t = JSON.parse(readFileSync(join(dir, f), "utf8")) as TemplateFile;
