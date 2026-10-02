@@ -42,7 +42,7 @@ All reused MIT material is listed in `NOTICES.md` at the repo root with its copy
 ## A1. System overview
 
 ```
-apps/web (Next.js 15, App Router, deployed on Vercel)
+apps/web (Next.js 16, App Router, deployed on Vercel)
   - marketing, dashboard, editor UI
   - route handlers / server actions: auth -> workspace membership -> plan limits -> validate -> act
   - @chitrapx/renderer for in-browser preview
@@ -96,9 +96,10 @@ projects         id, workspace_id, app_id, name, kind ('screenshots'|'video'|'so
                  doc jsonb, doc_schema_version int, revision int default 0,
                  thumbnail_asset_id null, updated_by, created_at, updated_at
 project_versions id, workspace_id, project_id, revision, doc jsonb, label null, created_by, created_at
-assets           id, workspace_id, kind ('screenshot'|'recording'|'image'|'font'|'export'|'thumbnail'),
+assets           id, workspace_id, app_id null, kind ('screenshot'|'recording'|'image'|'font'|'export'|'thumbnail'),
                  storage_path, mime, width null, height null, bytes, sha256, created_at;
-                 unique (workspace_id, sha256)
+                 unique (workspace_id, app_id, sha256) NULLS NOT DISTINCT
+                 -- bytes are stored once per workspace at <workspace_id>/<sha256>; rows are per app
 jobs             id, workspace_id, project_id null, type, status ('queued'|'running'|'done'|'failed'),
                  input jsonb, output jsonb null, error text null, credits_reserved int,
                  attempts int default 0, created_at, started_at null, finished_at null
@@ -185,7 +186,7 @@ Re-implemented from scratch (no storeshots code):
 ## A10. Errors and limits
 
 - Zod validation at every API boundary. Order of checks: authenticated, workspace member, plan limit, input valid.
-- Jobs: transient errors retry up to 3 times with exponential backoff (2 s, 8 s, 32 s). Fatal errors fail immediately and refund.
+- Jobs: transient errors retry up to 3 times with pg-boss exponential backoff starting at 2 s. Fatal errors fail immediately and refund.
 - Upload limits: images 25 MB, recordings 500 MB, fonts 10 MB. SVG uploads sanitized. MIME sniffed server-side, not trusted from the client.
 
 ## A11. Testing
@@ -231,7 +232,7 @@ A deployed, empty-but-real SaaS shell: a user can sign up, gets a workspace with
    - Credits badge in the header showing the current balance.
    - Health route `/api/health` returning DB and queue status.
 5. `apps/worker`: pg-boss consumer with a `noop` job type that sleeps 1 s and either succeeds (settle 0) or fails fatally when `input.fail = true` (refund). Graceful shutdown on SIGTERM.
-6. Credit service in `packages/db/src/credits.ts`: `balance(workspaceId)`, `reserveAndEnqueue(tx, workspaceId, jobType, input)`, `settle(jobId, actual)`, `refund(jobId)`. Uses a per-workspace advisory lock. Prices from `pricing.ts` (`noop: 1`).
+6. Credit service in `packages/db/src/credits.ts`: `balance(db, workspaceId)`, `reserveAndEnqueue(tx, boss, { workspaceId, projectId, type, input })`, `settle(db, jobId, actual)`, `refund(db, jobId)`. Uses a per-workspace advisory lock. Prices from `pricing.ts` (`noop: 1`).
 7. Plans in `packages/db/src/plans.ts` with these launch values (business-tunable, single source of truth):
    - free: 50 credits/month, 1 app, 3 projects
    - pro: 1,000 credits/month, 10 apps, unlimited projects
@@ -250,7 +251,7 @@ A deployed, empty-but-real SaaS shell: a user can sign up, gets a workspace with
 - Uploads over 25 MB or with a non-image MIME are rejected server-side.
 - Triggering a `noop` job from a dev-only button lowers balance by 1, and the job shows `done`. A `noop` with `fail: true` shows `failed` and the balance returns to its prior value.
 - With balance 0, enqueueing a job fails with "insufficient credits" and no job row exists.
-- RLS test: a user of workspace A gets zero rows and a write error for every table when targeting workspace B.
+- RLS test: a user of workspace A gets zero rows when reading, an error when inserting, and zero affected rows when updating or deleting, for every table, when targeting workspace B.
 - Two concurrent `reserveAndEnqueue` calls on a balance of 1 result in exactly one job.
 - CI is green.
 
