@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
-import { runBundle, runImport, type BundleDeps } from "./bundle.ts";
+import { cleanupFailedImport, runBundle, runImport, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
 import { createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -60,7 +60,12 @@ const storageApi = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, pro
 export const bundleDeps: BundleDeps = {
   async download(path) {
     const { data, error } = await storageApi().from("uploads").download(path);
-    if (error) throw new FatalJobError(`asset_missing:${path.split("/").pop()!.slice(0, 12)}`);
+    if (error) {
+      // Only a missing object is permanent; other storage errors may clear on retry.
+      const e = error as { status?: number; statusCode?: string | number; message?: string };
+      if (String(e.statusCode) === "404" || e.status === 404 || /not found/i.test(e.message ?? "")) throw new FatalJobError(`asset_missing:${path.split("/").pop()!.slice(0, 12)}`);
+      throw new Error(`download failed: ${e.message}`);
+    }
     return Buffer.from(await data.arrayBuffer());
   },
   async upload(path, bytes, contentType, bucket) {
@@ -80,7 +85,6 @@ export const handlers: Record<JobType, JobHandler> = {
   export: runExport,
   export_single: (input, job) => runExport(input, job, "single"),
   project_bundle: (input, job) => runBundle(input, job, bundleDeps),
-  // Implemented in Task 10; nothing enqueues it before then.
   project_import: (input, job) => runImport(input, job, bundleDeps),
   video: runVideo,
   process_recording: (input, job) => processRecording(input, job, recordingDeps),
@@ -90,4 +94,7 @@ export const handlers: Record<JobType, JobHandler> = {
 };
 
 /** What to undo when a job fails for good. */
-export const cleanups: Partial<Record<JobType, FailureCleanup>> = { ai_design: cleanupFailedDesign, process_recording: markRecordingFailed };
+export const cleanups: Partial<Record<JobType, FailureCleanup>> = {
+  ai_design: cleanupFailedDesign, process_recording: markRecordingFailed,
+  project_import: (tx, job) => cleanupFailedImport(tx, job, bundleDeps),
+};

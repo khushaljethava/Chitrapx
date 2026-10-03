@@ -1,8 +1,8 @@
 import { createHash } from "node:crypto";
 import { and, count, eq, inArray } from "drizzle-orm";
-import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
+import { strFromU8, strToU8, zipSync } from "fflate";
 import { z } from "zod";
-import { db, HEAD_BYTES, lockWorkspace, PLANS, PRICES, reserveAndEnqueue, schema, sniffAsset, UPLOAD_LIMITS, withTx, type Tx } from "@chitrapx/db";
+import { db, HEAD_BYTES, lockWorkspace, PLANS, PRICES, reserveAndEnqueue, schema, sniffAsset, UPLOAD_LIMITS, withTx, type Db, type Tx } from "@chitrapx/db";
 import {
   BUNDLE_FORMAT, BUNDLE_VERSION, bundleManifestSchema, CURRENT_SCHEMA_VERSION, docAssetRefs, docBundleRefs, extFor, fromBundleDoc,
   MAX_BUNDLE_BYTES, MAX_BUNDLE_ENTRIES, MAX_DOC_BYTES, migrate, toBundleDoc,
@@ -10,6 +10,7 @@ import {
 } from "@chitrapx/document";
 import { boss } from "./boss.ts";
 import { FatalJobError, type JobContext } from "./runJob.ts";
+import { extractZipEntry, readZipDirectory, ZipError } from "./zip.ts";
 
 export type BundleDeps = {
   /** An object from the uploads bucket. */
@@ -77,32 +78,41 @@ type CheckedAsset = { sha256: string; kind: BundleAssetKind; mime: string; bytes
 /** Opens and checks an untrusted .chitrapx file. Every failure is a named FatalJobError. */
 async function readBundle(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets: CheckedAsset[] }> {
   if (buf.byteLength > MAX_BUNDLE_BYTES) fail("bundle_too_large");
-  // Sizes come from the central directory; nothing is inflated until they pass (zip bombs).
-  let entries = 0, total = 0;
-  try { unzipSync(new Uint8Array(buf), { filter: (f) => { entries++; total += f.originalSize; return false; } }); }
-  catch { fail("bundle_invalid"); }
-  if (entries > MAX_BUNDLE_ENTRIES || total > MAX_BUNDLE_BYTES) fail("bundle_too_large");
-  const files = unzipSync(new Uint8Array(buf));
+  try { return await readBundleUnsafe(buf); }
+  catch (err) {
+    if (err instanceof ZipError) fail(err.code === "too_large" ? "bundle_too_large" : "bundle_invalid");
+    throw err;
+  }
+}
+
+async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets: CheckedAsset[] }> {
+  // Only the central directory is read up front, and only the entries we need are inflated,
+  // each capped at its declared size (zip bombs, lying headers).
+  const dir = readZipDirectory(buf, { entries: MAX_BUNDLE_ENTRIES, totalBytes: MAX_BUNDLE_BYTES });
+  const take = (name: string, max: number): Buffer => {
+    const e = dir.get(name) ?? fail("bundle_invalid");
+    if (e.size > max) fail("bundle_invalid");
+    return extractZipEntry(buf, e);
+  };
 
   let raw: unknown;
-  try { raw = JSON.parse(strFromU8(files["manifest.json"] ?? fail("bundle_invalid"))); } catch (err) { if (err instanceof FatalJobError) throw err; fail("bundle_invalid"); }
+  try { raw = JSON.parse(strFromU8(take("manifest.json", MAX_DOC_BYTES))); } catch (err) { if (err instanceof FatalJobError || err instanceof ZipError) throw err; fail("bundle_invalid"); }
   const head = raw as { format?: unknown; version?: unknown } | null;
   if (head?.format === BUNDLE_FORMAT && typeof head.version === "number" && head.version !== BUNDLE_VERSION) fail("bundle_version_unsupported");
   const parsed = bundleManifestSchema.safeParse(raw);
   if (!parsed.success) return fail("bundle_invalid");
   const manifest = parsed.data;
 
-  const docBytes = files["doc.json"] ?? fail("bundle_invalid");
-  if (docBytes.byteLength > MAX_DOC_BYTES) fail("bundle_invalid");
   let doc: ChitrapxDoc;
-  try { doc = migrate(JSON.parse(strFromU8(docBytes))); } catch { return fail("bundle_invalid"); }
+  try { doc = migrate(JSON.parse(strFromU8(take("doc.json", MAX_DOC_BYTES)))); } catch (err) { if (err instanceof FatalJobError || err instanceof ZipError) throw err; return fail("bundle_invalid"); }
+  // A crafted document could name another workspace's asset directly; only bundle: refs are allowed.
+  if (docAssetRefs(doc).length) fail("bundle_invalid");
 
   const listed = new Set(manifest.assets.map((a) => a.sha256));
   if (docBundleRefs(doc).some((s) => !listed.has(s))) fail("bundle_invalid");
   const assets: CheckedAsset[] = [];
   for (const a of manifest.assets) {
-    const bytes = files[`assets/${a.sha256}.${extFor(a.mime)}`] ?? fail("bundle_invalid");
-    if (bytes.byteLength > UPLOAD_LIMITS[a.kind]) fail("bundle_too_large");
+    const bytes = take(`assets/${a.sha256}.${extFor(a.mime)}`, UPLOAD_LIMITS[a.kind]);
     if (createHash("sha256").update(bytes).digest("hex") !== a.sha256) fail("bundle_asset_mismatch");
     const sniffed = await sniffAsset(a.kind, bytes.subarray(0, HEAD_BYTES[a.kind]));
     if (!sniffed.ok || sniffed.mime !== a.mime) return fail("bundle_asset_mismatch");
@@ -116,7 +126,8 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
   const input = importInput.parse(raw);
   const staging = `${job.workspaceId}/staging/${input.uploadId}`;
   try {
-    const buf = await deps.download(staging).catch(() => fail("bundle_invalid"));
+    // Only a missing object is permanent; any other storage error is retried.
+    const buf = await deps.download(staging).catch((err) => { throw err instanceof FatalJobError ? new FatalJobError("bundle_invalid") : err; });
     const { doc, assets } = await readBundle(buf);
 
     // Content-addressed: bytes this workspace already has are not uploaded again. A rolled-back
@@ -153,8 +164,19 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
       }).returning({ id: schema.projects.id });
       return project!.id;
     });
-    return { actual: PRICES.project_import, output: { projectId } };
-  } finally {
     await deps.remove(staging).catch(() => {});
+    return { actual: PRICES.project_import, output: { projectId } };
+  } catch (err) {
+    // A transient failure keeps the upload so the retry can read it; the final failure is
+    // cleaned by cleanupFailedImport.
+    if (err instanceof FatalJobError) await deps.remove(staging).catch(() => {});
+    throw err;
   }
+}
+
+/** Runs when an import fails for good (including after exhausted retries): drops its staged upload. */
+export async function cleanupFailedImport(tx: Db, job: JobContext, deps: Pick<BundleDeps, "remove">): Promise<void> {
+  const [row] = await tx.select({ input: schema.jobs.input }).from(schema.jobs).where(eq(schema.jobs.id, job.id));
+  const uploadId = z.uuid().safeParse((row?.input as { uploadId?: unknown } | null)?.uploadId);
+  if (uploadId.success) await deps.remove(`${job.workspaceId}/staging/${uploadId.data}`).catch(() => {});
 }

@@ -5,8 +5,9 @@ import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { db, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { packBundle, runBundle, runImport, type BundleDeps } from "../src/bundle.ts";
+import { cleanupFailedImport, packBundle, runBundle, runImport, type BundleDeps } from "../src/bundle.ts";
 import { runJob } from "../src/runJob.ts";
+import { extractZipEntry, readZipDirectory, ZipError } from "../src/zip.ts";
 
 let PNG: Buffer;
 beforeAll(async () => { PNG = await sharp({ create: { width: 2, height: 3, channels: 3, background: "#123456" } }).png().toBuffer(); });
@@ -70,7 +71,7 @@ const manifest = (over: object = {}) => ({ format: "chitrapx-project", version: 
 const good = () => packBundle(manifest() as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: PNG });
 
 /** An import job for a fresh workspace (pro plan unless told otherwise) with `bundle` in staging. */
-async function importInto(bundle: Uint8Array, plan: "free" | "pro" = "pro", ws?: string, appId?: string) {
+async function importInto(bundle: Uint8Array, plan: "free" | "pro" = "pro", ws?: string, appId?: string, tweak?: (deps: ReturnType<typeof memoryDeps>) => void) {
   ws ??= await makeWorkspace((await createUser()).id);
   await db.update(schema.workspaces).set({ plan }).where(eq(schema.workspaces.id, ws));
   appId ??= (await db.insert(schema.apps).values({ workspaceId: ws, name: "Target" }).returning())[0]!.id;
@@ -78,8 +79,9 @@ async function importInto(bundle: Uint8Array, plan: "free" | "pro" = "pro", ws?:
   const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId, uploadId, name: "Imported" } }).returning();
   const deps = memoryDeps();
   deps.files.set(`${ws}/staging/${uploadId}`, Buffer.from(bundle));
-  await runJob(job!.id, (input, j) => runImport(input, j, deps, async () => {}));
-  return { ws, appId, uploadId, deps, job: await jobRow(job!.id) };
+  tweak?.(deps);
+  const thrown = await runJob(job!.id, (input, j) => runImport(input, j, deps, async () => {})).then(() => undefined, (e: unknown) => e);
+  return { ws, appId, uploadId, deps, thrown, job: await jobRow(job!.id) };
 }
 
 describe("project_import", () => {
@@ -123,5 +125,73 @@ describe("project_import", () => {
     const r = await importInto(good(), "free", ws, app!.id);
     expect(r.job).toMatchObject({ status: "failed", error: "plan_limit" });
     expect(await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, ws))).toHaveLength(3);
+  });
+
+  it("rejects a document that names another workspace's asset directly", () =>
+    fails(packBundle(manifest({ assets: [] }) as never, docWith(`asset:${crypto.randomUUID()}`) as never, {}), "bundle_invalid"));
+
+  it("rejects an entry whose header lies about its size, without inflating it", async () => {
+    const zip = Buffer.from(zipSync({ "manifest.json": new Uint8Array(30 * 1024 * 1024) }, { level: 9 }));
+    zip.writeUInt32LE(1, zip.lastIndexOf(Buffer.from([0x50, 0x4b, 1, 2])) + 24);
+    const t = Date.now();
+    await fails(zip, "bundle_invalid");
+    expect(Date.now() - t).toBeLessThan(1000);
+  });
+
+  it("rejects a huge declared entry count before walking it", async () => {
+    const zip = Buffer.from(good());
+    const eocd = zip.lastIndexOf(Buffer.from([0x50, 0x4b, 5, 6]));
+    zip.writeUInt16LE(0xffff, eocd + 8); zip.writeUInt16LE(0xffff, eocd + 10);
+    const t = Date.now();
+    await fails(zip, "bundle_too_large");
+    expect(Date.now() - t).toBeLessThan(1000);
+  });
+
+  it("keeps the staged upload when a transient error will be retried, and imports on the retry", async () => {
+    let failed = false;
+    const r = await importInto(good(), "pro", undefined, undefined, (deps) => {
+      const up = deps.upload;
+      deps.upload = async (...a) => { if (!failed) { failed = true; throw new Error("storage blip"); } return up(...a); };
+    });
+    expect(r.thrown).toBeInstanceOf(Error);
+    expect(r.job.status).toBe("queued");
+    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(true);
+    await runJob(r.job.id, (input, j) => runImport(input, j, r.deps, async () => {}));
+    expect((await jobRow(r.job.id)).status).toBe("done");
+    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+  });
+
+  it("removes the staged upload when the import fails for good", async () => {
+    const deps = memoryDeps();
+    const ws = await makeWorkspace((await createUser()).id);
+    const uploadId = crypto.randomUUID();
+    const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId: crypto.randomUUID(), uploadId, name: "n" } }).returning();
+    deps.files.set(`${ws}/staging/${uploadId}`, Buffer.from("x"));
+    await cleanupFailedImport(db, { id: job!.id, workspaceId: ws, projectId: null }, deps);
+    expect(deps.files.has(`${ws}/staging/${uploadId}`)).toBe(false);
+  });
+});
+
+describe("zip reader", () => {
+  const limits = { entries: 500, totalBytes: 1000 };
+  it("reads stored and deflated entries", () => {
+    const zip = Buffer.from(zipSync({ a: [new Uint8Array(100).fill(7), { level: 0 }], b: [new Uint8Array(100).fill(7), { level: 6 }] }));
+    const dir = readZipDirectory(zip, limits);
+    expect(extractZipEntry(zip, dir.get("a")!)).toEqual(Buffer.alloc(100, 7));
+    expect(extractZipEntry(zip, dir.get("b")!)).toEqual(Buffer.alloc(100, 7));
+  });
+  it("refuses sizes over the total limit and non-zips", () => {
+    expect(() => readZipDirectory(Buffer.from(zipSync({ a: new Uint8Array(2000) })), limits)).toThrow(ZipError);
+    expect(() => readZipDirectory(Buffer.from("hello world, not a zip file at all"), limits)).toThrow(ZipError);
+  });
+  it("refuses a deflated entry that expands past its declared size", () => {
+    const zip = Buffer.from(zipSync({ a: new Uint8Array(500) }));
+    zip.writeUInt32LE(10, zip.lastIndexOf(Buffer.from([0x50, 0x4b, 1, 2])) + 24);
+    expect(() => extractZipEntry(zip, readZipDirectory(zip, limits).get("a")!)).toThrow(ZipError);
+  });
+  it("refuses a stored entry whose sizes disagree", () => {
+    const zip = Buffer.from(zipSync({ a: [new Uint8Array(50), { level: 0 }] }));
+    zip.writeUInt32LE(5, zip.lastIndexOf(Buffer.from([0x50, 0x4b, 1, 2])) + 24);
+    expect(() => extractZipEntry(zip, readZipDirectory(zip, limits).get("a")!)).toThrow(ZipError);
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/browser.ts";
 import { api } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
@@ -12,6 +12,8 @@ export function ImportProjectButton({ appId }: { appId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const alive = useRef(true);
+  useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
   async function onFile(file: File) {
     setError("");
@@ -22,16 +24,19 @@ export function ImportProjectButton({ appId }: { appId: string }) {
       if (upErr) throw new Error(upErr.message);
       const name = file.name.replace(/\.chitrapx$/i, "").slice(0, 120) || "Imported project";
       const { jobId } = await api<{ jobId: string }>(`/api/apps/${appId}/imports`, "POST", { uploadId: signed.uploadId, name });
-      for (;;) {
+      for (let i = 0; i < 120; i++) {
         await new Promise((r) => setTimeout(r, 1000));
+        if (!alive.current) return;
         const job = await api<Job>(`/api/jobs/${jobId}`);
+        if (!alive.current) return;
         if (job.status === "done" && job.output?.projectId) { router.push(`/dashboard/projects/${job.output.projectId}`); return; }
         if (job.status === "failed") { setError(jobError(job.error)); return; }
       }
+      setError("This is taking longer than usual. Try again in a minute.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      if (alive.current) setError(err instanceof Error ? err.message : "Something went wrong.");
     } finally {
-      setBusy(false);
+      if (alive.current) setBusy(false);
     }
   }
 
