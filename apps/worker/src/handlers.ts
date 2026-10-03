@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
+import { runBundle, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
 import { createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -52,6 +53,23 @@ const recordingDeps: RecordingDeps = {
   },
 };
 
+const storageApi = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  auth: { persistSession: false, autoRefreshToken: false },
+}).storage;
+
+export const bundleDeps: BundleDeps = {
+  async download(path) {
+    const { data, error } = await storageApi().from("uploads").download(path);
+    if (error) throw new FatalJobError(`asset_missing:${path.split("/").pop()!.slice(0, 12)}`);
+    return Buffer.from(await data.arrayBuffer());
+  },
+  async upload(path, bytes, contentType, bucket) {
+    const { error } = await storageApi().from(bucket).upload(path, bytes, { contentType, upsert: true });
+    if (error) throw new Error(`upload failed: ${error.message}`);
+  },
+  async remove(path) { await storageApi().from("uploads").remove([path]); },
+};
+
 export const handlers: Record<JobType, JobHandler> = {
   /** Proves queue, worker and credits end to end. `{ fail: true }` exercises the refund path. */
   noop: async (input) => {
@@ -61,8 +79,8 @@ export const handlers: Record<JobType, JobHandler> = {
   },
   export: runExport,
   export_single: (input, job) => runExport(input, job, "single"),
-  // Implemented in Tasks 9 and 10; nothing enqueues these before then.
-  project_bundle: async () => { throw new FatalJobError("not_available"); },
+  project_bundle: (input, job) => runBundle(input, job, bundleDeps),
+  // Implemented in Task 10; nothing enqueues it before then.
   project_import: async () => { throw new FatalJobError("not_available"); },
   video: runVideo,
   process_recording: (input, job) => processRecording(input, job, recordingDeps),

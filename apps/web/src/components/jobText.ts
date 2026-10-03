@@ -13,6 +13,7 @@ const MESSAGES: Record<string, string> = {
   too_much_text: "There is too much text to send to the AI at once. Shorten or split the project.",
   rate_limited: "Free downloads are limited to 30 per hour.",
   single_export_needs_one_board: "That board no longer exists. Reload and try again.",
+  bundle_too_large: "This project's screenshots and recordings are over 500 MB, too large for one project file.",
   project_missing: "This project was deleted.",
   abandoned: "The job stopped unexpectedly.",
 };

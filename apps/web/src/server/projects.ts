@@ -1,7 +1,7 @@
 import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
-import { assetIdFromSrc, emptyDoc, fillScreenshots, migrate, projectKinds, retarget, type ChitrapxDoc, type TargetId } from "@chitrapx/document";
+import { assetIdFromSrc, emptyDoc, fillScreenshots, MAX_DOC_BYTES, migrate, projectKinds, retarget, type ChitrapxDoc, type TargetId } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest, ConflictError, HttpError, notFound } from "./http.ts";
@@ -121,7 +121,7 @@ export async function pendingAssetSrcs(ctx: Ctx, doc: ChitrapxDoc): Promise<stri
   return rows.filter((r) => !r.meta?.ready).flatMap((r) => [`asset:${r.id}`, `asset:${r.id}#poster`]);
 }
 
-export const MAX_DOC_BYTES = 5 * 1024 * 1024;
+export { MAX_DOC_BYTES } from "@chitrapx/document";
 export const AUTO_SNAPSHOT_EVERY = 20;
 const saveInput = z.object({ doc: z.unknown(), revision: z.number().int().min(0) });
 

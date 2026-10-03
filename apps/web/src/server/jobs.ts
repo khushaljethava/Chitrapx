@@ -148,3 +148,12 @@ export async function exportDownloadUrl(ctx: Ctx, storage: Pick<ObjectStorage, "
   // Built from ids, never from stored output, so a download can only ever reach this workspace's files.
   return storage.signedDownload(`${ctx.workspaceId}/${job.id}.${ext}`, `chitrapx-${job.type.replace("_", "-")}-${job.id.slice(0, 8)}.${ext}`);
 }
+
+/** Free: queues a .chitrapx file of the project (document plus every referenced upload). */
+export async function enqueueBundle(ctx: Ctx, boss: PgBoss, projectId: string): Promise<{ jobId: string }> {
+  await getProject(ctx, projectId);
+  return withTx(async (tx) => {
+    await assertFreeQuota(tx, ctx.workspaceId);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "project_bundle", input: {} });
+  });
+}

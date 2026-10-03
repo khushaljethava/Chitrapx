@@ -6,7 +6,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { balance, db, exportSource, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
-import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
+import { enqueueBundle, enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
 import { createApp } from "@/server/apps.ts";
 import { createProject, getProject } from "@/server/projects.ts";
 import { seedTemplates } from "@chitrapx/db/seed";
@@ -18,6 +18,7 @@ beforeAll(async () => {
   await boss.createQueue("noop");
   await boss.createQueue("export");
   await boss.createQueue("export_single");
+  await boss.createQueue("project_bundle");
   await boss.createQueue("process_recording");
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
@@ -222,5 +223,15 @@ describe("single PNG", () => {
   it("rejects an unknown kind", async () => {
     const { ctx, p } = await project();
     await expect(enqueueExport(ctx, boss, p.id, { kind: "gif" })).rejects.toBeInstanceOf(ZodError);
+  });
+
+  it("project files share the free hourly allowance with single PNGs", async () => {
+    await seedTemplates();
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "A" });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    await expect(enqueueBundle(ctx, boss, p.id)).resolves.toHaveProperty("jobId");
+    await db.insert(schema.jobs).values(Array.from({ length: 29 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single", creditsReserved: 0 })));
+    await expect(enqueueBundle(ctx, boss, p.id)).rejects.toMatchObject({ status: 429, code: "rate_limited" });
   });
 });
