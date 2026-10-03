@@ -85,13 +85,20 @@ async function readBundle(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets: Chec
   }
 }
 
+const hasAssetString = (v: unknown): boolean =>
+  typeof v === "string" ? v.startsWith("asset:") : Array.isArray(v) ? v.some(hasAssetString)
+    : v !== null && typeof v === "object" ? Object.values(v).some(hasAssetString) : false;
+
 async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets: CheckedAsset[] }> {
   // Only the central directory is read up front, and only the entries we need are inflated,
   // each capped at its declared size (zip bombs, lying headers).
   const dir = readZipDirectory(buf, { entries: MAX_BUNDLE_ENTRIES, totalBytes: MAX_BUNDLE_BYTES });
-  const take = (name: string, max: number): Buffer => {
+  let extracted = 0;
+  const take = (name: string, max: number, over: "bundle_invalid" | "bundle_too_large" = "bundle_invalid"): Buffer => {
     const e = dir.get(name) ?? fail("bundle_invalid");
-    if (e.size > max) fail("bundle_invalid");
+    if (e.size > max) fail(over);
+    extracted += e.size;
+    if (extracted > MAX_BUNDLE_BYTES) fail("bundle_too_large");
     return extractZipEntry(buf, e);
   };
 
@@ -106,13 +113,15 @@ async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets
   let doc: ChitrapxDoc;
   try { doc = migrate(JSON.parse(strFromU8(take("doc.json", MAX_DOC_BYTES)))); } catch (err) { if (err instanceof FatalJobError || err instanceof ZipError) throw err; return fail("bundle_invalid"); }
   // A crafted document could name another workspace's asset directly; only bundle: refs are allowed.
-  if (docAssetRefs(doc).length) fail("bundle_invalid");
+  // assetIdFromSrc accepts any "asset:" prefix (e.g. "asset:<id>#x"), so look at every string.
+  if (docAssetRefs(doc).length || hasAssetString(doc)) fail("bundle_invalid");
 
   const listed = new Set(manifest.assets.map((a) => a.sha256));
+  if (listed.size !== manifest.assets.length) fail("bundle_invalid"); // duplicates would multiply extraction work
   if (docBundleRefs(doc).some((s) => !listed.has(s))) fail("bundle_invalid");
   const assets: CheckedAsset[] = [];
   for (const a of manifest.assets) {
-    const bytes = take(`assets/${a.sha256}.${extFor(a.mime)}`, UPLOAD_LIMITS[a.kind]);
+    const bytes = take(`assets/${a.sha256}.${extFor(a.mime)}`, UPLOAD_LIMITS[a.kind], "bundle_too_large");
     if (createHash("sha256").update(bytes).digest("hex") !== a.sha256) fail("bundle_asset_mismatch");
     const sniffed = await sniffAsset(a.kind, bytes.subarray(0, HEAD_BYTES[a.kind]));
     if (!sniffed.ok || sniffed.mime !== a.mime) return fail("bundle_asset_mismatch");

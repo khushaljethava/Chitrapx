@@ -170,7 +170,21 @@ describe("project_import", () => {
     await cleanupFailedImport(db, { id: job!.id, workspaceId: ws, projectId: null }, deps);
     expect(deps.files.has(`${ws}/staging/${uploadId}`)).toBe(false);
   });
+
+  it("rejects a manifest that lists the same asset twice", () =>
+    fails(packBundle(manifest({ assets: [...manifest().assets, ...manifest().assets] }) as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: PNG }), "bundle_invalid"));
+
+  it("rejects an asset: source with a suffix, which would still resolve downstream", () =>
+    fails(packBundle(manifest({ assets: [] }) as never, docWith(`asset:${crypto.randomUUID()}#x1`) as never, {}), "bundle_invalid"));
+
+  it("reports an asset over its size limit as too large, from the declared size", async () => {
+    const zip = Buffer.from(packBundle(manifest({ assets: [{ sha256: sha(PNG), kind: "image", mime: "image/png" }] }) as never,
+      docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: PNG }));
+    zip.writeUInt32LE(26 * 1024 * 1024, zip.lastIndexOf(Buffer.from(`assets/${sha(PNG)}.png`)) - 22);
+    await fails(zip, "bundle_too_large");
+  });
 });
+
 
 describe("zip reader", () => {
   const limits = { entries: 500, totalBytes: 1000 };
