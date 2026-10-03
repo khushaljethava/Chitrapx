@@ -34,6 +34,12 @@ export async function readJson(req: Request): Promise<unknown> {
 
 /** Reads at most `maxBytes` of the body (whatever Content-Length claims), then parses it as JSON. */
 export async function readJsonLimited(req: Request, maxBytes: number): Promise<unknown> {
+  const text = await readTextLimited(req, maxBytes, "This project is too large to save");
+  try { return JSON.parse(text); } catch { throw badRequest("invalid_json"); }
+}
+
+/** Reads at most `maxBytes` of the body as UTF-8 text, whatever Content-Length claims. */
+export async function readTextLimited(req: Request, maxBytes: number, tooLarge = "Request too large"): Promise<string> {
   if (!req.body) throw badRequest("invalid_json");
   const reader = req.body.getReader();
   const chunks: Uint8Array[] = [];
@@ -42,8 +48,8 @@ export async function readJsonLimited(req: Request, maxBytes: number): Promise<u
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > maxBytes) { await reader.cancel(); throw new HttpError(413, "too_large", "This project is too large to save"); }
+    if (size > maxBytes) { await reader.cancel(); throw new HttpError(413, "too_large", tooLarge); }
     chunks.push(value);
   }
-  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); } catch { throw badRequest("invalid_json"); }
+  return Buffer.concat(chunks).toString("utf8");
 }

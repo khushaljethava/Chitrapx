@@ -12,6 +12,8 @@ export const projectKindEnum = pgEnum("project_kind", ["screenshots", "video", "
 export const assetKindEnum = pgEnum("asset_kind", ["screenshot", "recording", "image", "font", "export", "thumbnail"]);
 export const jobStatusEnum = pgEnum("job_status", ["queued", "running", "done", "failed"]);
 export const ledgerReasonEnum = pgEnum("ledger_reason", ["plan_grant", "purchase", "reserve", "settle", "refund", "adjust"]);
+export const paymentStatusEnum = pgEnum("payment_status", ["created", "paid", "failed"]);
+export const subscriptionStatusEnum = pgEnum("subscription_status", ["created", "active", "cancelling", "ended"]);
 export const templateSourceEnum = pgEnum("template_source", ["osg", "ass", "pixeldeck", "chitrapx"]);
 
 const id = () => uuid("id").primaryKey().defaultRandom();
@@ -150,6 +152,37 @@ export const screenInsights = pgTable("screen_insights", {
   model: text("model").notNull(),
   createdAt: createdAt(),
 }, (t) => [unique("screen_insights_ws_sha_uq").on(t.workspaceId, t.sha256)]);
+
+/** One row per Razorpay order for a credit pack; amount and credits are ours, never the client's. */
+export const payments = pgTable("payments", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  razorpayOrderId: text("razorpay_order_id").notNull().unique(),
+  razorpayPaymentId: text("razorpay_payment_id").unique(),
+  pack: text("pack").notNull(),
+  credits: integer("credits").notNull(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull(),
+  status: paymentStatusEnum("status").notNull().default("created"),
+  createdAt: createdAt(),
+  paidAt: timestamp("paid_at", { withTimezone: true }),
+}, (t) => [index("payments_workspace_idx").on(t.workspaceId, t.createdAt)]);
+
+export const subscriptions = pgTable("subscriptions", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  razorpaySubscriptionId: text("razorpay_subscription_id").notNull().unique(),
+  plan: planEnum("plan").notNull(),
+  status: subscriptionStatusEnum("status").notNull().default("created"),
+  currentEnd: timestamp("current_end", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [index("subscriptions_workspace_idx").on(t.workspaceId)]);
+
+/** Webhook deliveries already handled (Razorpay retries and may deliver twice). */
+export const billingEvents = pgTable("billing_events", {
+  id: text("id").primaryKey(),
+  createdAt: createdAt(),
+});
 
 export const templates = pgTable("templates", {
   id: id(),

@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { ChitrapxDoc } from "@chitrapx/document";
 import { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
@@ -124,7 +125,7 @@ describe("recordings", () => {
     const app = await createApp(ctx, { name: "A" });
     const rec = await recording(ctx, app.id, "b".repeat(64), { ready: false });
     const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
-    const doc = p.doc;
+    const doc = p.doc as ChitrapxDoc;
     const b0 = doc.groups[0]!.boards[0]!;
     const i = b0.elements.findIndex((e) => e.type === "device");
     b0.elements[i] = { ...b0.elements[i]!, type: "video-device", videoSrc: `asset:${rec.id}`, posterSrc: `asset:${rec.id}#poster` } as never;
