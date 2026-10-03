@@ -22,7 +22,7 @@ export function ExportPanel({ projectId, boardCount, localeCount }: { projectId:
 
   async function start() {
     setError("");
-    try { await api(`/api/projects/${projectId}/export`, "POST", {}); await load(); router.refresh(); }
+    try { await api(`/api/projects/${projectId}/export`, "POST", { kind: "zip" }); await load(); router.refresh(); }
     catch (err) { setError((err as Error).message); }
   }
 

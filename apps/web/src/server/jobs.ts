@@ -1,14 +1,14 @@
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
-import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { checkExportable, defaultSelection, LOCALE_CODE, VIDEO_FORMAT_IDS } from "@chitrapx/document";
+import { db, reserveAndEnqueue, schema, withTx, type Tx } from "@chitrapx/db";
+import { allLocales, checkExportable, defaultSelection, exportSelectionSchema, LOCALE_CODE, VIDEO_FORMAT_IDS, type ChitrapxDoc } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 import { getProject, pendingAssetSrcs } from "./projects.ts";
 import type { ObjectStorage } from "./storage.ts";
 
-export type JobSummary = Pick<typeof schema.jobs.$inferSelect, "id" | "type" | "status" | "error" | "createdAt" | "finishedAt" | "output">;
+export type JobSummary = Pick<typeof schema.jobs.$inferSelect, "id" | "type" | "status" | "error" | "createdAt" | "finishedAt" | "output" | "input">;
 
 export async function enqueueNoop(ctx: Ctx, boss: PgBoss, input: { fail: boolean }): Promise<{ jobId: string }> {
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "noop", input }));
@@ -17,25 +17,41 @@ export async function enqueueNoop(ctx: Ctx, boss: PgBoss, input: { fail: boolean
 export async function listJobs(ctx: Ctx, opts: { projectId?: string; limit?: number } = {}): Promise<JobSummary[]> {
   return db.select({
     id: schema.jobs.id, type: schema.jobs.type, status: schema.jobs.status, error: schema.jobs.error,
-    createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output,
+    createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output, input: schema.jobs.input,
   }).from(schema.jobs)
     .where(and(eq(schema.jobs.workspaceId, ctx.workspaceId), opts.projectId ? eq(schema.jobs.projectId, opts.projectId) : undefined))
     .orderBy(desc(schema.jobs.createdAt)).limit(opts.limit ?? 10);
 }
 
-const exportInput = z.object({ locales: z.array(z.string().min(2).max(20)).max(50).optional() });
+const exportBody = z.object({ kind: z.literal("zip").default("zip"), selection: exportSelectionSchema.optional() });
 
-/** Charges 1 credit and queues a ZIP of every board in the chosen locales (all by default). */
+/** The version row exports read, so later edits never change a queued export. One per revision. */
+export async function pinVersion(tx: Tx, ctx: Ctx, project: { id: string; revision: number; doc: ChitrapxDoc }): Promise<string> {
+  const [v] = await tx.db.select({ id: schema.projectVersions.id }).from(schema.projectVersions)
+    .where(and(eq(schema.projectVersions.projectId, project.id), eq(schema.projectVersions.workspaceId, ctx.workspaceId),
+      eq(schema.projectVersions.revision, project.revision)))
+    .limit(1);
+  if (v) return v.id;
+  const [ins] = await tx.db.insert(schema.projectVersions).values({
+    workspaceId: ctx.workspaceId, projectId: project.id, revision: project.revision, doc: project.doc, label: "export", createdBy: ctx.userId,
+  }).returning({ id: schema.projectVersions.id });
+  return ins!.id;
+}
+
+/** Charges 1 credit and queues a ZIP of the chosen sizes and languages (every group's own size and every language by default). */
 export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, raw: unknown): Promise<{ jobId: string }> {
   const project = await getProject(ctx, projectId);
-  const { locales } = exportInput.parse(raw ?? {});
+  const body = exportBody.parse(raw ?? {});
   if (!project.doc.groups.some((g) => g.boards.length)) throw badRequest("project_is_empty");
-  const known = [project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)];
-  if (locales?.some((l) => !known.includes(l))) throw badRequest("unknown_locale");
+  const selection = body.selection ?? defaultSelection(project.doc);
+  if (selection.locales.some((l) => !allLocales(project.doc).includes(l))) throw badRequest("unknown_locale");
   await requireRecordingsReady(ctx, project.doc);
-  const check = checkExportable(project.doc, locales?.length ? { ...defaultSelection(project.doc), locales } : undefined);
+  const check = checkExportable(project.doc, selection);
   if (!check.ok) throw badRequest(check.code);
-  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { locales } }));
+  return withTx(async (tx) => {
+    const versionId = await pinVersion(tx, ctx, project);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { selection, versionId } });
+  });
 }
 
 /** One job of this workspace (for following a specific job's progress). */
@@ -43,7 +59,7 @@ export async function getJob(ctx: Ctx, jobId: string): Promise<JobSummary> {
   if (!z.uuid().safeParse(jobId).success) throw notFound();
   const [job] = await db.select({
     id: schema.jobs.id, type: schema.jobs.type, status: schema.jobs.status, error: schema.jobs.error,
-    createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output,
+    createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output, input: schema.jobs.input,
   }).from(schema.jobs).where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.workspaceId, ctx.workspaceId)));
   if (!job) throw notFound();
   return job;

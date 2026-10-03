@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
-import type { ChitrapxDoc } from "@chitrapx/document";
+import { defaultSelection, type ChitrapxDoc } from "@chitrapx/document";
 import { PgBoss } from "pg-boss";
+import { ZodError } from "zod";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
+import { balance, db, exportSource, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
@@ -54,10 +55,10 @@ describe("jobs", () => {
     const ctx = await ctxWith(5);
     const app = await createApp(ctx, { name: "A" });
     const blank = await createProject(ctx, app.id, { name: "Blank", kind: "screenshots" });
-    await expect(enqueueExport(ctx, boss, blank.id, {})).rejects.toMatchObject({ status: 400, code: "project_is_empty" });
+    await expect(enqueueExport(ctx, boss, blank.id, { kind: "zip" })).rejects.toMatchObject({ status: 400, code: "project_is_empty" });
     const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
-    await expect(enqueueExport(ctx, boss, p.id, { locales: ["xx-XX"] })).rejects.toMatchObject({ code: "unknown_locale" });
-    const { jobId } = await enqueueExport(ctx, boss, p.id, {});
+    await expect(enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["iphone-6.9"], locales: ["xx-XX"] } })).rejects.toMatchObject({ code: "unknown_locale" });
+    const { jobId } = await enqueueExport(ctx, boss, p.id, { kind: "zip" });
     expect(await balance(db, ctx.workspaceId)).toBe(4);
     expect(await listJobs(ctx, { projectId: p.id })).toEqual([expect.objectContaining({ id: jobId, type: "export", status: "queued" })]);
   });
@@ -67,7 +68,7 @@ describe("jobs", () => {
     const ctx = await ctxWith(5);
     const app = await createApp(ctx, { name: "A" });
     const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
-    const { jobId } = await enqueueExport(ctx, boss, p.id, {});
+    const { jobId } = await enqueueExport(ctx, boss, p.id, { kind: "zip" });
     const storage = { signedDownload: async (path: string) => `signed://${path}` };
     await expect(exportDownloadUrl(ctx, storage, jobId)).rejects.toMatchObject({ status: 409 });
     await db.update(schema.jobs).set({ status: "done" }).where(eq(schema.jobs.id, jobId));
@@ -91,7 +92,7 @@ describe("export guards", () => {
     doc.groups[0]!.boards[0]!.size = { width: 1000, height: 1000 };
     await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
     const boss2 = { send: async () => "x" } as never;
-    await expect(enqueueExport(ctx, boss2, p.id, {})).rejects.toMatchObject({ status: 400, code: "board_size_mismatch" });
+    await expect(enqueueExport(ctx, boss2, p.id, { kind: "zip" })).rejects.toMatchObject({ status: 400, code: "board_size_mismatch" });
   });
 });
 
@@ -130,7 +131,48 @@ describe("recordings", () => {
     const i = b0.elements.findIndex((e) => e.type === "device");
     b0.elements[i] = { ...b0.elements[i]!, type: "video-device", videoSrc: `asset:${rec.id}`, posterSrc: `asset:${rec.id}#poster` } as never;
     await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
-    await expect(enqueueExport(ctx, boss, p.id, {})).rejects.toMatchObject({ status: 409, code: "recording_not_ready" });
+    await expect(enqueueExport(ctx, boss, p.id, { kind: "zip" })).rejects.toMatchObject({ status: 409, code: "recording_not_ready" });
     expect(await balance(db, ctx.workspaceId)).toBe(5);
+  });
+});
+
+describe("pinned exports", () => {
+  async function templateProject(credits = 5) {
+    await seedTemplates();
+    const ctx = await ctxWith(credits);
+    const app = await createApp(ctx, { name: "A" });
+    return { ctx, p: await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" }) };
+  }
+  const jobById = async (id: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, id)))[0]!;
+
+  it("queues a ZIP against a version of the current revision, reused by the next export", async () => {
+    const { ctx, p } = await templateProject();
+    const a = await jobById((await enqueueExport(ctx, boss, p.id, { kind: "zip" })).jobId);
+    const b = await jobById((await enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["iphone-6.5"], locales: ["en-US"] } })).jobId);
+    const ia = a.input as { versionId: string };
+    const ib = b.input as { versionId: string; selection: unknown };
+    expect(ia.versionId).toBe(ib.versionId);
+    expect(ib.selection).toEqual({ targets: ["iphone-6.5"], locales: ["en-US"] });
+    expect(await db.select().from(schema.projectVersions).where(eq(schema.projectVersions.projectId, p.id))).toHaveLength(1);
+  });
+
+  it("exportSource reads the pinned version, not later edits", async () => {
+    const { ctx, p } = await templateProject();
+    const job = await jobById((await enqueueExport(ctx, boss, p.id, { kind: "zip" })).jobId);
+    await db.update(schema.projects).set({ doc: { ...(p.doc as object), groups: [] }, revision: 99 }).where(eq(schema.projects.id, p.id));
+    expect((await exportSource(job))!.doc.groups.length).toBeGreaterThan(0);
+  });
+
+  it("exportSource runs a job queued before pinning against the live project with every group's own size", async () => {
+    const { ctx, p } = await templateProject();
+    const src = await exportSource({ workspaceId: ctx.workspaceId, projectId: p.id, input: { locales: ["en-US"] } });
+    expect(src!.selection).toEqual({ ...defaultSelection(src!.doc), locales: ["en-US"] });
+    expect(await exportSource({ workspaceId: ctx.workspaceId, projectId: crypto.randomUUID(), input: {} })).toBeNull();
+  });
+
+  it("rejects unknown languages and sizes", async () => {
+    const { ctx, p } = await templateProject();
+    await expect(enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["iphone-6.9"], locales: ["xx-XX"] } })).rejects.toMatchObject({ code: "unknown_locale" });
+    await expect(enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["nope"], locales: ["en-US"] } })).rejects.toBeInstanceOf(ZodError);
   });
 });

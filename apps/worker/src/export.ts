@@ -1,9 +1,8 @@
-import { and, eq } from "drizzle-orm";
 import { zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
 import { createClient } from "@supabase/supabase-js";
-import { db, PRICES, renderUrl, schema } from "@chitrapx/db";
-import { checkExportable, defaultSelection, exportBatches, migrate } from "@chitrapx/document";
+import { exportSource, PRICES, renderUrl } from "@chitrapx/db";
+import { checkExportable, exportBatches } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 
 export const EXPORTS_BUCKET = "exports";
@@ -42,13 +41,9 @@ async function launch(): Promise<Browser> {
 
 /** Renders every board x locale of the job's project at exact store size and stores a ZIP. */
 export async function runExport(input: unknown, job: JobContext): Promise<{ actual: number; output: unknown }> {
-  if (!job.projectId) throw new FatalJobError("export_without_project");
-  const [project] = await db.select().from(schema.projects)
-    .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
-  if (!project) throw new FatalJobError("project_missing");
-  const doc = migrate(project.doc);
-  const locales = (input as { locales?: string[] } | null)?.locales;
-  const check = checkExportable(doc, locales?.length ? { ...defaultSelection(doc), locales } : undefined);
+  const src = await exportSource({ workspaceId: job.workspaceId, projectId: job.projectId, input });
+  if (!src) throw new FatalJobError("project_missing");
+  const check = checkExportable(src.doc, src.selection);
   if (!check.ok) throw new FatalJobError(check.code);
   const plan = check.plan;
   const origins = exportOrigins();
