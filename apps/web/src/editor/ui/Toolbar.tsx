@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { ExportDialog } from "@/components/ExportDialog.tsx";
 import { LOCALES } from "@chitrapx/renderer";
 import { useEditor, useEditorStore } from "../context.tsx";
 import type { SaveStatus } from "../save.ts";
@@ -10,8 +12,10 @@ const STATUS: Record<SaveStatus, string> = {
   conflict: "Changed elsewhere", error: "Could not save",
 };
 
-export function Toolbar({ name, projectId, status, error }: { name: string; projectId: string; status: SaveStatus; error?: string }) {
+export function Toolbar({ name, projectId, status, error, flush }: { name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean> }) {
   const store = useEditorStore();
+  const [exporting, setExporting] = useState(false);
+  const doc = useEditor((s) => s.doc);
   const zoom = useEditor((s) => s.zoom);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
@@ -51,7 +55,18 @@ export function Toolbar({ name, projectId, status, error }: { name: string; proj
         </select>
       </nav>
       <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
-      <Link href={`/dashboard/projects/${projectId}`} className="btn py-1.5">Export</Link>
+      <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>
+      {exporting && (
+        <ExportDialog projectId={projectId} doc={doc} onClose={() => setExporting(false)} beforeExport={flush}
+          onAddSize={(target, fromGroupId) => store.getState().apply({ type: "addGroupFromTarget", fromGroupId, target, newGroupId: crypto.randomUUID() })}
+          onJump={(groupId, boardIndex) => {
+            const s = store.getState();
+            s.setActiveGroup(groupId);
+            const b = s.doc.groups.find((g) => g.id === groupId)?.boards[boardIndex];
+            if (b) store.getState().setActiveBoard(b.id);
+            setExporting(false);
+          }} />
+      )}
     </header>
   );
 }

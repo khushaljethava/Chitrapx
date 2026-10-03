@@ -176,5 +176,14 @@ export function useAutosave(store: EditorStore) {
     await save();
   }
 
-  return { status, error, conflict, loadTheirs, keepMine };
+  /** Saves now. True once the server has the current document; false when it cannot (offline, rejected, conflict). */
+  async function flush(): Promise<boolean> {
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    for (let i = 0; inFlight.current && i < 150; i++) await new Promise((r) => setTimeout(r, 100));
+    if (inFlight.current) return false;
+    await save();
+    return !store.getState().dirty;
+  }
+
+  return { status, error, conflict, loadTheirs, keepMine, flush };
 }

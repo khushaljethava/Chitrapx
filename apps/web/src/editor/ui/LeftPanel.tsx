@@ -1,6 +1,7 @@
 "use client";
 
 import { getTarget, TARGETS, type ArtboardElement, type TargetId } from "@chitrapx/document";
+import { useJobDownload } from "@/components/useJobDownload.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
@@ -19,8 +20,11 @@ const DEVICE_ADDERS: Array<[string, string, number]> = [
   ["iPhone", "iphone-17-pro-max", 2.17], ["Android", "android-punch-hole", 2.1], ["iPad", "ipad-pro-13", 1.33], ["MacBook", "macbook", 0.62], ["Watch", "apple-watch", 1.2],
 ];
 
-export function LeftPanel() {
+export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
   const store = useEditorStore();
+  const projectId = useEditor((s) => s.projectId);
+  const locale = useEditor((s) => s.locale);
+  const png = useJobDownload();
   const doc = useEditor((s) => s.doc);
   const groupId = useEditor((s) => s.activeGroupId);
   const boardId = useEditor((s) => s.activeBoardId);
@@ -114,6 +118,10 @@ export function LeftPanel() {
                 <span className="mr-1 text-neutral-400">{i + 1}</span>{b.name}
               </button>
               <span className="flex gap-0.5 opacity-60 group-hover:opacity-100">
+                <button type="button" aria-label="Download PNG" title="Download this board as a PNG (free)" className="px-1"
+                  disabled={png.busy} onClick={() => png.start(`/api/projects/${projectId}/export`, { kind: "single", groupId, boardIndex: i, locale }, flush)}>
+                  {png.busy ? "…" : "⤓"}
+                </button>
                 <button type="button" aria-label="Move up" className="px-1" disabled={i === 0} onClick={() => store.getState().apply({ type: "moveBoard", groupId, boardId: b.id, toIndex: i - 1 })}>↑</button>
                 <button type="button" aria-label="Move down" className="px-1" disabled={i === group.boards.length - 1} onClick={() => store.getState().apply({ type: "moveBoard", groupId, boardId: b.id, toIndex: i + 1 })}>↓</button>
                 <button type="button" aria-label="Duplicate board" className="px-1" onClick={() => store.getState().apply({ type: "duplicateBoard", groupId, boardId: b.id, newBoardId: crypto.randomUUID(), idSuffix: crypto.randomUUID().slice(0, 8) })}>⧉</button>
@@ -122,6 +130,7 @@ export function LeftPanel() {
             </li>
           ))}
         </ol>
+        {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free downloads") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
 
       <Checks />

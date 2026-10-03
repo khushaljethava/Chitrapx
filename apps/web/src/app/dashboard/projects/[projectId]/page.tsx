@@ -28,9 +28,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
         </div>
       </div>
       <ProjectAi projectId={project.id} codes={[project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)]} />
-      <ExportPanel projectId={project.id}
-        boardCount={project.doc.groups.reduce((n, g) => n + g.boards.length, 0)}
-        localeCount={1 + project.doc.localization.locales.length} />
+      <ExportPanel projectId={project.id} doc={project.doc} />
       <ProjectBoards doc={project.doc} assetUrls={assetUrls} />
       {project.doc.groups.length > 0 && <VideoPanel projectId={project.id} doc={project.doc} assetUrls={assetUrls} />}
     </>

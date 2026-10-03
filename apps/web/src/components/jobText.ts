@@ -11,6 +11,9 @@ const MESSAGES: Record<string, string> = {
   ai_incomplete: "The AI answer was incomplete. Please try again.",
   ai_output_invalid: "The AI answer could not be used. Please try again.",
   too_much_text: "There is too much text to send to the AI at once. Shorten or split the project.",
+  rate_limited: "Free downloads are limited to 30 per hour.",
+  single_export_needs_one_board: "That board no longer exists. Reload and try again.",
+  project_missing: "This project was deleted.",
   abandoned: "The job stopped unexpectedly.",
 };
 export function jobError(error: string | null | undefined): string {
@@ -18,4 +21,4 @@ export function jobError(error: string | null | undefined): string {
   const code = error.split(/[:\s]/)[0]!;
   return MESSAGES[code] ?? (code.startsWith("asset_missing") ? "A screenshot this design uses was removed." : "Something went wrong. Your credits were refunded.");
 }
-export const JOB_LABEL: Record<string, string> = { ai_design: "AI design", ai_translate: "Translation", ai_copy: "Copy ideas", export: "Export" };
+export const JOB_LABEL: Record<string, string> = { ai_design: "AI design", ai_translate: "Translation", ai_copy: "Copy ideas", export: "Export", export_single: "PNG", project_bundle: "Project file", project_import: "Import" };
