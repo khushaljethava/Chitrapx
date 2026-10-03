@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
 import { db, schema, verifyRenderSig } from "@chitrapx/db";
-import { exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
+import { defaultSelection, exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
 import { RenderSheet } from "@/components/RenderSheet.tsx";
 import { VideoSheet } from "@/components/VideoSheet.tsx";
 import { assetUrlMap } from "@/server/projects.ts";
@@ -39,7 +39,8 @@ export default async function RenderPage({ params, searchParams }: {
     const urls = await assetUrlMap(jobCtx, supabaseStorage(), doc);
     return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} />;
   }
-  const plan = exportPlan(doc, (job.input as { locales?: string[] }).locales);
+  const locales = (job.input as { locales?: string[] }).locales;
+  const plan = exportPlan(doc, locales?.length ? { ...defaultSelection(doc), locales } : undefined);
   const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
   const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
   const assetUrls = await assetUrlMap(jobCtx, supabaseStorage(), doc);

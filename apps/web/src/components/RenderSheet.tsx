@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import type { ChitrapxDoc, ExportItem } from "@chitrapx/document";
+import { resolveGroup, type ChitrapxDoc, type ExportItem } from "@chitrapx/document";
 import { BoardFonts, boardFor, StaticArtboard, waitForRender } from "@chitrapx/renderer";
 
 declare global {
@@ -12,11 +12,16 @@ declare global {
 export function RenderSheet({ doc, plan, indices, assetUrls }: {
   doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>;
 }) {
-  const boards = useMemo(() => indices.map((i) => {
-    const item = plan[i]!;
-    // Only this workspace's signed assets: the worker's browser must never fetch a URL a document names (SSRF).
-    return { i, ...boardFor(doc, item.groupId, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null) };
-  }), [doc, plan, indices, assetUrls]);
+  const boards = useMemo(() => {
+    const cache = new Map();
+    return indices.map((i) => {
+      const item = plan[i]!;
+      // A derived size draws its source group retargeted in memory; the saved document never changes.
+      const g = resolveGroup(doc, item, cache);
+      // Only this workspace's signed assets: the worker's browser must never fetch a URL a document names (SSRF).
+      return { i, ...boardFor({ ...doc, groups: [g] }, g.id, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null) };
+    });
+  }, [doc, plan, indices, assetUrls]);
   // Recordings still converting render as placeholders instead of failing the export.
   const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))], [boards]);
 

@@ -2,7 +2,7 @@ import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { checkExportable, LOCALE_CODE, VIDEO_FORMAT_IDS } from "@chitrapx/document";
+import { checkExportable, defaultSelection, LOCALE_CODE, VIDEO_FORMAT_IDS } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 import { getProject, pendingAssetSrcs } from "./projects.ts";
@@ -33,7 +33,7 @@ export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, r
   const known = [project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)];
   if (locales?.some((l) => !known.includes(l))) throw badRequest("unknown_locale");
   await requireRecordingsReady(ctx, project.doc);
-  const check = checkExportable(project.doc, locales);
+  const check = checkExportable(project.doc, locales ? { ...defaultSelection(project.doc), locales } : undefined);
   if (!check.ok) throw badRequest(check.code);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { locales } }));
 }

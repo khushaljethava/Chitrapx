@@ -3,7 +3,7 @@ import { zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 import { db, PRICES, renderUrl, schema } from "@chitrapx/db";
-import { checkExportable, exportBatches, migrate } from "@chitrapx/document";
+import { checkExportable, defaultSelection, exportBatches, migrate } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 
 export const EXPORTS_BUCKET = "exports";
@@ -46,7 +46,9 @@ export async function runExport(input: unknown, job: JobContext): Promise<{ actu
   const [project] = await db.select().from(schema.projects)
     .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
   if (!project) throw new FatalJobError("project_missing");
-  const check = checkExportable(migrate(project.doc), (input as { locales?: string[] } | null)?.locales);
+  const doc = migrate(project.doc);
+  const locales = (input as { locales?: string[] } | null)?.locales;
+  const check = checkExportable(doc, locales?.length ? { ...defaultSelection(doc), locales } : undefined);
   if (!check.ok) throw new FatalJobError(check.code);
   const plan = check.plan;
   const origins = exportOrigins();
