@@ -58,8 +58,11 @@ describe("derived sizes", () => {
   });
 
   it("prefers a group on the same platform", () => {
-    const two = doc([group([board("b1", [])]), android()]);
-    expect(sourcesFor(two, "android-tablet-7").groups.map((g) => g.id)).toEqual(["g2"]);
+    // Target android-phone is 1080/1920 = 0.5625. The iPhone group (1290/2796 = 0.461) is 18% off;
+    // the Android landscape tablet group (2560/1600 = 1.6) is 184% off. Only the platform preference picks g2.
+    const land = { id: "g2", target: "android-tablet-10-land" as const, boards: [board("a1", [], 2560, 1600)], spanElements: [] };
+    const two = doc([group([board("b1", [])]), land]);
+    expect(sourcesFor(two, "android-phone").groups.map((g) => g.id)).toEqual(["g2"]);
   });
 
   it("never derives from an A/B variant group", () => {

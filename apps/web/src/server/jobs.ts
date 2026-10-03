@@ -33,7 +33,7 @@ export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, r
   const known = [project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)];
   if (locales?.some((l) => !known.includes(l))) throw badRequest("unknown_locale");
   await requireRecordingsReady(ctx, project.doc);
-  const check = checkExportable(project.doc, locales ? { ...defaultSelection(project.doc), locales } : undefined);
+  const check = checkExportable(project.doc, locales?.length ? { ...defaultSelection(project.doc), locales } : undefined);
   if (!check.ok) throw badRequest(check.code);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { locales } }));
 }
