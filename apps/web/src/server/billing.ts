@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { and, count, desc, eq, gt, inArray, ne } from "drizzle-orm";
 import { z } from "zod";
 import { balance, db, lockWorkspace, PLANS, schema, withTx, type Db, type Plan } from "@chitrapx/db";
 import type { Ctx } from "./context.ts";
@@ -12,6 +13,7 @@ export const CREDIT_PACKS = {
   large: { credits: 2000, amount: 699900 },
 } as const;
 export type PackId = keyof typeof CREDIT_PACKS;
+const MAX_OPEN_ORDERS_PER_HOUR = 20;
 export const PAID_PLANS = ["pro", "studio"] as const;
 type PaidPlan = (typeof PAID_PLANS)[number];
 
@@ -56,10 +58,24 @@ export function signatureValid(payload: string, signature: unknown, key: string)
 export async function createOrder(ctx: Ctx, raw: unknown) {
   const { pack } = z.object({ pack: z.enum(Object.keys(CREDIT_PACKS) as [PackId, ...PackId[]]) }).parse(raw);
   const { credits, amount } = CREDIT_PACKS[pack];
-  const order = await razorpay<{ id: string }>("/orders", {
-    amount, currency: currency(), receipt: `${ctx.workspaceId.slice(0, 8)}-${Date.now()}`, notes: { workspaceId: ctx.workspaceId, pack },
-  });
-  await db.insert(schema.payments).values({ workspaceId: ctx.workspaceId, razorpayOrderId: order.id, pack, credits, amount, currency: currency() });
+  const [{ open }] = await db.select({ open: count() }).from(schema.payments).where(and(
+    eq(schema.payments.workspaceId, ctx.workspaceId), eq(schema.payments.status, "created"), gt(schema.payments.createdAt, new Date(Date.now() - 3600_000)),
+  ));
+  if (open >= MAX_OPEN_ORDERS_PER_HOUR) throw new HttpError(429, "too_many_orders", "Too many unpaid orders; try again later");
+  // Our row exists before Razorpay's order, so a paid order can never be unknown to us.
+  const [row] = await db.insert(schema.payments).values({
+    workspaceId: ctx.workspaceId, razorpayOrderId: `pending:${randomUUID()}`, pack, credits, amount, currency: currency(),
+  }).returning({ id: schema.payments.id });
+  let order: { id: string };
+  try {
+    order = await razorpay<{ id: string }>("/orders", {
+      amount, currency: currency(), receipt: row!.id.slice(0, 40), notes: { workspaceId: ctx.workspaceId, pack, paymentRow: row!.id },
+    });
+  } catch (err) {
+    await db.update(schema.payments).set({ status: "failed" }).where(eq(schema.payments.id, row!.id));
+    throw err;
+  }
+  await db.update(schema.payments).set({ razorpayOrderId: order.id }).where(eq(schema.payments.id, row!.id));
   return { orderId: order.id, amount, currency: currency(), keyId: keyId(), credits };
 }
 
@@ -77,7 +93,7 @@ export async function fulfilOrder(orderId: string, paymentId: string, paid?: { a
     }
     await lockWorkspace(tx, row.workspaceId);
     const [flipped] = await tx.update(schema.payments).set({ status: "paid", razorpayPaymentId: paymentId, paidAt: new Date() })
-      .where(and(eq(schema.payments.id, row.id), inArray(schema.payments.status, ["created", "failed"]))).returning({ id: schema.payments.id });
+      .where(and(eq(schema.payments.id, row.id), eq(schema.payments.status, "created"))).returning({ id: schema.payments.id });
     if (!flipped) return false;
     await tx.insert(schema.creditLedger).values({ workspaceId: row.workspaceId, delta: row.credits, reason: "purchase", note: `pay:${paymentId}` });
     return true;
@@ -100,15 +116,25 @@ const LIVE = ["active", "cancelling"] as const;
 
 export async function createSubscription(ctx: Ctx, raw: unknown) {
   const { plan } = z.object({ plan: z.enum(PAID_PLANS) }).parse(raw);
-  const [live] = await db.select({ id: schema.subscriptions.id }).from(schema.subscriptions)
-    .where(and(eq(schema.subscriptions.workspaceId, ctx.workspaceId), inArray(schema.subscriptions.status, [...LIVE])));
-  if (live) throw new HttpError(409, "already_subscribed", "Cancel the current plan before choosing another");
-  // total_count is required by Razorpay; 10 years of monthly cycles.
-  const sub = await razorpay<{ id: string }>("/subscriptions", {
-    plan_id: planId(plan), total_count: 120, customer_notify: 1, notes: { workspaceId: ctx.workspaceId, plan },
+  // Serialized per workspace: two tabs can never both hold a payable subscription.
+  return withTx(async ({ db: tx }) => {
+    await lockWorkspace(tx, ctx.workspaceId);
+    const mine = await tx.select().from(schema.subscriptions)
+      .where(and(eq(schema.subscriptions.workspaceId, ctx.workspaceId), inArray(schema.subscriptions.status, ["created", ...LIVE])));
+    if (mine.some((s) => s.status !== "created")) throw new HttpError(409, "already_subscribed", "Cancel the current plan before choosing another");
+    // Unpaid checkouts from earlier attempts are cancelled so they can no longer be paid.
+    for (const old of mine) {
+      await razorpay(`/subscriptions/${encodeURIComponent(old.razorpaySubscriptionId)}/cancel`, { cancel_at_cycle_end: 0 })
+        .catch(() => console.error(`billing: could not cancel unpaid subscription ${old.razorpaySubscriptionId}`));
+      await tx.update(schema.subscriptions).set({ status: "ended" }).where(eq(schema.subscriptions.id, old.id));
+    }
+    // total_count is required by Razorpay; 10 years of monthly cycles.
+    const sub = await razorpay<{ id: string }>("/subscriptions", {
+      plan_id: planId(plan), total_count: 120, customer_notify: 1, notes: { workspaceId: ctx.workspaceId, plan },
+    });
+    await tx.insert(schema.subscriptions).values({ workspaceId: ctx.workspaceId, razorpaySubscriptionId: sub.id, plan });
+    return { subscriptionId: sub.id, keyId: keyId() };
   });
-  await db.insert(schema.subscriptions).values({ workspaceId: ctx.workspaceId, razorpaySubscriptionId: sub.id, plan });
-  return { subscriptionId: sub.id, keyId: keyId() };
 }
 
 /**
@@ -117,9 +143,27 @@ export async function createSubscription(ctx: Ctx, raw: unknown) {
  */
 export async function activateSubscription(subscriptionId: string, paymentId: string | null, currentEnd?: number | null): Promise<boolean> {
   return withTx(async ({ db: tx }) => {
+    const [found] = await tx.select({ ws: schema.subscriptions.workspaceId }).from(schema.subscriptions)
+      .where(eq(schema.subscriptions.razorpaySubscriptionId, subscriptionId));
+    if (!found) return false;
+    await lockWorkspace(tx, found.ws);
     const [sub] = await tx.select().from(schema.subscriptions).where(eq(schema.subscriptions.razorpaySubscriptionId, subscriptionId));
-    if (!sub || sub.status === "ended") return false;
-    await lockWorkspace(tx, sub.workspaceId);
+    if (!sub) return false;
+    if (sub.status === "ended") {
+      // An end processed before this charge: the money was still taken, so its credits are still due.
+      if (paymentId) await grantFor(tx, sub.workspaceId, sub.plan, paymentId);
+      return false;
+    }
+    const [other] = await tx.select({ id: schema.subscriptions.id, rz: schema.subscriptions.razorpaySubscriptionId }).from(schema.subscriptions).where(and(
+      eq(schema.subscriptions.workspaceId, sub.workspaceId), inArray(schema.subscriptions.status, [...LIVE]), ne(schema.subscriptions.id, sub.id),
+    ));
+    if (other) {
+      // A second paid subscription (should not happen: creation cancels unpaid ones). Stop it charging again.
+      console.error(`billing: workspace ${sub.workspaceId} paid ${subscriptionId} while ${other.rz} is live; cancelling it, refund payment ${paymentId} manually`);
+      await razorpay(`/subscriptions/${encodeURIComponent(subscriptionId)}/cancel`, { cancel_at_cycle_end: 0 }).catch(() => {});
+      await tx.update(schema.subscriptions).set({ status: "ended" }).where(eq(schema.subscriptions.id, sub.id));
+      return false;
+    }
     await tx.update(schema.subscriptions).set({
       status: sub.status === "cancelling" ? "cancelling" : "active",
       ...(currentEnd ? { currentEnd: new Date(currentEnd * 1000) } : {}),
@@ -168,7 +212,8 @@ export async function cancelSubscription(ctx: Ctx) {
     .where(and(eq(schema.subscriptions.workspaceId, ctx.workspaceId), eq(schema.subscriptions.status, "active")));
   if (!sub) throw new HttpError(409, "no_subscription");
   await razorpay(`/subscriptions/${encodeURIComponent(sub.razorpaySubscriptionId)}/cancel`, { cancel_at_cycle_end: 1 });
-  await db.update(schema.subscriptions).set({ status: "cancelling" }).where(eq(schema.subscriptions.id, sub.id));
+  // Only if still active: an end reported meanwhile must not be revived.
+  await db.update(schema.subscriptions).set({ status: "cancelling" }).where(and(eq(schema.subscriptions.id, sub.id), eq(schema.subscriptions.status, "active")));
   return { ok: true };
 }
 
@@ -191,12 +236,22 @@ export async function handleWebhook(rawBody: string, signature: string | null, e
   const payment = payload.payment?.entity;
   const sub = payload.subscription?.entity;
 
-  // ponytail: the event id is recorded before applying; a crash in between drops that delivery, but
-  // every effect is also reached by checkout verification or the next subscription.charged.
-  if (eventId) {
-    const [fresh] = await db.insert(schema.billingEvents).values({ id: eventId.slice(0, 128) }).onConflictDoNothing().returning();
+  const id = eventId?.slice(0, 128);
+  if (id) {
+    const [fresh] = await db.insert(schema.billingEvents).values({ id }).onConflictDoNothing().returning();
     if (!fresh) return { handled: false };
   }
+  try {
+    await applyEvent(event, payment, sub);
+  } catch (err) {
+    // Forget the delivery so Razorpay's retry is applied, not skipped; every effect is idempotent.
+    if (id) await db.delete(schema.billingEvents).where(eq(schema.billingEvents.id, id)).catch(() => {});
+    throw err;
+  }
+  return { handled: true };
+}
+
+async function applyEvent(event: string, payment: Entity | undefined, sub: Entity | undefined) {
   switch (event) {
     case "payment.captured":
     case "order.paid": {
@@ -220,7 +275,6 @@ export async function handleWebhook(rawBody: string, signature: string | null, e
       break;
     }
   }
-  return { handled: true };
 }
 
 // ---- Page data -----------------------------------------------------------------------------

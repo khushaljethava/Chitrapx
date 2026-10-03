@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db, schema, withTx } from "./client.ts";
 import { balance, lockWorkspace } from "./credits.ts";
 import { monthKey } from "./month.ts";
@@ -29,6 +29,10 @@ export async function grantMonthlyCredits(today = new Date()): Promise<number> {
         eq(schema.creditLedger.workspaceId, w.id), eq(schema.creditLedger.reason, "plan_grant"), eq(schema.creditLedger.note, month),
       )).limit(1);
       if (done) return false;
+      // A paying workspace is topped up on each subscription charge instead (one allowance per cycle).
+      const [paying] = await tx.select({ id: schema.subscriptions.id }).from(schema.subscriptions)
+        .where(and(eq(schema.subscriptions.workspaceId, w.id), inArray(schema.subscriptions.status, ["active", "cancelling"]))).limit(1);
+      if (paying) return false;
       // Unused credits do not roll over: top up to the allowance, never add on top of leftovers.
       const delta = Math.max(0, PLANS[w.plan].monthlyCredits - (await balance(tx, w.id)));
       await tx.insert(schema.creditLedger).values({ workspaceId: w.id, delta, reason: "plan_grant", note: month });

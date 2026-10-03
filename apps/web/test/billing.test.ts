@@ -1,11 +1,11 @@
 import { createHmac } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { balance, db, schema } from "@chitrapx/db";
+import { balance, db, grantMonthlyCredits, pool, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import {
-  cancelSubscription, createOrder, createSubscription, handleWebhook, signatureValid, verifyOrderPayment, verifySubscriptionPayment,
+  activateSubscription, cancelSubscription, createOrder, createSubscription, handleWebhook, signatureValid, verifyOrderPayment, verifySubscriptionPayment,
 } from "@/server/billing.ts";
 
 const KEY = "test_key_secret", HOOK = "test_webhook_secret";
@@ -108,5 +108,75 @@ describe("subscriptions", () => {
     const ctx = await ctxWith(0);
     await webhook("subscription.charged", { subscription: { entity: { id: "sub_not_ours" } }, payment: { entity: { id: `pay_z_${RUN}` } } });
     expect(await planOf(ctx.workspaceId)).toBe("free");
+  });
+});
+
+describe("review fixes", () => {
+  const subStatus = async (rz: string) => (await db.select({ s: schema.subscriptions.status }).from(schema.subscriptions)
+    .where(eq(schema.subscriptions.razorpaySubscriptionId, rz)))[0]!.s;
+
+  it("a webhook that fails is applied when Razorpay retries it", async () => {
+    const ctx = await ctxWith(0);
+    const order = await createOrder(ctx, { pack: "small" });
+    const body = JSON.stringify({ event: "payment.captured", payload: { payment: { entity: { id: `pay_r_${RUN}`, order_id: order.orderId, amount: 49900, currency: "INR" } } } });
+    const id = `evt_retry_${RUN}`;
+    // The first delivery hits a database blip when the purchase transaction starts (pool.connect()
+    // without a callback is withTx; plain queries pass a callback and are left alone).
+    const orig = pool.connect.bind(pool);
+    let failed = false;
+    const spy = vi.spyOn(pool, "connect").mockImplementation(((cb?: unknown) => {
+      if (!cb && !failed) { failed = true; return Promise.reject(new Error("db blip")); }
+      return (orig as (cb?: unknown) => unknown)(cb);
+    }) as never);
+    await expect(handleWebhook(body, sign(body, HOOK), id)).rejects.toThrow("db blip");
+    spy.mockRestore();
+    expect(await balance(db, ctx.workspaceId)).toBe(0);
+    await handleWebhook(body, sign(body, HOOK), id);
+    expect(await balance(db, ctx.workspaceId)).toBe(100);
+  });
+
+  it("a second checkout cancels the unpaid first one, and a second paid subscription never doubles the plan", async () => {
+    const ctx = await ctxWith(0);
+    const first = await createSubscription(ctx, { plan: "pro" });
+    const second = await createSubscription(ctx, { plan: "studio" });
+    expect(calls.some((c) => c.url.endsWith(`/subscriptions/${first.subscriptionId}/cancel`))).toBe(true);
+    expect(await subStatus(first.subscriptionId)).toBe("ended");
+    await activateSubscription(second.subscriptionId, `pay_b_${RUN}`);
+    expect(await planOf(ctx.workspaceId)).toBe("studio");
+
+    // Force a stray second created row that gets paid anyway: it is ended, not a 500.
+    const rz = `sub_stray_${RUN}`;
+    await db.insert(schema.subscriptions).values({ workspaceId: ctx.workspaceId, razorpaySubscriptionId: rz, plan: "pro" });
+    await expect(activateSubscription(rz, `pay_c_${RUN}`)).resolves.toBe(false);
+    expect(await subStatus(rz)).toBe("ended");
+    expect(await planOf(ctx.workspaceId)).toBe("studio");
+  });
+
+  it("a charge processed after the end still credits, without bringing the plan back", async () => {
+    const ctx = await ctxWith(0);
+    const { subscriptionId } = await createSubscription(ctx, { plan: "pro" });
+    await webhook("subscription.cancelled", { subscription: { entity: { id: subscriptionId } } });
+    await webhook("subscription.charged", { subscription: { entity: { id: subscriptionId } }, payment: { entity: { id: `pay_late_${RUN}` } } });
+    expect(await planOf(ctx.workspaceId)).toBe("free");
+    expect(await balance(db, ctx.workspaceId)).toBe(1000);
+  });
+
+  it("cancelling never revives a subscription that already ended", async () => {
+    const ctx = await ctxWith(0);
+    const { subscriptionId } = await createSubscription(ctx, { plan: "pro" });
+    await activateSubscription(subscriptionId, `pay_d_${RUN}`);
+    // The end arrives while the cancel request is with Razorpay.
+    vi.stubGlobal("fetch", vi.fn(async () => { await webhook("subscription.cancelled", { subscription: { entity: { id: subscriptionId } } }); return Response.json({}); }));
+    await cancelSubscription(ctx);
+    expect(await subStatus(subscriptionId)).toBe("ended");
+  });
+
+  it("the daily grant skips paying workspaces (they are topped up per charge)", async () => {
+    const ctx = await ctxWith(0);
+    const { subscriptionId } = await createSubscription(ctx, { plan: "pro" });
+    await activateSubscription(subscriptionId, `pay_e_${RUN}`);
+    await db.insert(schema.creditLedger).values({ workspaceId: ctx.workspaceId, delta: -900, reason: "adjust" });
+    await grantMonthlyCredits(new Date(Date.now() + 40 * 86400_000));
+    expect(await balance(db, ctx.workspaceId)).toBe(100);
   });
 });
