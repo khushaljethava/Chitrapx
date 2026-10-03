@@ -206,9 +206,21 @@ Re-implemented from scratch (no storeshots code):
 6. Video previews and social formats
 7. Billing launch (Razorpay subscriptions for plans, one-time payments for credit packs)
 
-## A13. Out of v1 scope
+Gap-closing sub-projects, agreed 2026-10-03 after comparing Chitrapx with the six source tools:
 
-Desktop app, live collaboration, public API/CLI/MCP, direct App Store Connect and Google Play upload, team roles beyond owner, bring-your-own AI key. The data model already allows each (memberships.role, jobs table, assets) without migrating existing data.
+8. Sizes and export (missing store sizes, derived sizes at export, free single PNG, store-readiness report, `.chitrapx` project file)
+9. Editor essentials (layers panel, grouping, layout presets, apply-to-all, drop and folder import, version restore, status bar)
+10. Typography and style (custom fonts, rich text, palette from screenshots, named styles, headline formulas, CarPlay frame)
+11. Localization and AI copy (translations table with CSV/JSON, RTL, feature chips, vertical presets, competitor board)
+12. Launch assets (icon generator, logo starter, collage)
+13. Developer automation (public API and keys, CLI with render/verify/capture/record, MCP server)
+14. Store publishing and sync (App Store Connect and Google Play upload, Google Drive and GitHub sync)
+15. Collaboration (share a copy, team roles, live co-editing)
+16. Polish (update banner, changelog, analytics consent, community template feed)
+
+## A13. Out of scope
+
+Desktop app, browser extension, bring-your-own AI key (conflicts with credits), text-to-speech and video title cards. The public API/CLI/MCP, store upload, collaboration and team roles moved into sub-projects 13–15.
 
 ---
 
