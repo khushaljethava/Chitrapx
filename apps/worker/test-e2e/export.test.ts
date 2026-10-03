@@ -53,8 +53,9 @@ describe("export", () => {
     await runJob(jobId, runExport);
     expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { files: 5 } });
     const files = await zipFiles(ws, jobId);
-    expect(Object.keys(files)).toHaveLength(5);
-    for (const [name, png] of Object.entries(files)) {
+    expect(Object.keys(files).filter((f) => f.endsWith(".png"))).toHaveLength(5);
+    expect(files["report.txt"]).toBeDefined();
+    for (const [name, png] of Object.entries(files).filter(([f]) => f.endsWith(".png"))) {
       expect(name).toMatch(/^ios\/iphone-6\.9\/en-US\/0\d-[a-z0-9-]+\.png$/);
       expect(pngSize(Buffer.from(png))).toEqual({ width: 1290, height: 2796 });
     }

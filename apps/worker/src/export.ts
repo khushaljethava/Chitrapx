@@ -1,9 +1,10 @@
-import { zipSync } from "fflate";
+import { strToU8, zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
 import { createClient } from "@supabase/supabase-js";
 import { exportSource, PRICES, renderUrl } from "@chitrapx/db";
-import { checkExportable, exportBatches } from "@chitrapx/document";
+import { checkExportable, exportBatches, storeReadiness } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
+import { finishPng, reportText, type FileIssue } from "./storeFiles.ts";
 
 export const EXPORTS_BUCKET = "exports";
 
@@ -49,6 +50,7 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
   const origins = exportOrigins();
 
   const files: Record<string, Uint8Array> = {};
+  const post: FileIssue[] = [];
   const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 1024 }, deviceScaleFactor: 1 });
@@ -67,7 +69,9 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
         if (width !== item.width || height !== item.height) {
           throw new Error(`${item.file}: rendered ${width}x${height}, expected ${item.width}x${item.height}`);
         }
-        files[item.file] = png;
+        const done = await finishPng(png, item.file);
+        post.push(...done.issues);
+        files[item.file] = done.png;
       }
     }
   } finally {
@@ -83,9 +87,11 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
     return { actual: PRICES.export_single, output: { path, files: 1, bytes: only.byteLength } };
   }
 
+  const pre = storeReadiness(plan, src.doc);
+  files["report.txt"] = strToU8(reportText(src.doc, plan, pre, post));
   const zip = zipSync(files, { level: 0 }); // PNGs are already compressed
   const path = `${job.workspaceId}/${job.id}.zip`;
   const { error } = await storage().upload(path, zip, { contentType: "application/zip", upsert: true });
   if (error) throw new Error(`upload failed: ${error.message}`);
-  return { actual: PRICES.export, output: { path, files: plan.length, bytes: zip.byteLength } };
+  return { actual: PRICES.export, output: { path, files: plan.length, bytes: zip.byteLength, issues: pre.length + post.length } };
 }
