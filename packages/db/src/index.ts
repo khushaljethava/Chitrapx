@@ -8,3 +8,4 @@ export * from "./grants.ts";
 export * from "./month.ts";
 export * from "./renderSig.ts";
 export * from "./exportSource.ts";
+export * from "./assetCheck.ts";

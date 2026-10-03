@@ -17,6 +17,8 @@
   "dependencies": {
     "@chitrapx/document": "workspace:^",
     "drizzle-orm": "^0.45.3",
+    "file-type": "^22.1.1",
+    "image-size": "^2.0.4",
     "pg": "^8.23.1",
     "pg-boss": "^12.35.1",
     "zod": "^4.6.5"

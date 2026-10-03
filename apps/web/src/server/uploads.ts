@@ -1,24 +1,13 @@
 import { createHash, randomUUID } from "node:crypto";
 import { and, desc, eq } from "drizzle-orm";
-import { fileTypeFromBuffer } from "file-type";
-import { imageSize } from "image-size";
 import { z } from "zod";
-import { db, schema } from "@chitrapx/db";
+import { ACCEPTED, db, HEAD_BYTES, schema, sniffAsset, UPLOAD_LIMITS } from "@chitrapx/db";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 
-const MB = 1024 * 1024;
-export const UPLOAD_LIMITS = { screenshot: 25 * MB, image: 25 * MB, recording: 500 * MB, font: 10 * MB } as const;
-// ponytail: SVG stays out until it is sanitized; recordings and fonts arrive with their sub-projects.
-const ACCEPTED: Record<UploadKind, readonly string[]> = {
-  screenshot: ["image/png", "image/jpeg", "image/webp"],
-  image: ["image/png", "image/jpeg", "image/webp"],
-  recording: ["video/mp4", "video/quicktime", "video/x-m4v"],
-};
-/** Bytes kept for type sniffing and image dimensions (JPEG headers can sit after a large EXIF block). */
-const HEAD_BYTES = { screenshot: 512 * 1024, image: 512 * 1024, recording: 64 * 1024 } as const;
+export { UPLOAD_LIMITS };
 
 const uploadKind = z.enum(["screenshot", "image", "recording"]);
 type UploadKind = z.infer<typeof uploadKind>;
@@ -28,11 +17,11 @@ const completeInput = z.object({ appId: z.uuid(), kind: uploadKind, sha256, uplo
 
 export type Asset = typeof schema.assets.$inferSelect;
 
-const tooLarge = (kind: UploadKind) => new HttpError(413, "too_large", `Files of this type can be up to ${UPLOAD_LIMITS[kind] / MB} MB`);
+const tooLarge = (kind: UploadKind) => new HttpError(413, "too_large", `Files of this type can be up to ${UPLOAD_LIMITS[kind] / (1024 * 1024)} MB`);
 /** Validated bytes live once per workspace here; asset rows are per app. Always derived, never read from a row. */
 const finalPath = (ctx: Ctx, hash: string) => `${ctx.workspaceId}/${hash}`;
 /** Clients only ever get a token for a fresh staging path, so they can never touch validated bytes. */
-const stagingPath = (ctx: Ctx, uploadId: string) => `${ctx.workspaceId}/staging/${uploadId}`;
+export const stagingPath = (ctx: Ctx, uploadId: string) => `${ctx.workspaceId}/staging/${uploadId}`;
 
 async function findAsset(ctx: Ctx, hash: string, appId?: string) {
   const [asset] = await db.select().from(schema.assets).where(and(
@@ -93,12 +82,8 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   }
   const headBytes = Buffer.concat(head);
   if (hash.digest("hex") !== input.sha256) return reject(badRequest("checksum_mismatch"));
-  const type = await fileTypeFromBuffer(headBytes);
-  if (!type || !ACCEPTED[input.kind].includes(type.mime)) return reject(badRequest("unsupported_type"));
-  let dims: { width?: number; height?: number } = {};
-  if (input.kind !== "recording") {
-    try { dims = imageSize(headBytes); } catch { return reject(badRequest("unreadable_image")); }
-  }
+  const sniffed = await sniffAsset(input.kind, headBytes);
+  if (!sniffed.ok) return reject(badRequest(sniffed.code));
 
   const sibling = await findAsset(ctx, input.sha256);
   if (sibling) { await discard(); return linkExisting(ctx, input.appId, sibling); }
@@ -107,8 +92,8 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   await storage.remove(path).catch(() => {}); // an unreferenced leftover, e.g. from a deleted app
   await storage.move(staging, path);
   const [inserted] = await db.insert(schema.assets).values({
-    workspaceId: ctx.workspaceId, appId: input.appId, kind: input.kind, storagePath: path, mime: type.mime,
-    width: dims.width ?? null, height: dims.height ?? null, bytes: size, sha256: input.sha256,
+    workspaceId: ctx.workspaceId, appId: input.appId, kind: input.kind, storagePath: path, mime: sniffed.mime,
+    width: sniffed.width ?? null, height: sniffed.height ?? null, bytes: size, sha256: input.sha256,
     // Recordings become playable once the worker has converted them.
     meta: input.kind === "recording" ? { ready: false } : null,
   }).onConflictDoNothing().returning();
