@@ -115,7 +115,7 @@ Before export, from the plan:
 |---|---|---|---|
 | App Store | `iphone_slot_missing` | Any iPhone size selected, but neither `ios-6.9` nor `ios-6.5` slot | error |
 | App Store | `ipad_slot_missing` | Any iPad size selected, but not `ipad-13` slot | error |
-| App Store | `count_out_of_range` | Not 1–10 screenshots per slot × locale × variant | error |
+| App Store | `count_out_of_range` | More than 10 screenshots per size × locale × variant | error |
 | Play | `phone_count_out_of_range` | Not 2–8 phone screenshots per locale | error |
 | Play | `feature_graphic_missing` | Any Play size selected, no 1024×500 feature graphic | error |
 | Play | `dimension_out_of_range` | A side outside 320–3840 px, or long side over 2× short side | error |
