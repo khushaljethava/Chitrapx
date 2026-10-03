@@ -1,16 +1,20 @@
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
-import { unzipSync } from "fflate";
+import { strFromU8, unzipSync } from "fflate";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
+import sharp from "sharp";
 import { createClient } from "@supabase/supabase-js";
 import { beforeAll, describe, expect, it } from "vitest";
 import { balance, db, renderUrl, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
-import { migrate, type ChitrapxDoc } from "@chitrapx/document";
+import { defaultSelection, exportPlan, fillScreenshots, migrate, type ChitrapxDoc, type ExportSelection, type TargetId } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { EXPORTS_BUCKET, pngSize, runExport } from "../src/export.ts";
+import { runBundle, runImport } from "../src/bundle.ts";
+import { bundleDeps } from "../src/handlers.ts";
 import { runJob } from "../src/runJob.ts";
 
 const GOLDEN = join(import.meta.dirname, "../../../packages/assets/golden");
@@ -206,4 +210,124 @@ describe("golden renders", () => {
       expect(diff / (actual.width * actual.height)).toBeLessThan(0.005);
     });
   }
+});
+
+const storageApi = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
+
+/** Fails when `png` differs from packages/assets/golden/<name> in more than 0.5% of pixels; writes it when missing or UPDATE_GOLDEN is set. */
+function compareGolden(name: string, png: Buffer) {
+  const actual = PNG.sync.read(png);
+  const refPath = join(GOLDEN, name);
+  if (process.env.UPDATE_GOLDEN || !existsSync(refPath)) { writeFileSync(refPath, PNG.sync.write(actual)); return; }
+  const ref = PNG.sync.read(readFileSync(refPath));
+  expect([actual.width, actual.height]).toEqual([ref.width, ref.height]);
+  const diff = pixelmatch(actual.data, ref.data, null, actual.width, actual.height, { threshold: 0.1 });
+  expect(diff / (actual.width * actual.height)).toBeLessThan(0.005);
+}
+
+/** A workspace with 10 credits and one app. */
+async function workspaceWithApp() {
+  const ws = await makeWorkspace((await createUser()).id);
+  await db.update(schema.workspaces).set({ plan: "pro" }).where(eq(schema.workspaces.id, ws));
+  await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: 10, reason: "adjust" });
+  const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "E2E" }).returning();
+  return { ws, appId: app!.id };
+}
+
+/** Pins the project's current document and queues an export of `selection`, as enqueueExport does. */
+async function pinnedExport(ws: string, projectId: string, selection: ExportSelection, type: "export" | "export_single" = "export") {
+  const [project] = await db.select().from(schema.projects).where(eq(schema.projects.id, projectId));
+  const [v] = await db.insert(schema.projectVersions).values({ workspaceId: ws, projectId, revision: project!.revision, doc: project!.doc }).returning();
+  const cost = type === "export" ? 1 : 0;
+  const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId, type, creditsReserved: cost, input: { selection, versionId: v!.id } }).returning();
+  if (cost) await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: -cost, reason: "reserve", jobId: job!.id });
+  return job!.id;
+}
+
+async function newProject(ws: string, appId: string, doc: ChitrapxDoc) {
+  const [p] = await db.insert(schema.projects).values({ workspaceId: ws, appId, name: "E2E", kind: doc.kind, doc }).returning();
+  return p!.id;
+}
+
+describe("sizes and export (SP8)", () => {
+  it("exports a derived size at its exact pixels, as RGB, with report.txt", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const { ws, appId } = await workspaceWithApp();
+    const selection = { targets: [doc.groups[0]!.target, "iphone-6.5"] as TargetId[], locales: [doc.localization.baseLocale] };
+    const jobId = await pinnedExport(ws, await newProject(ws, appId, doc), selection);
+    await runJob(jobId, (input, job) => runExport(input, job));
+    expect((await jobRow(jobId)).status).toBe("done");
+    const files = await zipFiles(ws, jobId);
+    const plan = exportPlan(doc, selection);
+    expect(Object.keys(files).sort()).toEqual([...plan.map((p) => p.file), "report.txt"].sort());
+    for (const item of plan) {
+      const png = Buffer.from(files[item.file]!);
+      expect(pngSize(png)).toEqual({ width: item.width, height: item.height });
+      expect(png[25]).toBe(2); // IHDR colour type 2: RGB, no alpha
+    }
+    expect(strFromU8(files["report.txt"]!)).toContain("Sizes made from another size");
+  });
+
+  it("renders the pinned version even when the project changes during the export", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const { ws, appId } = await workspaceWithApp();
+    const projectId = await newProject(ws, appId, doc);
+    const jobId = await pinnedExport(ws, projectId, defaultSelection(doc));
+    await db.update(schema.projects).set({ doc: { ...doc, groups: [] }, revision: 50 }).where(eq(schema.projects.id, projectId));
+    await runJob(jobId, (input, job) => runExport(input, job));
+    expect((await jobRow(jobId)).status).toBe("done");
+    expect(Object.keys(await zipFiles(ws, jobId))).toHaveLength(exportPlan(doc).length + 1);
+  });
+
+  it("a single PNG matches its golden image and costs nothing", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const { ws, appId } = await workspaceWithApp();
+    const g = doc.groups[0]!;
+    const jobId = await pinnedExport(ws, await newProject(ws, appId, doc),
+      { targets: [g.target], locales: [doc.localization.baseLocale], board: { groupId: g.id, boardIndex: 1 } }, "export_single");
+    await runJob(jobId, (input, job) => runExport(input, job, "single"));
+    expect((await jobRow(jobId)).status).toBe("done");
+    expect(await balance(db, ws)).toBe(10);
+    const { data, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${jobId}.png`);
+    if (error) throw error;
+    compareGolden("single-amoura-02.png", Buffer.from(await data.arrayBuffer()));
+  });
+
+  it("a project file imported into another app exports identical PNGs", async () => {
+    const { ws, appId } = await workspaceWithApp();
+    const shot = await sharp({ create: { width: 1179, height: 2556, channels: 3, background: "#3366ff" } }).png().toBuffer();
+    const hash = createHash("sha256").update(shot).digest("hex");
+    await storageApi().from("uploads").upload(`${ws}/${hash}`, shot, { contentType: "image/png", upsert: true });
+    const [asset] = await db.insert(schema.assets).values({ workspaceId: ws, appId, kind: "screenshot", storagePath: `${ws}/${hash}`, mime: "image/png", bytes: shot.length, sha256: hash, width: 1179, height: 2556 }).returning();
+    const doc = fillScreenshots(await templateDoc("amoura-dating"), [asset!.id]);
+    const sourceId = await newProject(ws, appId, doc);
+
+    const [bundleJob] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId: sourceId, type: "project_bundle", creditsReserved: 0 }).returning();
+    await runJob(bundleJob!.id, (input, job) => runBundle(input, job, bundleDeps));
+    expect((await jobRow(bundleJob!.id)).status).toBe("done");
+    const { data: file, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${bundleJob!.id}.chitrapx`);
+    if (error) throw error;
+    const uploadId = crypto.randomUUID();
+    await storageApi().from("uploads").upload(`${ws}/staging/${uploadId}`, Buffer.from(await file.arrayBuffer()), { contentType: "application/zip" });
+
+    const [target] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Target" }).returning();
+    const [importJob] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId: target!.id, uploadId, name: "Copy" } }).returning();
+    await runJob(importJob!.id, (input, job) => runImport(input, job, bundleDeps, async () => {}));
+    const imported = await jobRow(importJob!.id);
+    expect(imported.status).toBe("done");
+    const copyId = (imported.output as { projectId: string }).projectId;
+
+    const zips = [];
+    for (const projectId of [sourceId, copyId]) {
+      const jobId = await pinnedExport(ws, projectId, defaultSelection(doc));
+      await runJob(jobId, (input, job) => runExport(input, job));
+      expect((await jobRow(jobId)).status).toBe("done");
+      zips.push(await zipFiles(ws, jobId));
+    }
+    const [a, b] = zips as [Record<string, Uint8Array>, Record<string, Uint8Array>];
+    expect(Object.keys(b).sort()).toEqual(Object.keys(a).sort());
+    for (const name of Object.keys(a).filter((n) => n.endsWith(".png"))) {
+      expect(Buffer.compare(Buffer.from(a[name]!), Buffer.from(b[name]!)), name).toBe(0);
+    }
+  }, 300_000);
 });
