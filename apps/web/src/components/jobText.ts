@@ -14,6 +14,10 @@ const MESSAGES: Record<string, string> = {
   rate_limited: "Free downloads are limited to 30 per hour.",
   single_export_needs_one_board: "That board no longer exists. Reload and try again.",
   bundle_too_large: "This project's screenshots and recordings are over 500 MB, too large for one project file.",
+  bundle_invalid: "This is not a Chitrapx project file, or it is damaged.",
+  bundle_asset_mismatch: "A screenshot or recording in this project file is damaged.",
+  bundle_version_unsupported: "This project file was made by a newer version of Chitrapx.",
+  plan_limit: "Your plan's project limit is reached.",
   project_missing: "This project was deleted.",
   abandoned: "The job stopped unexpectedly.",
 };

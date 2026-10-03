@@ -2,7 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
-import { runBundle, type BundleDeps } from "./bundle.ts";
+import { runBundle, runImport, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
 import { createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
@@ -81,7 +81,7 @@ export const handlers: Record<JobType, JobHandler> = {
   export_single: (input, job) => runExport(input, job, "single"),
   project_bundle: (input, job) => runBundle(input, job, bundleDeps),
   // Implemented in Task 10; nothing enqueues it before then.
-  project_import: async () => { throw new FatalJobError("not_available"); },
+  project_import: (input, job) => runImport(input, job, bundleDeps),
   video: runVideo,
   process_recording: (input, job) => processRecording(input, job, recordingDeps),
   ai_design: (input, job) => runAiDesign(input, job, aiDeps()),

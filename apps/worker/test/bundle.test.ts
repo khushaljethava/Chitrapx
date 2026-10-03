@@ -1,11 +1,11 @@
 import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
-import { strFromU8, unzipSync } from "fflate";
+import { strFromU8, strToU8, unzipSync, zipSync } from "fflate";
 import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { db, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { runBundle, type BundleDeps } from "../src/bundle.ts";
+import { packBundle, runBundle, runImport, type BundleDeps } from "../src/bundle.ts";
 import { runJob } from "../src/runJob.ts";
 
 let PNG: Buffer;
@@ -59,5 +59,69 @@ describe("project_bundle", () => {
     const job = await jobRow(p.jobId);
     expect(job.status).toBe("failed");
     expect(job.error).toMatch(/^asset_missing/);
+  });
+});
+
+const docWith = (src: string) => ({ schemaVersion: 1, kind: "screenshots", localization: { baseLocale: "en-US", locales: [] },
+  groups: [{ id: "g1", target: "iphone-6.9", spanElements: [], boards: [{ id: "b1", name: "b1", position: { x: 0, y: 0 }, size: { width: 1290, height: 2796 }, backgroundColor: "#fff", zoom: 1,
+    elements: [{ id: "d", type: "device", position: { x: 0, y: 0 }, size: { width: 10, height: 10 }, screenshotSrc: src }] }] }] });
+const manifest = (over: object = {}) => ({ format: "chitrapx-project", version: 1, docSchema: 1, appName: "X", exportedAt: "2026-10-03T12:00:00Z",
+  assets: [{ sha256: sha(PNG), kind: "screenshot", mime: "image/png" }], ...over });
+const good = () => packBundle(manifest() as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: PNG });
+
+/** An import job for a fresh workspace (pro plan unless told otherwise) with `bundle` in staging. */
+async function importInto(bundle: Uint8Array, plan: "free" | "pro" = "pro", ws?: string, appId?: string) {
+  ws ??= await makeWorkspace((await createUser()).id);
+  await db.update(schema.workspaces).set({ plan }).where(eq(schema.workspaces.id, ws));
+  appId ??= (await db.insert(schema.apps).values({ workspaceId: ws, name: "Target" }).returning())[0]!.id;
+  const uploadId = crypto.randomUUID();
+  const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId, uploadId, name: "Imported" } }).returning();
+  const deps = memoryDeps();
+  deps.files.set(`${ws}/staging/${uploadId}`, Buffer.from(bundle));
+  await runJob(job!.id, (input, j) => runImport(input, j, deps, async () => {}));
+  return { ws, appId, uploadId, deps, job: await jobRow(job!.id) };
+}
+
+describe("project_import", () => {
+  it("creates a project whose sources point at this workspace's assets, and removes the upload", async () => {
+    const r = await importInto(good());
+    expect(r.job.status).toBe("done");
+    const projectId = (r.job.output as { projectId: string }).projectId;
+    const [p] = await db.select().from(schema.projects).where(eq(schema.projects.id, projectId));
+    expect(p).toMatchObject({ workspaceId: r.ws, appId: r.appId, name: "Imported" });
+    const src = (p!.doc as ReturnType<typeof docWith>).groups[0]!.boards[0]!.elements[0]!.screenshotSrc;
+    const [asset] = await db.select().from(schema.assets).where(eq(schema.assets.id, src.replace("asset:", "")));
+    expect(asset).toMatchObject({ workspaceId: r.ws, appId: r.appId, sha256: sha(PNG), mime: "image/png", width: 2, height: 3 });
+    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+    expect(r.deps.files.get(`uploads:${r.ws}/${sha(PNG)}`)).toEqual(PNG);
+  });
+
+  async function fails(bundle: Uint8Array, code: string) {
+    const r = await importInto(bundle);
+    expect(r.job.status).toBe("failed");
+    expect(r.job.error).toBe(code);
+    expect(await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, r.ws))).toEqual([]);
+    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+  }
+
+  it("rejects more than 500 entries before extracting", () =>
+    fails(zipSync(Object.fromEntries(Array.from({ length: 501 }, (_, i) => [`f${i}`, new Uint8Array(1)]))), "bundle_too_large"));
+  it("rejects a newer format version", () =>
+    fails(packBundle(manifest({ version: 2 }) as never, docWith("x") as never, {}), "bundle_version_unsupported"));
+  it("rejects an asset whose bytes do not match its name", () =>
+    fails(packBundle(manifest() as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: Buffer.from("not the png") }), "bundle_asset_mismatch"));
+  it("rejects a reference with no file", () =>
+    fails(packBundle(manifest({ assets: [] }) as never, docWith(`bundle:${"b".repeat(64)}`) as never, {}), "bundle_invalid"));
+  it("rejects an oversized document", () =>
+    fails(zipSync({ "manifest.json": strToU8(JSON.stringify(manifest({ assets: [] }))), "doc.json": new Uint8Array(5 * 1024 * 1024 + 1) }), "bundle_invalid"));
+  it("rejects a file that is not a zip", () => fails(strToU8("hello"), "bundle_invalid"));
+
+  it("stops at the plan's project limit, checked under the workspace lock", async () => {
+    const ws = await makeWorkspace((await createUser()).id);
+    const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Full" }).returning();
+    for (let i = 0; i < 3; i++) await db.insert(schema.projects).values({ workspaceId: ws, appId: app!.id, name: `p${i}`, kind: "screenshots", doc: docWith("x") });
+    const r = await importInto(good(), "free", ws, app!.id);
+    expect(r.job).toMatchObject({ status: "failed", error: "plan_limit" });
+    expect(await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, ws))).toHaveLength(3);
   });
 });

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PLANS } from "@chitrapx/db";
 import { BrandForm } from "@/components/BrandForm.tsx";
 import { DeleteAppButton } from "@/components/DeleteAppButton.tsx";
+import { ImportProjectButton } from "@/components/ImportProjectButton.tsx";
 import { ProjectList } from "@/components/ProjectList.tsx";
 import { getApp } from "@/server/apps.ts";
 import { requireContext } from "@/server/context.ts";
@@ -25,7 +26,10 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
           <Link href="/dashboard" className="text-sm text-neutral-500 hover:underline">Apps</Link>
           <h1 className="text-2xl font-semibold">{app.name}</h1>
         </div>
-        <DeleteAppButton appId={app.id} />
+        <div className="flex items-center gap-3">
+          <ImportProjectButton appId={app.id} />
+          <DeleteAppButton appId={app.id} />
+        </div>
       </div>
       <AiDesignCard appId={app.id} screenshotCount={assets.filter((a) => a.kind === "screenshot").length} />
       <ProjectList appId={app.id} projects={projects.map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt: updatedAt.toISOString() }))} maxProjects={PLANS[ctx.plan].maxProjects} />
