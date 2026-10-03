@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   allLocales, exportPlan, getTarget, MAX_EXPORT_ITEMS, presetSelection, sourcesFor, storeReadiness, suggestedSelection, TARGETS,
   type ChitrapxDoc, type ExportPreset, type ExportSelection, type Target, type TargetId,
@@ -32,9 +32,13 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const [error, setError] = useState("");
   const [open, setOpen] = useState<"app-store" | "play" | null>(null);
   const load = useCallback(async () => (await api<ExportJob[]>(`/api/projects/${projectId}/export`)).filter((j) => j.type === "export"), [projectId]);
+  const docRef = useRef(doc);
+  docRef.current = doc;
   const active = jobs.some((j) => j.status === "queued" || j.status === "running");
 
   useEffect(() => {
+    // Runs once per dialog open: later doc changes must not reset the user's ticks.
+    const doc = docRef.current;
     load().then((js) => {
       setJobs(js);
       const last = js.find((j) => j.input?.selection)?.input?.selection;
@@ -43,7 +47,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
       const reuse = last && { ...last, board: undefined, locales: last.locales.filter((l) => known.includes(l)) };
       setSelection(reuse?.locales.length ? reuse : suggestedSelection(doc));
     }).catch(() => setSelection(suggestedSelection(doc)));
-  }, [load, doc]);
+  }, [load]);
   useEffect(() => {
     if (!active) return;
     const t = setInterval(() => load().then(setJobs).catch(() => {}), 2000);
