@@ -8,3 +8,4 @@ export * from "./catalog.ts";
 export * from "./ai.ts";
 export * from "./aso.ts";
 export * from "./video.ts";
+export * from "./readiness.ts";
