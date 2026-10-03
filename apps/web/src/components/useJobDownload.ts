@@ -7,7 +7,7 @@ import { jobError } from "./jobText.ts";
 type Job = { id: string; status: string; error: string | null };
 
 /** Queues a free job, follows it, then downloads its file. `before` runs first (e.g. saving the editor). */
-export function useJobDownload() {
+export function useJobDownload(maxPolls = 120) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const alive = useRef(true);
@@ -19,7 +19,7 @@ export function useJobDownload() {
     try {
       if (before && !(await before())) { setError("Save your changes first."); return; }
       const { jobId } = await api<{ jobId: string }>(path, "POST", body);
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < maxPolls; i++) {
         await new Promise((r) => setTimeout(r, 1000));
         if (!alive.current) return;
         const job = await api<Job>(`/api/jobs/${jobId}`);

@@ -7,7 +7,7 @@ type P = { params: Promise<{ projectId: string }> };
 
 export const GET = route(async (_req: Request, { params }: P) => {
   const ctx = await requireContext();
-  return (await listJobs(ctx, { projectId: (await params).projectId })).filter((j) => j.type === "export" || j.type === "export_single");
+  return listJobs(ctx, { projectId: (await params).projectId, types: ["export"] });
 });
 export const POST = route(async (req: Request, { params }: P) => {
   const ctx = await requireContext();

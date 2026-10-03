@@ -7,6 +7,7 @@ import { MAX_BUNDLE_BYTES } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { HttpError } from "./http.ts";
+import { assertFreeQuota } from "./jobs.ts";
 import type { ObjectStorage } from "./storage.ts";
 import { stagingPath } from "./uploads.ts";
 
@@ -31,5 +32,8 @@ export async function enqueueImport(ctx: Ctx, boss: PgBoss, appId: string, raw: 
   await getApp(ctx, appId);
   const input = z.object({ uploadId: z.uuid(), name: z.string().trim().min(1).max(120) }).parse(raw);
   await assertProjectRoom(ctx);
-  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "project_import", input: { appId, ...input } }));
+  return withTx(async (tx) => {
+    await assertFreeQuota(tx, ctx.workspaceId);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "project_import", input: { appId, ...input } });
+  });
 }

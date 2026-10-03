@@ -24,7 +24,7 @@ export function ImportProjectButton({ appId }: { appId: string }) {
       if (upErr) throw new Error(upErr.message);
       const name = file.name.replace(/\.chitrapx$/i, "").slice(0, 120) || "Imported project";
       const { jobId } = await api<{ jobId: string }>(`/api/apps/${appId}/imports`, "POST", { uploadId: signed.uploadId, name });
-      for (let i = 0; i < 120; i++) {
+      for (let i = 0; i < 900; i++) {
         await new Promise((r) => setTimeout(r, 1000));
         if (!alive.current) return;
         const job = await api<Job>(`/api/jobs/${jobId}`);

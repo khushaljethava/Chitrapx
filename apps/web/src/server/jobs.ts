@@ -14,24 +14,26 @@ export async function enqueueNoop(ctx: Ctx, boss: PgBoss, input: { fail: boolean
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "noop", input }));
 }
 
-export async function listJobs(ctx: Ctx, opts: { projectId?: string; limit?: number } = {}): Promise<JobSummary[]> {
+export async function listJobs(ctx: Ctx, opts: { projectId?: string; limit?: number; types?: string[] } = {}): Promise<JobSummary[]> {
   return db.select({
     id: schema.jobs.id, type: schema.jobs.type, status: schema.jobs.status, error: schema.jobs.error,
     createdAt: schema.jobs.createdAt, finishedAt: schema.jobs.finishedAt, output: schema.jobs.output, input: schema.jobs.input,
   }).from(schema.jobs)
-    .where(and(eq(schema.jobs.workspaceId, ctx.workspaceId), opts.projectId ? eq(schema.jobs.projectId, opts.projectId) : undefined))
+    .where(and(eq(schema.jobs.workspaceId, ctx.workspaceId), opts.projectId ? eq(schema.jobs.projectId, opts.projectId) : undefined,
+      opts.types ? inArray(schema.jobs.type, opts.types) : undefined))
     .orderBy(desc(schema.jobs.createdAt)).limit(opts.limit ?? 10);
 }
 
-const exportBody = z.discriminatedUnion("kind", [
+// Tabs opened before SP8 post `{}`: a body without `kind` is a ZIP request.
+const exportBody = z.preprocess((v) => (v && typeof v === "object" && !Array.isArray(v) && !("kind" in v) ? { kind: "zip", ...v } : v), z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("zip"), selection: exportSelectionSchema.optional() }),
   z.object({ kind: z.literal("single"), groupId: z.string().min(1).max(100), boardIndex: z.number().int().min(0), locale: z.string().regex(LOCALE_CODE) }),
-]);
+]));
 
 export const FREE_JOBS_PER_HOUR = 30;
-const FREE_JOBS = ["export_single", "project_bundle"];
+export const FREE_JOBS = ["export_single", "project_bundle", "project_import"];
 
-/** Free downloads share an hourly allowance per workspace. Call inside the enqueue transaction. */
+/** Free downloads and imports share an hourly allowance per workspace. Call inside the enqueue transaction. */
 export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void> {
   await lockWorkspace(tx.db, workspaceId);
   const [{ n }] = (await tx.db.select({ n: count() }).from(schema.jobs).where(and(

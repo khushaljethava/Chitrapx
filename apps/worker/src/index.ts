@@ -8,8 +8,9 @@ await boss.start();
 
 for (const type of Object.keys(handlers) as JobType[]) {
   await boss.createQueue(type);
-  // ponytail: one process, 4 concurrent jobs per type; scale by running more worker containers.
-  await boss.work<{ jobId: string }>(type, { localConcurrency: 4, pollingIntervalSeconds: 1 }, async (jobs) => {
+  // ponytail: one process, 4 concurrent jobs per type (1 for bundles and imports, ~1 GB each at peak); scale by running more worker containers.
+  const localConcurrency = type === "project_bundle" || type === "project_import" ? 1 : 4;
+  await boss.work<{ jobId: string }>(type, { localConcurrency, pollingIntervalSeconds: 1 }, async (jobs) => {
     for (const job of jobs) await runJob(job.data.jobId, handlers[type], cleanups[type]);
   });
 }

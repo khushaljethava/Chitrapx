@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
-  allLocales, exportPlan, getTarget, MAX_EXPORT_ITEMS, presetSelection, sourcesFor, storeReadiness, suggestedSelection, TARGETS,
+  allLocales, exportPlan, getTarget, MAX_EXPORT_ITEMS, presetSelection, sourcesFor, storeOf, storeReadiness, suggestedSelection, TARGETS,
   type ChitrapxDoc, type ExportPreset, type ExportSelection, type Target, type TargetId,
 } from "@chitrapx/document";
 import { api, ApiError } from "@/server/api.ts";
@@ -62,7 +62,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const tooMany = plan.length > MAX_EXPORT_ITEMS;
   const stores = (["app-store", "play"] as const).filter((s) => issues.some((i) => i.store === s)
-    || plan.some((i) => (s === "play") === ["android", "play"].includes(getTarget(i.targetId)!.platform)));
+    || plan.some((i) => storeOf(getTarget(i.targetId)!.platform) === s));
 
   async function start() {
     setError("");
@@ -162,7 +162,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
                 <span className="text-neutral-500">{new Date(j.createdAt).toLocaleString()}</span>
                 {j.status === "done" ? (
                   <a className="font-medium text-indigo-600 hover:underline" href={`/api/jobs/${j.id}/download`}>
-                    Download {j.output?.files} PNGs ({((j.output?.bytes ?? 0) / 1024 / 1024).toFixed(1)} MB){j.output?.issues ? ` · ${j.output.issues} warnings` : ""}
+                    Download {j.output?.files} PNGs ({((j.output?.bytes ?? 0) / 1024 / 1024).toFixed(1)} MB){j.output?.issues ? ` · ${j.output.issues} issues` : ""}
                   </a>
                 ) : j.status === "failed" ? (
                   <span className="text-red-600" title={j.error ?? ""}>{jobError(j.error)}</span>

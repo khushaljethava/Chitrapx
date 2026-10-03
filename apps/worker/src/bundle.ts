@@ -40,6 +40,8 @@ export async function runBundle(_input: unknown, job: JobContext, deps: BundleDe
   if (!row) throw new FatalJobError("project_missing");
   const doc = migrate(row.doc);
   const ids = docAssetRefs(doc);
+  const badId = ids.find((id) => !z.uuid().safeParse(id).success);
+  if (badId !== undefined) throw new FatalJobError(`asset_missing:${badId}`);
   const assets = ids.length ? await db.select().from(schema.assets)
     .where(and(eq(schema.assets.workspaceId, job.workspaceId), inArray(schema.assets.id, ids))) : [];
   const byId = new Map(assets.map((a) => [a.id, a]));
@@ -60,6 +62,7 @@ export async function runBundle(_input: unknown, job: JobContext, deps: BundleDe
     assets: unique.map((a) => ({ sha256: a.sha256, kind: a.kind as BundleAssetKind, mime: a.mime })),
   };
   const zip = packBundle(manifest, bundled, files);
+  if (zip.byteLength > MAX_BUNDLE_BYTES || unique.length + 2 > MAX_BUNDLE_ENTRIES) throw new FatalJobError("bundle_too_large");
   const path = `${job.workspaceId}/${job.id}.chitrapx`;
   await deps.upload(path, zip, "application/zip", "exports");
   return { actual: PRICES.project_bundle, output: { path, bytes: zip.byteLength, assets: unique.length } };
@@ -109,6 +112,7 @@ async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets
   const parsed = bundleManifestSchema.safeParse(raw);
   if (!parsed.success) return fail("bundle_invalid");
   const manifest = parsed.data;
+  if (manifest.docSchema > CURRENT_SCHEMA_VERSION) fail("bundle_version_unsupported"); // before migrate sees a newer document
 
   let doc: ChitrapxDoc;
   try { doc = migrate(JSON.parse(strFromU8(take("doc.json", MAX_DOC_BYTES)))); } catch (err) { if (err instanceof FatalJobError || err instanceof ZipError) throw err; return fail("bundle_invalid"); }

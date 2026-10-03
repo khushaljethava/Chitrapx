@@ -8,6 +8,7 @@ import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts"
 import type { Ctx } from "@/server/context.ts";
 import { enqueueBundle, enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
 import { createApp } from "@/server/apps.ts";
+import { enqueueImport } from "@/server/imports.ts";
 import { createProject, getProject } from "@/server/projects.ts";
 import { seedTemplates } from "@chitrapx/db/seed";
 
@@ -19,6 +20,7 @@ beforeAll(async () => {
   await boss.createQueue("export");
   await boss.createQueue("export_single");
   await boss.createQueue("project_bundle");
+  await boss.createQueue("project_import");
   await boss.createQueue("process_recording");
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
@@ -233,5 +235,45 @@ describe("single PNG", () => {
     await expect(enqueueBundle(ctx, boss, p.id)).resolves.toHaveProperty("jobId");
     await db.insert(schema.jobs).values(Array.from({ length: 29 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single", creditsReserved: 0 })));
     await expect(enqueueBundle(ctx, boss, p.id)).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+  });
+});
+
+describe("sp8 final fixes", () => {
+  async function project() {
+    await seedTemplates();
+    const ctx = await ctxWith(5);
+    const app = await createApp(ctx, { name: "A" });
+    return { ctx, app, p: await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" }) };
+  }
+
+  it("a body without kind (an old tab) is a ZIP export", async () => {
+    const { ctx, p } = await project();
+    const { jobId } = await enqueueExport(ctx, boss, p.id, {});
+    expect((await db.select().from(schema.jobs).where(eq(schema.jobs.id, jobId)))[0]).toMatchObject({ type: "export" });
+  });
+
+  it("project imports share the free hourly allowance", async () => {
+    const { ctx, app } = await project();
+    const body = () => ({ uploadId: crypto.randomUUID(), name: "X" });
+    await expect(enqueueImport(ctx, boss, app.id, body())).resolves.toHaveProperty("jobId");
+    await db.insert(schema.jobs).values(Array.from({ length: 29 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single" as const, creditsReserved: 0 })));
+    await expect(enqueueImport(ctx, boss, app.id, body())).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+  });
+
+  it("listJobs filters by type in SQL, so single PNGs cannot push ZIPs out of the window", async () => {
+    const { ctx, p } = await project();
+    await enqueueExport(ctx, boss, p.id, { kind: "zip" });
+    await db.insert(schema.jobs).values(Array.from({ length: 12 }, () => ({ workspaceId: ctx.workspaceId, projectId: p.id, type: "export_single" as const, creditsReserved: 0 })));
+    const zips = await listJobs(ctx, { projectId: p.id, types: ["export"] });
+    expect(zips.map((j) => j.type)).toEqual(["export"]);
+  });
+
+  it("exportSource refuses a version of another project or workspace", async () => {
+    const a = await project();
+    const b = await project();
+    const job = await db.select().from(schema.jobs).where(eq(schema.jobs.id, (await enqueueExport(a.ctx, boss, a.p.id, { kind: "zip" })).jobId)).then((r) => r[0]!);
+    expect(await exportSource(job)).not.toBeNull();
+    expect(await exportSource({ ...job, projectId: b.p.id })).toBeNull();
+    expect(await exportSource({ ...job, workspaceId: b.ctx.workspaceId, projectId: a.p.id })).toBeNull();
   });
 });

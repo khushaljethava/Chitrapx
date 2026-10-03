@@ -10,9 +10,9 @@ export async function exportSource(job: { workspaceId: string; projectId: string
   Promise<{ doc: ChitrapxDoc; selection: ExportSelection } | null> {
   const input = (job.input ?? {}) as { versionId?: string; selection?: unknown; locales?: string[] };
   if (input.versionId) {
-    const [v] = await db.select({ doc: schema.projectVersions.doc }).from(schema.projectVersions)
+    const [v] = await db.select({ doc: schema.projectVersions.doc, projectId: schema.projectVersions.projectId }).from(schema.projectVersions)
       .where(and(eq(schema.projectVersions.id, input.versionId), eq(schema.projectVersions.workspaceId, job.workspaceId)));
-    return v ? { doc: migrate(v.doc), selection: exportSelectionSchema.parse(input.selection) } : null;
+    return v && v.projectId === job.projectId ? { doc: migrate(v.doc), selection: exportSelectionSchema.parse(input.selection) } : null;
   }
   // Queued before exports were pinned: the live project, every group's own size.
   if (!job.projectId) return null;

@@ -47,4 +47,6 @@ Three pieces, all reading the same environment variables (see `.env.example`).
 2. **Web** (Vercel): project root `apps/web`, install command `pnpm install`, env `DATABASE_URL` (transaction pooler URL), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET`. Leave `ENABLE_DEV_TOOLS` unset.
 3. **Worker** (Fly.io, Railway or any container host): `docker build -f apps/worker/Dockerfile .`, env `DATABASE_URL` (session pooler or direct URL, since pg-boss uses LISTEN/NOTIFY), `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET` (same value as the web app) and `WEB_ORIGIN`. It must run continuously; one instance processes 4 jobs per type at a time, add instances to scale.
 
+**SP8 (sizes and export)** needs no migration. Deploy the worker first, then web; export jobs already queued by the old worker or old browser tabs still run (web also creates the queues it sends to, idempotently).
+
 Health check: `GET /api/health` returns `{ "db": "ok", "queue": "ok" }` or HTTP 503.

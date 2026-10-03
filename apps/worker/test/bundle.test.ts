@@ -110,6 +110,8 @@ describe("project_import", () => {
     fails(zipSync(Object.fromEntries(Array.from({ length: 501 }, (_, i) => [`f${i}`, new Uint8Array(1)]))), "bundle_too_large"));
   it("rejects a newer format version", () =>
     fails(packBundle(manifest({ version: 2 }) as never, docWith("x") as never, {}), "bundle_version_unsupported"));
+  it("rejects a document schema newer than this build", () =>
+    fails(packBundle(manifest({ docSchema: 99 }) as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: PNG }), "bundle_version_unsupported"));
   it("rejects an asset whose bytes do not match its name", () =>
     fails(packBundle(manifest() as never, docWith(`bundle:${sha(PNG)}`) as never, { [`assets/${sha(PNG)}.png`]: Buffer.from("not the png") }), "bundle_asset_mismatch"));
   it("rejects a reference with no file", () =>
