@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { exportPlan, storeReadiness, type ChitrapxDoc, type ExportSelection } from "../src/index.ts";
+import { exportPlan, playSidesOk, storeReadiness, type ChitrapxDoc, type ExportSelection } from "../src/index.ts";
 import { board, doc, group, text } from "./fixtures.ts";
 
 const boards = (n: number, w = 1290, h = 2796) => Array.from({ length: n }, (_, i) => board(`b${i}`, [], w, h));
@@ -44,6 +44,40 @@ describe("storeReadiness: Google Play", () => {
   });
   it("checks screenshot sides but not the feature graphic's 2.05 ratio", () => {
     expect(codes(doc([phone(4), feature]), both)).not.toContain("error:dimension_out_of_range");
+  });
+});
+
+describe("storeReadiness: Google Play boundaries", () => {
+  const phone = (n: number, extra: object = {}) => ({ id: "a", target: "android-phone" as const, boards: boards(n, 1080, 1920), spanElements: [], ...extra });
+  const feature = { id: "f", target: "play-feature" as const, boards: boards(1, 1024, 500), spanElements: [] };
+  const both = { targets: ["android-phone", "play-feature"] as ExportSelection["targets"], locales: en };
+  it("accepts exactly 2 and exactly 8 phone screenshots", () => {
+    expect(codes(doc([phone(2), feature]), both)).not.toContain("error:phone_count_out_of_range");
+    expect(codes(doc([phone(8), feature]), both)).not.toContain("error:phone_count_out_of_range");
+  });
+  it("warns promo_ineligible when 4+ phone screenshots are under 1080 px", () => {
+    const d = doc([phone(4), feature]);
+    const plan = exportPlan(d, both).map((i) => (i.targetId === "android-phone" ? { ...i, width: 720, height: 1280 } : i));
+    expect(storeReadiness(plan, d).map((i) => `${i.severity}:${i.code}`)).toEqual(["warning:promo_ineligible"]);
+  });
+  it("does not count A/B variant phone items toward the 2 to 8 count", () => {
+    const d = doc([phone(1), phone(3, { id: "a2", variant: "B" }), feature]);
+    expect(codes(d, both)).toContain("error:phone_count_out_of_range");
+  });
+});
+
+describe("playSidesOk", () => {
+  it("accepts in-range sizes and the boundaries", () => {
+    expect(playSidesOk(1080, 1920)).toBe(true);
+    expect(playSidesOk(2560, 1600)).toBe(true);
+    expect(playSidesOk(320, 320)).toBe(true);
+    expect(playSidesOk(3840, 3840)).toBe(true);
+    expect(playSidesOk(1000, 2000)).toBe(true);
+  });
+  it("rejects a short side, a long side, and a ratio out of range", () => {
+    expect(playSidesOk(300, 600)).toBe(false);
+    expect(playSidesOk(4000, 2160)).toBe(false);
+    expect(playSidesOk(1000, 2100)).toBe(false);
   });
 });
 

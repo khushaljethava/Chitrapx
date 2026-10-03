@@ -19,6 +19,12 @@ const APP_STORE_MAX = 10;
 const PLAY_PHONE = { min: 2, max: 8, promo: 4, promoSide: 1080 };
 const PLAY_SIDE = { min: 320, max: 3840 };
 
+/** Google Play screenshot sides: 320 to 3840 px each, long side at most twice the short side. */
+export function playSidesOk(width: number, height: number): boolean {
+  const lo = Math.min(width, height), hi = Math.max(width, height);
+  return lo >= PLAY_SIDE.min && hi <= PLAY_SIDE.max && hi <= 2 * lo;
+}
+
 function groupBy<K>(items: ExportItem[], key: (i: ExportItem) => K): Map<K, ExportItem[]> {
   const m = new Map<K, ExportItem[]>();
   for (const i of items) m.set(key(i), [...(m.get(key(i)) ?? []), i]);
@@ -66,8 +72,7 @@ export function storeReadiness(plan: ExportItem[], doc: ChitrapxDoc): ReadinessI
   }
   for (const id of new Set(play.filter((i) => i.targetId !== "play-feature").map((i) => i.targetId))) {
     const t = getTarget(id)!;
-    const lo = Math.min(t.width, t.height), hi = Math.max(t.width, t.height);
-    if (lo < PLAY_SIDE.min || hi > PLAY_SIDE.max || hi > 2 * lo) {
+    if (!playSidesOk(t.width, t.height)) {
       out.push({ store: "play", severity: "error", code: "dimension_out_of_range", targetId: id,
         message: `${t.label} is ${t.width}×${t.height}. Google Play needs each side from ${PLAY_SIDE.min} to ${PLAY_SIDE.max} px and the long side at most twice the short side.` });
     }
