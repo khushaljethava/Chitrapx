@@ -31,7 +31,7 @@ New entries in `packages/document/src/targets.ts`. `Target` gains `slot: string`
 | `watch` | `watch-s3` | 312×390 |
 | `preview` | `app-preview-landscape` | 1920×886 |
 
-- `iphone-6.9-1320` becomes the default for new 6.9" groups (template seed, AI design, "Add a store size"). `iphone-6.9` (1290×2796) stays valid in the same slot.
+- `iphone-6.9-1320` is listed first among iPhone sizes in "Add a store size" and the export dialog. Templates keep their 1290×2796 boards (`iphone-6.9`), which stays valid in the same slot.
 - CarPlay is not a size (App Store Connect takes it in the iPhone slot); it moves to SP10 as a device frame.
 - **First implementation task:** check every size above, and every rule in section 4, against Apple's and Google's current help pages, and correct this table before writing code.
 
@@ -81,7 +81,7 @@ A derived item is `letterboxed` whenever source and target aspect ratios differ 
 - Size grid grouped by platform, ordered by slot. Each size is tagged *Designed*, *Auto from <size>*, or *Letterboxed*; letterboxed sizes offer "Add as editable size" (existing `addGroupFromTarget` command).
 - Language checkboxes, all on by default.
 - Footer: live PNG count (error state above 200), store-readiness summary (section 4), **Export ZIP (1 credit)**.
-- The last selection is saved in `doc.exportPrefs?: ExportSelection` (new optional field, added by a `migrate` step).
+- The dialog opens with the selection of the project's latest export job (`jobs.input.selection`); with none, it opens on *App Store required* and/or *Play required* for the platforms the project has. No document field.
 - Export history moves into the dialog; a finished row reads "Download 84 PNGs · 2 warnings".
 
 **Single PNG:**
@@ -139,7 +139,8 @@ After export, in the worker, per PNG:
 A zip, version 1:
 
 ```
-manifest.json            { format: "chitrapx-project", version: 1, docSchema, appName, exportedAt }
+manifest.json            { format: "chitrapx-project", version: 1, docSchema, appName, exportedAt,
+                           assets: [{ sha256, kind: "screenshot" | "image" | "recording", mime }] }
 doc.json                 document; every "asset:<uuid>" source rewritten to "bundle:<sha256>"
 assets/<sha256>.<ext>    original of every referenced image, screenshot and recording
 ```
@@ -147,23 +148,24 @@ assets/<sha256>.<ext>    original of every referenced image, screenshot and reco
 - Recordings ship as the uploaded original, not the converted `.webm`; import queues `process_recording` (free). Public paths and Google Font URLs are kept as is. Fonts join in SP10.
 - `docSchema` is the document version `migrate` produces. `exportedAt` is an ISO 8601 UTC timestamp, e.g. `2026-10-03T12:00:00Z`.
 
-**Download project file:** job `project_bundle` (0 credits, shares the free-job rate limit), output `<workspace>/<jobId>.chitrapx` in the exports bucket, downloaded through `/api/jobs/:id/download`.
+**Download project file:** job `project_bundle` (0 credits, shares the free-job rate limit; fails with `bundle_too_large` when the assets total over 500 MB, since such a file could not be imported), output `<workspace>/<jobId>.chitrapx` in the exports bucket, downloaded through `/api/jobs/:id/download`.
 
 **Import project** (on an app page):
 
-1. Plan project limit checked; over it, HTTP 403 `free_limit_reached`, no upload.
-2. Browser uploads the file to a private `imports` bucket through the existing signed-upload flow (limit 2 GB).
+1. Plan project limit checked; over it, HTTP 403 `plan_limit` (the existing code), no upload.
+2. Browser uploads the file to a staging path in the existing private `uploads` bucket (`<workspace>/staging/<uploadId>`, the same place uploads stage), limit 500 MB, the bucket's limit.
 3. Job `project_import` (0 credits) treats the file as untrusted:
-   - At most 500 entries and 2 GB total uncompressed, checked from the central directory before extracting; each entry within its asset kind's limit (25 MB image, 500 MB recording). Else `bundle_too_large`.
+   - At most 500 entries and 500 MB total uncompressed, checked from the central directory before extracting; each entry within its asset kind's limit (25 MB image, 500 MB recording). Else `bundle_too_large`.
    - `manifest.format` and `version` supported, else `bundle_version_unsupported`. `doc.json` passes `migrate` then Zod and fits `MAX_DOC_BYTES`, else `bundle_invalid`.
-   - Each asset: sha256 of the bytes equals its filename, MIME sniffed, SVG sanitized, using the checks extracted from `uploads.ts` into a shared function. Mismatch: `bundle_asset_mismatch`.
+   - Each asset: sha256 of the bytes equals its filename, kind and MIME match `manifest.assets`, MIME sniffed with the same accepted types as uploads (SVG stays rejected, as for uploads), using the checks moved from `uploads.ts` into `packages/db/src/assetCheck.ts`. Mismatch: `bundle_asset_mismatch`.
    - Every `bundle:` source in the document has a file, else `bundle_invalid`.
    - Insert assets (dedupe through the existing `(workspace, app, sha256)` unique key), rewrite sources back to `asset:<id>`, create the project, all in one transaction.
 4. The uploaded file is deleted whether the import succeeds or fails. On failure nothing else is created.
 
 ## 6. Errors
 
-- New user-facing codes in `jobText.ts`: `rate_limited`, `bundle_invalid`, `bundle_too_large`, `bundle_asset_mismatch`, `bundle_version_unsupported`, `free_limit_reached`.
+- New user-facing codes in `jobText.ts`: `rate_limited`, `bundle_invalid`, `bundle_too_large`, `bundle_asset_mismatch`, `bundle_version_unsupported`. Project limits reuse the existing `plan_limit`.
+- Export jobs queued before this ships carry `{ locales }` and no `versionId`; they still run against the live project with every group's own target selected, as today.
 - `export_single`, `project_bundle` and `project_import` are ordinary jobs with price 0: same retries, same fatal handling, no ledger rows.
 
 ## 7. Testing
@@ -172,8 +174,7 @@ assets/<sha256>.<ext>    original of every referenced image, screenshot and reco
   - source selection: exact, variants, same platform, cross-platform, 5% letterbox threshold;
   - each `storeReadiness` rule, both passing and failing;
   - `resolveGroup` equals a stored `retarget`;
-  - bundle doc rewrite round-trip (`asset:` -> `bundle:` -> `asset:`);
-  - `migrate` step adding `exportPrefs`.
+  - bundle doc rewrite round-trip (`asset:` -> `bundle:` -> `asset:`).
 - **Vitest, worker:** alpha flattening; `report.txt` content; import rejects a zip bomb, a sha256 mismatch, a dangling `bundle:` source, an unknown version, an oversized document.
 - **Vitest, web:** 31st free job in an hour returns 429; POST route union accepts `zip` and `single` and rejects anything else.
 - **E2E** (`test:e2e`, golden images):
