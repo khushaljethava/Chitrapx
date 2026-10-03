@@ -13,6 +13,12 @@ export const PRICES = {
   video: 3,
   /** Converting an uploaded screen recording for playback. Free. */
   process_recording: 0,
+  /** One board as a PNG. Free, limited per hour (FREE_JOBS_PER_HOUR in the web app). */
+  export_single: 0,
+  /** Download the project as a .chitrapx file. Free, limited per hour. */
+  project_bundle: 0,
+  /** Create a project from a .chitrapx file. Free. */
+  project_import: 0,
 } as const;
 
 export type JobType = keyof typeof PRICES;

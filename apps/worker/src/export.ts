@@ -40,7 +40,7 @@ async function launch(): Promise<Browser> {
 }
 
 /** Renders every board x locale of the job's project at exact store size and stores a ZIP. */
-export async function runExport(input: unknown, job: JobContext): Promise<{ actual: number; output: unknown }> {
+export async function runExport(input: unknown, job: JobContext, kind: "zip" | "single" = "zip"): Promise<{ actual: number; output: unknown }> {
   const src = await exportSource({ workspaceId: job.workspaceId, projectId: job.projectId, input });
   if (!src) throw new FatalJobError("project_missing");
   const check = checkExportable(src.doc, src.selection);
@@ -72,6 +72,15 @@ export async function runExport(input: unknown, job: JobContext): Promise<{ actu
     }
   } finally {
     await browser.close();
+  }
+
+  if (kind === "single") {
+    const only = plan.length === 1 ? files[plan[0]!.file] : undefined;
+    if (!only) throw new FatalJobError("single_export_needs_one_board");
+    const path = `${job.workspaceId}/${job.id}.png`;
+    const { error } = await storage().upload(path, only, { contentType: "image/png", upsert: true });
+    if (error) throw new Error(`upload failed: ${error.message}`);
+    return { actual: PRICES.export_single, output: { path, files: 1, bytes: only.byteLength } };
   }
 
   const zip = zipSync(files, { level: 0 }); // PNGs are already compressed

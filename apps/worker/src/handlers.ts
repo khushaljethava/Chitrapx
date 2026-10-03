@@ -60,6 +60,10 @@ export const handlers: Record<JobType, JobHandler> = {
     return { actual: PRICES.noop, output: { ok: true } };
   },
   export: runExport,
+  export_single: (input, job) => runExport(input, job, "single"),
+  // Implemented in Tasks 9 and 10; nothing enqueues these before then.
+  project_bundle: async () => { throw new FatalJobError("not_available"); },
+  project_import: async () => { throw new FatalJobError("not_available"); },
   video: runVideo,
   process_recording: (input, job) => processRecording(input, job, recordingDeps),
   ai_design: (input, job) => runAiDesign(input, job, aiDeps()),

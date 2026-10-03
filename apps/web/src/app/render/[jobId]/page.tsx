@@ -22,7 +22,7 @@ export default async function RenderPage({ params, searchParams }: {
   const { exp, sig, items } = await searchParams;
   if (!verifyRenderSig(jobId, exp, sig)) notFound();
   const [job] = await db.select().from(schema.jobs)
-    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), inArray(schema.jobs.type, ["export", "video"])));
+    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), inArray(schema.jobs.type, ["export", "export_single", "video"])));
   if (!job?.projectId) notFound();
   if (job.type === "video") {
     const [project] = await db.select().from(schema.projects)

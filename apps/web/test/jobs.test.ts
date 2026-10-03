@@ -8,7 +8,7 @@ import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts"
 import type { Ctx } from "@/server/context.ts";
 import { enqueueExport, enqueueNoop, exportDownloadUrl, listJobs, queueRecordingProcessing } from "@/server/jobs.ts";
 import { createApp } from "@/server/apps.ts";
-import { createProject } from "@/server/projects.ts";
+import { createProject, getProject } from "@/server/projects.ts";
 import { seedTemplates } from "@chitrapx/db/seed";
 
 let boss: PgBoss;
@@ -17,6 +17,7 @@ beforeAll(async () => {
   await boss.start();
   await boss.createQueue("noop");
   await boss.createQueue("export");
+  await boss.createQueue("export_single");
   await boss.createQueue("process_recording");
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
@@ -174,5 +175,52 @@ describe("pinned exports", () => {
     const { ctx, p } = await templateProject();
     await expect(enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["iphone-6.9"], locales: ["xx-XX"] } })).rejects.toMatchObject({ code: "unknown_locale" });
     await expect(enqueueExport(ctx, boss, p.id, { kind: "zip", selection: { targets: ["nope"], locales: ["en-US"] } })).rejects.toBeInstanceOf(ZodError);
+  });
+});
+
+describe("single PNG", () => {
+  async function project(credits = 0) {
+    await seedTemplates();
+    const ctx = await ctxWith(credits);
+    const app = await createApp(ctx, { name: "A" });
+    const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
+    return { ctx, p: await getProject(ctx, p.id) };
+  }
+  const single = (p: Awaited<ReturnType<typeof project>>["p"], boardIndex = 0) =>
+    ({ kind: "single", groupId: p.doc.groups[0]!.id, boardIndex, locale: "en-US" });
+
+  it("costs nothing and pins one board", async () => {
+    const { ctx, p } = await project(0);
+    const g = p.doc.groups[0]!;
+    const { jobId } = await enqueueExport(ctx, boss, p.id, single(p, 1));
+    const [job] = await db.select().from(schema.jobs).where(eq(schema.jobs.id, jobId));
+    expect(job).toMatchObject({ type: "export_single", creditsReserved: 0 });
+    expect((job!.input as { selection: unknown }).selection).toEqual({ targets: [g.target], locales: ["en-US"], board: { groupId: g.id, boardIndex: 1 } });
+    expect(await balance(db, ctx.workspaceId)).toBe(0);
+  });
+
+  it("rejects a board that does not exist", async () => {
+    const { ctx, p } = await project();
+    await expect(enqueueExport(ctx, boss, p.id, single(p, 999))).rejects.toMatchObject({ status: 400, code: "unknown_board" });
+  });
+
+  it("allows 30 free jobs per hour, then 429 without a job row", async () => {
+    const { ctx, p } = await project();
+    await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single" as const, creditsReserved: 0 })));
+    const before = (await listJobs(ctx, { limit: 100 })).length;
+    await expect(enqueueExport(ctx, boss, p.id, single(p))).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+    expect((await listJobs(ctx, { limit: 100 })).length).toBe(before);
+  });
+
+  it("does not count jobs older than an hour", async () => {
+    const { ctx, p } = await project();
+    const old = new Date(Date.now() - 61 * 60_000);
+    await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single" as const, creditsReserved: 0, createdAt: old })));
+    await expect(enqueueExport(ctx, boss, p.id, single(p))).resolves.toHaveProperty("jobId");
+  });
+
+  it("rejects an unknown kind", async () => {
+    const { ctx, p } = await project();
+    await expect(enqueueExport(ctx, boss, p.id, { kind: "gif" })).rejects.toBeInstanceOf(ZodError);
   });
 });

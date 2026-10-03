@@ -1,8 +1,8 @@
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
-import { db, reserveAndEnqueue, schema, withTx, type Tx } from "@chitrapx/db";
-import { allLocales, checkExportable, defaultSelection, exportSelectionSchema, LOCALE_CODE, VIDEO_FORMAT_IDS, type ChitrapxDoc } from "@chitrapx/document";
+import { db, lockWorkspace, reserveAndEnqueue, schema, withTx, type Tx } from "@chitrapx/db";
+import { allLocales, checkExportable, defaultSelection, exportSelectionSchema, LOCALE_CODE, VIDEO_FORMAT_IDS, type ChitrapxDoc, type ExportSelection } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 import { getProject, pendingAssetSrcs } from "./projects.ts";
@@ -23,7 +23,23 @@ export async function listJobs(ctx: Ctx, opts: { projectId?: string; limit?: num
     .orderBy(desc(schema.jobs.createdAt)).limit(opts.limit ?? 10);
 }
 
-const exportBody = z.object({ kind: z.literal("zip").default("zip"), selection: exportSelectionSchema.optional() });
+const exportBody = z.discriminatedUnion("kind", [
+  z.object({ kind: z.literal("zip"), selection: exportSelectionSchema.optional() }),
+  z.object({ kind: z.literal("single"), groupId: z.string().min(1).max(100), boardIndex: z.number().int().min(0), locale: z.string().regex(LOCALE_CODE) }),
+]);
+
+export const FREE_JOBS_PER_HOUR = 30;
+const FREE_JOBS = ["export_single", "project_bundle"];
+
+/** Free downloads share an hourly allowance per workspace. Call inside the enqueue transaction. */
+export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void> {
+  await lockWorkspace(tx.db, workspaceId);
+  const [{ n }] = (await tx.db.select({ n: count() }).from(schema.jobs).where(and(
+    eq(schema.jobs.workspaceId, workspaceId), inArray(schema.jobs.type, FREE_JOBS),
+    gt(schema.jobs.createdAt, sql`now() - interval '1 hour'`),
+  ))) as [{ n: number }];
+  if (n >= FREE_JOBS_PER_HOUR) throw new HttpError(429, "rate_limited", `Free downloads are limited to ${FREE_JOBS_PER_HOUR} per hour.`);
+}
 
 /** The version row exports read, so later edits never change a queued export. One per revision. */
 export async function pinVersion(tx: Tx, ctx: Ctx, project: { id: string; revision: number; doc: ChitrapxDoc }): Promise<string> {
@@ -38,19 +54,26 @@ export async function pinVersion(tx: Tx, ctx: Ctx, project: { id: string; revisi
   return ins!.id;
 }
 
-/** Charges 1 credit and queues a ZIP of the chosen sizes and languages (every group's own size and every language by default). */
+/** A ZIP of chosen sizes and languages (1 credit), or one board as a PNG (free, limited per hour). */
 export async function enqueueExport(ctx: Ctx, boss: PgBoss, projectId: string, raw: unknown): Promise<{ jobId: string }> {
   const project = await getProject(ctx, projectId);
-  const body = exportBody.parse(raw ?? {});
+  const body = exportBody.parse(raw ?? { kind: "zip" });
   if (!project.doc.groups.some((g) => g.boards.length)) throw badRequest("project_is_empty");
-  const selection = body.selection ?? defaultSelection(project.doc);
+  let selection: ExportSelection;
+  if (body.kind === "single") {
+    const g = project.doc.groups.find((x) => x.id === body.groupId);
+    if (!g?.boards[body.boardIndex]) throw badRequest("unknown_board");
+    selection = { targets: [g.target], locales: [body.locale], board: { groupId: g.id, boardIndex: body.boardIndex } };
+  } else selection = body.selection ?? defaultSelection(project.doc);
   if (selection.locales.some((l) => !allLocales(project.doc).includes(l))) throw badRequest("unknown_locale");
   await requireRecordingsReady(ctx, project.doc);
   const check = checkExportable(project.doc, selection);
   if (!check.ok) throw badRequest(check.code);
+  const type = body.kind === "single" ? "export_single" : "export";
   return withTx(async (tx) => {
+    if (type === "export_single") await assertFreeQuota(tx, ctx.workspaceId);
     const versionId = await pinVersion(tx, ctx, project);
-    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "export", input: { selection, versionId } });
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type, input: { selection, versionId } });
   });
 }
 
@@ -112,14 +135,16 @@ export async function enqueueVideo(ctx: Ctx, boss: PgBoss, projectId: string, ra
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "video", input }));
 }
 
-/** A short-lived download link for a finished export (ZIP) or video (MP4) in this workspace. */
+export const DOWNLOAD_EXT = { export: "zip", export_single: "png", video: "mp4", project_bundle: "chitrapx" } as const;
+
+/** A short-lived download link for a finished export, single PNG, video or project file in this workspace. */
 export async function exportDownloadUrl(ctx: Ctx, storage: Pick<ObjectStorage, "signedDownload">, jobId: string): Promise<string> {
   if (!z.uuid().safeParse(jobId).success) throw notFound();
   const [job] = await db.select().from(schema.jobs)
-    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.workspaceId, ctx.workspaceId), inArray(schema.jobs.type, ["export", "video"])));
+    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.workspaceId, ctx.workspaceId), inArray(schema.jobs.type, Object.keys(DOWNLOAD_EXT))));
   if (!job) throw notFound();
   if (job.status !== "done") throw new HttpError(409, "not_ready");
-  const ext = job.type === "video" ? "mp4" : "zip";
+  const ext = DOWNLOAD_EXT[job.type as keyof typeof DOWNLOAD_EXT];
   // Built from ids, never from stored output, so a download can only ever reach this workspace's files.
-  return storage.signedDownload(`${ctx.workspaceId}/${job.id}.${ext}`, `chitrapx-${job.type}-${job.id.slice(0, 8)}.${ext}`);
+  return storage.signedDownload(`${ctx.workspaceId}/${job.id}.${ext}`, `chitrapx-${job.type.replace("_", "-")}-${job.id.slice(0, 8)}.${ext}`);
 }
