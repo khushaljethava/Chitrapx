@@ -5,7 +5,7 @@ import { foldCount, MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/docum
 import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
-import { expandToGroups } from "../selection.ts";
+import { expandToGroups, selectableRefs } from "../selection.ts";
 import { resizeBox, rotationFromPointer, snapMove, type Box, type Handle } from "../geometry.ts";
 
 const SNAP_PX = 6;
@@ -135,7 +135,8 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
       dx += snap.dx; dy += snap.dy;
       setGuides({ x: snap.guides.x.map((x) => x + d.boardOffset), y: snap.guides.y });
       const step = { x: dx - d.applied.x, y: dy - d.applied.y };
-      if (step.x || step.y) s.apply({ type: "moveElements", refs: s.selection, dx: step.x, dy: step.y }, { transient: true });
+      const refs = selectableRefs(s.doc, s.selection);
+      if ((step.x || step.y) && refs.length) s.apply({ type: "moveElements", refs, dx: step.x, dy: step.y }, { transient: true });
       d.applied = { x: dx, y: dy };
     } else if (d.kind === "resize") {
       const r = resizeBox(d.start, d.handle, p.x - d.startX, p.y - d.startY, d.lock || e.shiftKey);
