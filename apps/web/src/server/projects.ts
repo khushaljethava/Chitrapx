@@ -7,6 +7,7 @@ import type { Ctx } from "./context.ts";
 import { badRequest, ConflictError, HttpError, notFound } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 import { getTemplate } from "./templates.ts";
+import { pruneVersions } from "./versions.ts";
 
 const name = z.string().trim().min(1).max(120);
 const createInput = z.object({ name, kind: z.enum(projectKinds).optional(), templateSlug: z.string().min(1).max(120).optional() })
@@ -146,6 +147,7 @@ export async function saveDoc(ctx: Ctx, projectId: string, raw: unknown): Promis
     }
     if (row.revision % AUTO_SNAPSHOT_EVERY === 0) {
       await tx.insert(schema.projectVersions).values({ workspaceId: ctx.workspaceId, projectId, revision: row.revision, doc, createdBy: ctx.userId });
+      await pruneVersions(tx, ctx.workspaceId, projectId);
     }
     return { revision: row.revision };
   });

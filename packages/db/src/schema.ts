@@ -93,9 +93,10 @@ export const projectVersions = pgTable("project_versions", {
   revision: integer("revision").notNull(),
   doc: jsonb("doc").notNull(),
   label: text("label"),
+  kind: text("kind").$type<"auto" | "export" | "restore" | "named">().notNull().default("auto"),
   createdBy: uuid("created_by").references(() => authUsers.id, { onDelete: "set null" }),
   createdAt: createdAt(),
-}, (t) => [index("project_versions_project_idx").on(t.projectId)]);
+}, (t) => [index("project_versions_project_idx").on(t.projectId), index("project_versions_project_created_idx").on(t.projectId, t.createdAt.desc())]);
 
 export const assets = pgTable("assets", {
   id: id(),

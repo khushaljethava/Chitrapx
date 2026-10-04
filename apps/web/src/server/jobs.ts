@@ -7,6 +7,7 @@ import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 import { getProject, pendingAssetSrcs } from "./projects.ts";
 import type { ObjectStorage } from "./storage.ts";
+import { pruneVersions } from "./versions.ts";
 
 export type JobSummary = Pick<typeof schema.jobs.$inferSelect, "id" | "type" | "status" | "error" | "createdAt" | "finishedAt" | "output" | "input">;
 
@@ -51,8 +52,9 @@ export async function pinVersion(tx: Tx, ctx: Ctx, project: { id: string; revisi
     .limit(1);
   if (v) return v.id;
   const [ins] = await tx.db.insert(schema.projectVersions).values({
-    workspaceId: ctx.workspaceId, projectId: project.id, revision: project.revision, doc: project.doc, label: "export", createdBy: ctx.userId,
+    workspaceId: ctx.workspaceId, projectId: project.id, revision: project.revision, doc: project.doc, kind: "export", label: "export", createdBy: ctx.userId,
   }).returning({ id: schema.projectVersions.id });
+  await pruneVersions(tx.db, ctx.workspaceId, project.id);
   return ins!.id;
 }
 
