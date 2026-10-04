@@ -39,6 +39,13 @@ export function Canvas() {
   const drag = useRef<Drag | null>(null);
   const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
 
+  useEffect(() => {
+    const clear = () => setFileOver(false);
+    window.addEventListener("dragend", clear);
+    window.addEventListener("drop", clear);
+    return () => { window.removeEventListener("dragend", clear); window.removeEventListener("drop", clear); };
+  }, []);
+
   const group = doc.groups.find((g) => g.id === groupId);
   const boardW = group?.boards[0]?.size.width ?? 1;
   const boardH = group?.boards[0]?.size.height ?? 1;
@@ -171,7 +178,7 @@ export function Canvas() {
   return (
     <div ref={viewport} className="relative flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-900"
       onDragOver={(e) => { if (!isFileDrag(e.dataTransfer)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setFileOver(true); }}
-      onDragLeave={(e) => { if (e.currentTarget === e.target) setFileOver(false); }}
+      onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFileOver(false); }}
       onDrop={(e) => {
         if (!isFileDrag(e.dataTransfer) || !layer.current || !group) return;
         e.preventDefault();
@@ -244,12 +251,13 @@ export function Canvas() {
               <div className="flex gap-1">
                 <button type="button" className="btn px-2 py-0.5 text-xs" onClick={() => intake.choose("boards")}>Create a board for each</button>
                 <button type="button" className="btn-ghost px-2 py-0.5 text-xs" onClick={() => intake.choose("here")}>Add here as images</button>
+                <button type="button" className="btn-ghost px-2 py-0.5 text-xs" onClick={() => intake.choose("cancel")}>Cancel</button>
               </div>
             </div>
           )}
           {intake.errors.length > 0 && (
             <div>
-              <ul className="error list-disc pl-4 text-xs">{intake.errors.map((m) => <li key={m}>{m}</li>)}</ul>
+              <ul className="error list-disc pl-4 text-xs">{intake.errors.map((m, i) => <li key={i}>{m}</li>)}</ul>
               <button type="button" className="text-xs text-neutral-500 hover:underline" onClick={intake.clearErrors}>Dismiss</button>
             </div>
           )}

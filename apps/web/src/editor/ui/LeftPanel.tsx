@@ -112,12 +112,14 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="label mb-0">Boards</h2>
+          <div className="flex gap-3">
           <button type="button" className="text-xs text-indigo-600 hover:underline" onClick={addBoard} disabled={!group}>Add board</button>
           <label className="cursor-pointer text-xs text-indigo-600 hover:underline">
             Import folder
             <input type="file" multiple accept="image/png,image/jpeg,image/webp" className="sr-only" {...{ webkitdirectory: "" }}
               onChange={(e) => { const list = Array.from(e.target.files ?? []); e.target.value = ""; if (list.length) void intake.importBoards(list); }} />
           </label>
+          </div>
         </div>
         <ol className="space-y-1">
           {group?.boards.map((b, i) => (
@@ -139,7 +141,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
           ))}
         </ol>
         {intake.progress && <p className="text-xs text-neutral-500">{intake.progress}</p>}
-        {intake.errors.length > 0 && <ul className="error list-disc pl-4 text-xs" role="alert">{intake.errors.map((m) => <li key={m}>{m}</li>)}</ul>}
+        {intake.errors.length > 0 && <ul className="error list-disc pl-4 text-xs" role="alert">{intake.errors.map((m, i) => <li key={i}>{m}</li>)}</ul>}
         {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free downloads") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
 
