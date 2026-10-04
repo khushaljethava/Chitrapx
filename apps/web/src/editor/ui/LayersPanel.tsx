@@ -28,8 +28,8 @@ export function LayersPanel() {
         <LayerList title="Across boards" groupId={groupId} boardId={null} elements={group.spanElements} />
       )}
       <LayerList groupId={groupId} boardId={board.id} elements={board.elements} />
-      <div className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-neutral-500" aria-label="Background (always at the bottom)">
-        <span className="w-4 text-center">▤</span><span className="flex-1">Background</span>
+      <div className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-neutral-500">
+        <span className="w-4 text-center">▤</span><span className="flex-1">Background <span className="text-xs">(always at the bottom)</span></span>
       </div>
     </section>
   );
@@ -106,9 +106,15 @@ function LayerList({ title, groupId, boardId, elements }: { title?: string; grou
   );
 }
 
-function InlineName({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
+function InlineName({ value, onCommit, onSelect }: { value: string; onCommit: (v: string) => void; onSelect?: (shift: boolean) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
-  if (draft === null) return <span className="flex-1 truncate" onDoubleClick={() => setDraft(value)}>{value}</span>;
+  if (draft === null) {
+    return (
+      <button type="button" className="flex-1 truncate text-left" title="Double-click or press F2 to rename"
+        onClick={(e) => onSelect?.(e.shiftKey)} onDoubleClick={() => setDraft(value)}
+        onKeyDown={(e) => { if (e.key === "F2") { e.preventDefault(); setDraft(value); } }}>{value}</button>
+    );
+  }
   return (
     <input autoFocus aria-label="Layer name" className="input flex-1 py-0 text-sm" value={draft} onChange={(e) => setDraft(e.target.value)}
       onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}
@@ -134,11 +140,12 @@ function LayerRow({ el, indent, selected, onSelect, onRename, onLock, onHide }: 
 }) {
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: el.id });
   return (
-    <div ref={(n) => { setNodeRef(n); setActivatorNodeRef(n); }} style={{ transform: CSS.Transform.toString(transform), transition }} {...attributes} {...listeners}
-      onClick={(e) => onSelect(e.shiftKey)}
+    <div ref={setNodeRef} style={{ transform: CSS.Transform.toString(transform), transition }}
       className={`flex items-center gap-2 rounded-md px-2 py-1 text-sm ${indent ? "pl-6" : ""} ${selected ? "bg-indigo-50 dark:bg-indigo-950" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"} ${isDragging ? "opacity-60" : ""} ${el.hidden ? "text-neutral-400" : ""}`}>
+      <button type="button" ref={setActivatorNodeRef} {...attributes} {...listeners} aria-label={`Reorder ${label(el)}`}
+        className="cursor-grab touch-none px-0.5 text-neutral-400">⋮⋮</button>
       <span className="w-4 text-center text-neutral-500" aria-hidden>{TYPE_ICON[el.type] ?? "•"}</span>
-      <InlineName value={label(el)} onCommit={onRename} />
+      <InlineName value={label(el)} onCommit={onRename} onSelect={onSelect} />
       <Toggles locked={!!el.locked} hidden={!!el.hidden} onLock={onLock} onHide={onHide} name={label(el)} />
     </div>
   );
