@@ -196,10 +196,16 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           if (deviceEl) { deviceEl.screenshotSrc = `asset:${assetId}`; deviceEl.screenshotRect ??= FULL_SCREEN; }
           else elements.push({ id: `img-${id}`, type: "image", name: "Screenshot", imageSrc: `asset:${assetId}`, objectFit: "contain",
             position: { x: 0, y: 0 }, size: { ...plain.size }, rotation: 0, scale: 1 } as unknown as ArtboardElement & Record<string, unknown>);
+          const devId = deviceEl?.id;
           g.boards.push({
             ...plain, id, name: `Screen ${g.boards.length + 1}`, elements,
             localized: plain.localized && Object.fromEntries(Object.entries(plain.localized).map(([loc, byEl]) =>
-              [loc, Object.fromEntries(Object.entries(byEl).map(([eid, ov]) => [idMap[eid] ?? eid, ov]))])),
+              [loc, Object.fromEntries(Object.entries(byEl).flatMap(([eid, ov]) => {
+                const nid = idMap[eid] ?? eid;
+                if (nid !== devId) return [[nid, ov]];
+                const { screenshotSrc: _drop, ...rest } = ov as Record<string, unknown>;
+                return Object.keys(rest).length ? [[nid, rest]] : [];
+              }))])),
           } as Draft<ArtboardState>);
         });
         return;

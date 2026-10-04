@@ -31,8 +31,8 @@ export const isFileDrag = (dt: DataTransfer | null) => !!dt && Array.from(dt.typ
 export function collectDroppedFiles(dt: DataTransfer): Promise<File[]> {
   const items = Array.from(dt.items).filter((i) => i.kind === "file");
   const entries = items.map((i) => i.webkitGetAsEntry?.() ?? null);
-  const loose = entries.some((e) => e === null) ? Array.from(dt.files) : [];
-  return Promise.all(entries.filter((e): e is FileSystemEntry => e !== null).map((e) => walk(e, 0))).then((all) => [...loose, ...all.flat()]);
+  const loose = items.flatMap((it, i) => (entries[i] ? [] : [it.getAsFile()].filter((f): f is File => !!f)));
+  return settled(entries.filter((e): e is FileSystemEntry => e !== null).map((e) => walk(e, 0))).then((all) => [...loose, ...all.flat()]);
 }
 
 async function walk(entry: FileSystemEntry, depth: number): Promise<File[]> {
@@ -45,5 +45,10 @@ async function walk(entry: FileSystemEntry, depth: number): Promise<File[]> {
     if (!batch.length) break;
     children.push(...batch);
   }
-  return (await Promise.all(children.map((c) => walk(c, depth + 1)))).flat();
+  return (await settled(children.map((c) => walk(c, depth + 1)))).flat();
+}
+
+/** Keeps the results that succeeded: one unreadable entry must not stop the rest. */
+async function settled<T>(promises: Promise<T>[]): Promise<T[]> {
+  return (await Promise.allSettled(promises)).flatMap((r) => (r.status === "fulfilled" ? [r.value] : []));
 }

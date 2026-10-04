@@ -306,3 +306,17 @@ describe("addBoardsFromAssets", () => {
     expect(applyCommand(d, { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "nope", assetIds: ["A"], newBoardIds: ["n"] })).toBe(d);
   });
 });
+
+describe("addBoardsFromAssets (localized)", () => {
+  it("drops the source device's per-locale screenshotSrc override on the new board", () => {
+    const base = doc();
+    const dev = { id: "dev", type: "device", deviceType: "iphone-15-pro", position: { x: 0, y: 0 }, size: { width: 10, height: 20 }, rotation: 0, scale: 1 } as never;
+    const b1 = base.groups[0]!.boards[0]!;
+    (b1.elements as unknown[]).push(dev);
+    (b1 as unknown as Record<string, unknown>).localized = { "de-DE": { dev: { screenshotSrc: "asset:OLD" }, a: { content: "Hallo" } } };
+    const d = applyCommand(base, { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "b1", assetIds: ["A1"], newBoardIds: ["n1"] });
+    const loc = (d.groups[0]!.boards.at(-1) as unknown as { localized: Record<string, Record<string, unknown>> }).localized["de-DE"]!;
+    expect(loc["dev-n1"]).toBeUndefined();
+    expect(loc["a-n1"]).toEqual({ content: "Hallo" });
+  });
+});
