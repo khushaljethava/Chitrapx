@@ -19,14 +19,14 @@ export function Editor({ project, assets, assetUrls }: {
   assetUrls: Record<string, string>;
 }) {
   const [store] = useState(() => createEditorStore({ projectId: project.id, doc: project.doc, revision: project.revision }));
-  const { status, error, conflict, loadTheirs, keepMine, flush } = useAutosave(store);
+  const { status, error, conflict, loadTheirs, keepMine, flush, adoptServerDoc, reportConflict } = useAutosave(store);
   useShortcuts(store);
   const resolveSrc = useCallback((src: string) => assetUrls[src] ?? null, [assetUrls]);
 
   return (
     <EditorContext.Provider value={store}>
       <div className="flex h-screen flex-col">
-        <Toolbar name={project.name} projectId={project.id} status={status} error={error} flush={flush} />
+        <Toolbar name={project.name} projectId={project.id} status={status} error={error} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} />
         <div className="flex min-h-0 flex-1">
           <LeftPanel flush={flush} />
           <Canvas resolveSrc={resolveSrc} />

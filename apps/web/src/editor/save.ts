@@ -185,5 +185,14 @@ export function useAutosave(store: EditorStore) {
     return !store.getState().dirty;
   }
 
-  return { status, error, conflict, loadTheirs, keepMine, flush };
+  /** The server's document is now current (e.g. after a restore): load it as saved and drop this tab's draft. */
+  function adoptServerDoc(doc: ChitrapxDoc, revision: number) {
+    store.getState().replaceDoc(doc, revision, false);
+    void idbDel(key());
+    setStatus("saved");
+  }
+  /** Another writer moved the project on: show the usual conflict choice. */
+  function reportConflict(serverRevision: number) { block({ serverRevision, source: "save" }); }
+
+  return { status, error, conflict, loadTheirs, keepMine, flush, adoptServerDoc, reportConflict };
 }
