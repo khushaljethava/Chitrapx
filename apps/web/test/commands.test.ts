@@ -283,3 +283,26 @@ describe("apply to all", () => {
     expect(applyCommand(plain, { type: "applyLayoutToLocales", groupId: "g", boardId: "b1" })).toBe(plain);
   });
 });
+
+describe("addBoardsFromAssets", () => {
+  it("appends one board per image, copying the source board with the image in its first device", () => {
+    const withDevice = applyCommand(doc(), { type: "addElement", groupId: "g", boardId: "b1",
+      element: { id: "dev", type: "device", deviceType: "iphone-15-pro", position: { x: 0, y: 0 }, size: { width: 10, height: 20 }, rotation: 0, scale: 1 } as never });
+    const d = applyCommand(withDevice, { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "b1", assetIds: ["A1", "A2"], newBoardIds: ["n1", "n2"] });
+    const boards = d.groups[0]!.boards;
+    expect(boards.map((b) => b.id)).toEqual(["b1", "b2", "n1", "n2"]);
+    expect(boards[2]!.elements.map((e) => e.id)).toEqual(["a-n1", "b-n1", "c-n1", "dev-n1"]);
+    expect(boards[2]!.elements[3]).toMatchObject({ screenshotSrc: "asset:A1", screenshotRect: { left: 0, top: 0, width: 100, height: 100 } });
+    expect(boards[3]!.elements[3]).toMatchObject({ screenshotSrc: "asset:A2" });
+  });
+  it("adds a full-board image when the source board has no device", () => {
+    const d = applyCommand(doc(), { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "b2", assetIds: ["A1"], newBoardIds: ["n1"] });
+    const b = d.groups[0]!.boards.at(-1)!;
+    expect(b.elements.at(-1)).toMatchObject({ type: "image", imageSrc: "asset:A1", objectFit: "contain", position: { x: 0, y: 0 }, size: { width: 1290, height: 2796 } });
+  });
+  it("returns the same document when nothing changes", () => {
+    const d = doc();
+    expect(applyCommand(d, { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "b1", assetIds: [], newBoardIds: [] })).toBe(d);
+    expect(applyCommand(d, { type: "addBoardsFromAssets", groupId: "g", sourceBoardId: "nope", assetIds: ["A"], newBoardIds: ["n"] })).toBe(d);
+  });
+});

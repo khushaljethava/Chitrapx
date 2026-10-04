@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/browser.ts";
+import { uploadAsset } from "@/lib/uploadAsset.ts";
 import { api } from "@/server/api.ts";
 
 type AssetRow = { id: string; url: string; width: number | null; height: number | null; pending?: boolean; error?: string };
@@ -10,11 +10,6 @@ const KINDS = {
   screenshot: { max: 25 * 1024 * 1024, accept: "image/png,image/jpeg,image/webp", title: "Screenshots", hint: "PNG, JPEG or WebP, up to 25 MB each" },
   recording: { max: 500 * 1024 * 1024, accept: "video/mp4,video/quicktime", title: "Screen recordings", hint: "MP4 or MOV, up to 500 MB and 60 seconds; plays inside a phone in preview videos" },
 } as const;
-
-async function sha256Hex(file: File): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
-}
 
 export function UploadGrid({ appId, assets, logoAssetId, kind = "screenshot" }: { appId: string; assets: AssetRow[]; logoAssetId?: string; kind?: keyof typeof KINDS }) {
   const { max: MAX_BYTES, accept: ACCEPT, title, hint } = KINDS[kind];
@@ -34,14 +29,7 @@ export function UploadGrid({ appId, assets, logoAssetId, kind = "screenshot" }: 
 
   async function uploadOne(file: File) {
     if (file.size > MAX_BYTES) throw new Error(`${file.name}: larger than ${MAX_BYTES / 1048576} MB`);
-    const sha256 = await sha256Hex(file);
-    const signed = await api<{ existing?: unknown; uploadId?: string; path?: string; token?: string }>("/api/uploads/sign", "POST", {
-      appId, kind, size: file.size, mime: file.type, sha256,
-    });
-    if (signed.existing) return;
-    const { error } = await createClient().storage.from("uploads").uploadToSignedUrl(signed.path!, signed.token!, file, { contentType: file.type });
-    if (error) throw new Error(`${file.name}: ${error.message}`);
-    await api("/api/uploads/complete", "POST", { appId, kind, sha256, uploadId: signed.uploadId });
+    await uploadAsset(appId, kind, file);
   }
 
   async function upload(files: FileList | File[]) {

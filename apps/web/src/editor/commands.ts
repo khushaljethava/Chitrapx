@@ -17,6 +17,7 @@ export type Command =
   | { type: "duplicateElements"; refs: Ref[]; newIds: string[]; offset: number }
   | { type: "reorderElement"; ref: Ref; to: "front" | "back" | "forward" | "backward" }
   | { type: "addBoard"; groupId: string; board: ArtboardState; index?: number }
+  | { type: "addBoardsFromAssets"; groupId: string; sourceBoardId: string; assetIds: string[]; newBoardIds: string[] }
   | { type: "duplicateBoard"; groupId: string; boardId: string; newBoardId: string; idSuffix: string }
   | { type: "deleteBoard"; groupId: string; boardId: string }
   | { type: "moveBoard"; groupId: string; boardId: string; toIndex: number }
@@ -179,6 +180,28 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
       case "addBoard": {
         const g = d.groups.find((x) => x.id === cmd.groupId);
         g?.boards.splice(cmd.index ?? g.boards.length, 0, cmd.board as Draft<ArtboardState>);
+        return;
+      }
+      case "addBoardsFromAssets": {
+        const g = d.groups.find((x) => x.id === cmd.groupId);
+        const src = g?.boards.find((b) => b.id === cmd.sourceBoardId);
+        if (!g || !src) return;
+        cmd.assetIds.forEach((assetId, n) => {
+          const id = cmd.newBoardIds[n];
+          if (!id) return;
+          const plain = JSON.parse(JSON.stringify(src)) as ArtboardState;
+          const idMap = Object.fromEntries(plain.elements.map((e) => [e.id, `${e.id}-${id}`]));
+          const elements = plain.elements.map((e) => ({ ...e, id: idMap[e.id]! })) as Array<ArtboardElement & Record<string, unknown>>;
+          const deviceEl = elements.find((e) => e.type === "device");
+          if (deviceEl) { deviceEl.screenshotSrc = `asset:${assetId}`; deviceEl.screenshotRect ??= FULL_SCREEN; }
+          else elements.push({ id: `img-${id}`, type: "image", name: "Screenshot", imageSrc: `asset:${assetId}`, objectFit: "contain",
+            position: { x: 0, y: 0 }, size: { ...plain.size }, rotation: 0, scale: 1 } as unknown as ArtboardElement & Record<string, unknown>);
+          g.boards.push({
+            ...plain, id, name: `Screen ${g.boards.length + 1}`, elements,
+            localized: plain.localized && Object.fromEntries(Object.entries(plain.localized).map(([loc, byEl]) =>
+              [loc, Object.fromEntries(Object.entries(byEl).map(([eid, ov]) => [idMap[eid] ?? eid, ov]))])),
+          } as Draft<ArtboardState>);
+        });
         return;
       }
       case "duplicateBoard": {
