@@ -11,3 +11,4 @@ export * from "./video.ts";
 export * from "./readiness.ts";
 export * from "./bundle.ts";
 export * from "./layout.ts";
+export * from "./match.ts";

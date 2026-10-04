@@ -250,3 +250,36 @@ describe("applyLayoutPreset (device)", () => {
     expect(findElement(d1, r("a"))!.position).toEqual({ x: 0, y: 10 });
   });
 });
+
+describe("apply to all", () => {
+  it("copies position, size, rotation and scale to the nth counterpart on every other board", () => {
+    let d = applyCommand(doc(), { type: "updateElement", ref: r("a"), props: { position: { x: 70, y: 80 }, rotation: 5 } as never });
+    d = applyCommand(d, { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
+    expect(findElement(d, r("d", "b2"))).toMatchObject({ position: { x: 70, y: 80 }, rotation: 5, size: { width: 100, height: 50 }, content: "d" });
+  });
+  it("copies a device's screenshot crop but not its screenshot", () => {
+    const dev = (id: string, rect: object, src: string) => ({ id, type: "device", deviceType: "iphone-15-pro", position: { x: 0, y: 0 }, size: { width: 10, height: 20 }, rotation: 0, scale: 1, screenshotSrc: src, screenshotRect: rect }) as never;
+    let d = applyCommand(doc(), { type: "addElement", groupId: "g", boardId: "b1", element: dev("p1", { left: 5, top: 10, width: 90, height: 120 }, "asset:one") });
+    d = applyCommand(d, { type: "addElement", groupId: "g", boardId: "b2", element: dev("p2", { left: 0, top: 0, width: 100, height: 100 }, "asset:two") });
+    d = applyCommand(d, { type: "applyToAllBoards", groupId: "g", sourceRef: r("p1") });
+    expect(findElement(d, r("p2", "b2"))).toMatchObject({ screenshotRect: { left: 5, top: 10, width: 90, height: 120 }, screenshotSrc: "asset:two" });
+  });
+  it("returns the same document when every counterpart already matches", () => {
+    const d1 = applyCommand(doc(), { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
+    const d2 = applyCommand(d1, { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
+    expect(d2).toBe(d1);
+  });
+  it("re-attaches layout in every language and keeps the translated text", () => {
+    let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo", position: { x: 9, y: 9 }, detached: ["position", "fontSize"], fontSize: 12 } as never });
+    d = applyCommand(d, { type: "applyLayoutToLocales", groupId: "g", boardId: "b1" });
+    const ov = d.groups[0]!.boards[0]!.localized!["de-DE"]!["a"] as Record<string, unknown>;
+    expect(ov).toMatchObject({ content: "Hallo", detached: ["fontSize"], fontSize: 12 });
+    expect(ov.position).toBeUndefined();
+  });
+  it("returns the same document when nothing is detached", () => {
+    const d1 = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } as never });
+    expect(applyCommand(d1, { type: "applyLayoutToLocales", groupId: "g", boardId: "b1" })).toBe(d1);
+    const plain = doc();
+    expect(applyCommand(plain, { type: "applyLayoutToLocales", groupId: "g", boardId: "b1" })).toBe(plain);
+  });
+});

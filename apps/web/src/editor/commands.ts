@@ -1,12 +1,14 @@
 import { produce, type Draft } from "immer";
 import {
-  applyTexts, layoutFor, presetKind, retarget, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyTexts, layoutFor, matchElements, LAYOUT_KEYS, presetKind, retarget, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
 export type Ref = { groupId: string; boardId: string | null; elementId: string };
 
 export type Command =
+  | { type: "applyToAllBoards"; groupId: string; sourceRef: Ref }
+  | { type: "applyLayoutToLocales"; groupId: string; boardId: string }
   | { type: "applyLayoutPreset"; groupId: string; boardId: string; preset: LayoutPreset; elementIds?: string[] }
   | { type: "updateElement"; ref: Ref; props: Partial<ArtboardElement> }
   | { type: "moveElements"; refs: Ref[]; dx: number; dy: number }
@@ -214,6 +216,43 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           const to = after.indexOf(before[from]!);
           const target = to >= 0 ? to : Math.min(from, after.length - 1); // its board is gone: stay in that slot
           el.position = { ...el.position, x: el.position.x + (target - from) * w };
+        }
+        return;
+      }
+      case "applyToAllBoards": {
+        const g = d.groups.find((x) => x.id === cmd.groupId);
+        const src = cmd.sourceRef.boardId ? g?.boards.find((b) => b.id === cmd.sourceRef.boardId) : undefined;
+        const el = src?.elements.find((e) => e.id === cmd.sourceRef.elementId) as (ArtboardElement & Record<string, unknown>) | undefined;
+        if (!g || !src || !el) return;
+        // Write only what differs, so a board that already matches leaves the document untouched.
+        const put = (t: Record<string, unknown>, k: string, v: unknown) => {
+          if (JSON.stringify(t[k]) !== JSON.stringify(v)) t[k] = JSON.parse(JSON.stringify(v));
+        };
+        for (const b of g.boards) {
+          if (b === src) continue;
+          const id = matchElements(src as ArtboardState, b as ArtboardState).get(el.id);
+          const t = b.elements.find((e) => e.id === id) as Record<string, unknown> | undefined;
+          if (!t) continue;
+          for (const k of LAYOUT_KEYS) put(t, k, el[k] ?? (k === "scale" ? 1 : 0));
+          if (el.type === "device" && t.type === "device" && el.screenshotRect) put(t, "screenshotRect", el.screenshotRect);
+        }
+        return;
+      }
+      case "applyLayoutToLocales": {
+        const b = findBoard(d, cmd.groupId, cmd.boardId);
+        if (!b?.localized) return;
+        const layout = LAYOUT_KEYS as readonly string[];
+        for (const [loc, byEl] of Object.entries(b.localized)) {
+          for (const [id, raw] of Object.entries(byEl)) {
+            const ov = raw as Record<string, unknown> & { detached?: string[] };
+            // Only touch overrides that actually keep their own layout.
+            if (!ov.detached?.some((k) => layout.includes(k))) continue;
+            for (const k of LAYOUT_KEYS) delete ov[k];
+            ov.detached = ov.detached.filter((k) => !layout.includes(k));
+            if (!ov.detached.length) delete ov.detached;
+            if (!Object.keys(ov).length) delete byEl[id];
+          }
+          if (!Object.keys(byEl).length) delete b.localized[loc];
         }
         return;
       }

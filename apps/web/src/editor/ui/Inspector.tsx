@@ -6,6 +6,7 @@ import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, I
 import { ALL_FONTS } from "@chitrapx/renderer";
 import { findElement, type Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
 import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
@@ -73,6 +74,7 @@ function BoardInspector() {
         <ColorField id="b-bg" label="Colour" value={board.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
       )}
       <LayoutPresets groupId={groupId} boardId={boardId} />
+      <ApplyToLocales groupId={groupId} boardId={boardId} />
     </div>
   );
 }
@@ -196,6 +198,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
         <NumberField id="i-rot" label="Rotation" value={el.rotation || 0} onChange={(v) => set({ rotation: v })} />
         <NumberField id="i-op" label="Opacity %" value={Math.round((el.opacity ?? 1) * 100)} min={0} max={100} onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
       </div>
+      <ApplyToBoards refr={refr} />
       <div className="grid grid-cols-2 gap-2">
         <button type="button" className="btn-ghost" onClick={() => store.getState().apply({ type: "reorderElement", ref: refr, to: "front" })}>Bring to front</button>
         <button type="button" className="btn-ghost" onClick={() => store.getState().apply({ type: "reorderElement", ref: refr, to: "back" })}>Send to back</button>
