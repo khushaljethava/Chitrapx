@@ -221,3 +221,19 @@ describe("layers and groups", () => {
     expect(findElement(d, r("s2", null))).toMatchObject({ groupId: "S", groupName: "Wide" });
   });
 });
+
+describe("applyLayoutPreset", () => {
+  it("places the first text when nothing is targeted, in one step, idempotently", () => {
+    const d1 = applyCommand(doc(), { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "text-top" });
+    expect(findElement(d1, r("a"))!.position.y).toBeCloseTo(2796 * 0.06);
+    expect(findElement(d1, r("b"))!.position).toEqual({ x: 200, y: 10 });
+    const d2 = applyCommand(d1, { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "text-top" });
+    expect(d2).toEqual(d1);
+    expect(d2).toBe(d1);
+  });
+  it("places targeted elements of the preset's kind only", () => {
+    const d1 = applyCommand(doc(), { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "text-bottom", elementIds: ["b", "c"] });
+    expect(findElement(d1, r("a"))!.position).toEqual({ x: 0, y: 10 });
+    expect(findElement(d1, r("c"))!.position.y).toBeCloseTo(2796 - 50 - 2796 * 0.06);
+  });
+});

@@ -6,6 +6,7 @@ import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, I
 import { ALL_FONTS } from "@chitrapx/renderer";
 import { findElement, type Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { LayoutPresets } from "./LayoutPresets.tsx";
 import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
 const FONT_OPTIONS = ALL_FONTS.map((f) => [f.family, f.family] as const);
@@ -71,6 +72,7 @@ function BoardInspector() {
       ) : (
         <ColorField id="b-bg" label="Colour" value={board.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
       )}
+      <LayoutPresets groupId={groupId} boardId={boardId} />
     </div>
   );
 }

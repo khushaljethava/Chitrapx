@@ -1,12 +1,13 @@
 import { produce, type Draft } from "immer";
 import {
-  applyTexts, retarget, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyTexts, layoutFor, presetKind, retarget, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
 export type Ref = { groupId: string; boardId: string | null; elementId: string };
 
 export type Command =
+  | { type: "applyLayoutPreset"; groupId: string; boardId: string; preset: LayoutPreset; elementIds?: string[] }
   | { type: "updateElement"; ref: Ref; props: Partial<ArtboardElement> }
   | { type: "moveElements"; refs: Ref[]; dx: number; dy: number }
   | { type: "addElement"; groupId: string; boardId: string | null; element: ArtboardElement }
@@ -213,6 +214,21 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           const to = after.indexOf(before[from]!);
           const target = to >= 0 ? to : Math.min(from, after.length - 1); // its board is gone: stay in that slot
           el.position = { ...el.position, x: el.position.x + (target - from) * w };
+        }
+        return;
+      }
+      case "applyLayoutPreset": {
+        const b = findBoard(d, cmd.groupId, cmd.boardId);
+        if (!b) return;
+        const fits = (e: ArtboardElement) => (presetKind(cmd.preset) === "text" ? e.type === "text" : e.type === "device" || e.type === "video-device");
+        const chosen = cmd.elementIds?.length ? b.elements.filter((e) => cmd.elementIds!.includes(e.id) && fits(e as ArtboardElement)) : [];
+        const targets = chosen.length ? chosen : b.elements.filter((e) => fits(e as ArtboardElement)).slice(0, 1);
+        for (const e of targets) {
+          // Write only what differs, so re-applying a preset leaves the document (and undo stack) untouched.
+          const next = layoutFor(cmd.preset, b.size, e);
+          if (e.position.x !== next.position.x || e.position.y !== next.position.y) e.position = next.position;
+          if (e.size.width !== next.size.width || e.size.height !== next.size.height) e.size = next.size;
+          if (e.rotation !== next.rotation) e.rotation = next.rotation;
         }
         return;
       }
