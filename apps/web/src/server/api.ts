@@ -1,6 +1,6 @@
 /** Client-side fetch helper for our JSON API. Throws ApiError with the server's code and message. */
 export class ApiError extends Error {
-  constructor(public status: number, public code: string, message: string) { super(message); }
+  constructor(public status: number, public code: string, message: string, public data?: Record<string, unknown>) { super(message); }
 }
 
 export async function api<T = unknown>(path: string, method = "GET", body?: unknown): Promise<T> {
@@ -12,7 +12,7 @@ export async function api<T = unknown>(path: string, method = "GET", body?: unkn
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const issue = data.issues?.[0];
-    throw new ApiError(res.status, data.error ?? "error", issue ? `${issue.path?.join(".")}: ${issue.message}` : data.message ?? "Something went wrong");
+    throw new ApiError(res.status, data.error ?? "error", issue ? `${issue.path?.join(".")}: ${issue.message}` : data.message ?? "Something went wrong", data);
   }
   return data as T;
 }

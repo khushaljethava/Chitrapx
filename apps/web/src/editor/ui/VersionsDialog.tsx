@@ -49,15 +49,25 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
   }
   async function restore(v: Version) {
     setBusy(true); setError("");
+    let locked = false;
     try {
       if (!(await flush())) { setError("Save your changes first."); return; }
+      // No edits or autosaves may slip in between the save above and adopting the restored document.
+      store.getState().setLocked(true); locked = true;
       const out = await api<{ revision: number; doc: ChitrapxDoc }>(`/api/projects/${projectId}/versions/${v.id}/restore`, "POST", { revision: store.getState().revision });
       adoptServerDoc(out.doc, out.revision);
+      store.getState().setLocked(false); locked = false;
       onClose();
     } catch (err) {
-      if (err instanceof ApiError && err.status === 409) { onClose(); reportConflict(store.getState().revision); return; }
+      if (err instanceof ApiError && err.status === 409) {
+        locked = false; // reportConflict keeps the editor locked for the conflict dialog
+        onClose(); reportConflict(Number(err.data?.current ?? store.getState().revision)); return;
+      }
       setError(err instanceof ApiError ? err.message : "Could not restore.");
-    } finally { setBusy(false); }
+    } finally {
+      if (locked) store.getState().setLocked(false);
+      setBusy(false);
+    }
   }
 
   return (
