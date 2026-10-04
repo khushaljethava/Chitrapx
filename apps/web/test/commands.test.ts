@@ -135,3 +135,68 @@ describe("hand-edited translations", () => {
     expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Servus", origin: "manual" });
   });
 });
+
+describe("layers and groups", () => {
+  const groupOf = (d: ChitrapxDoc, id: string) => (findElement(d, r(id)) as { groupId?: string; groupName?: string });
+
+  it("reorderElementTo moves to an index and clamps", () => {
+    expect(ids(applyCommand(doc(), { type: "reorderElementTo", ref: r("a"), toIndex: 2 }))).toEqual(["b", "c", "a"]);
+    expect(ids(applyCommand(doc(), { type: "reorderElementTo", ref: r("c"), toIndex: -5 }))).toEqual(["c", "a", "b"]);
+  });
+
+  it("locks and hides several elements at once, and clears the flags", () => {
+    let d = applyCommand(doc(), { type: "setElementsLocked", refs: [r("a"), r("b")], locked: true });
+    expect([findElement(d, r("a")), findElement(d, r("b"))].map((e) => (e as { locked?: boolean }).locked)).toEqual([true, true]);
+    d = applyCommand(d, { type: "setElementsLocked", refs: [r("a")], locked: false });
+    expect("locked" in findElement(d, r("a"))!).toBe(false);
+    d = applyCommand(d, { type: "setElementsHidden", refs: [r("c")], hidden: true });
+    expect((findElement(d, r("c")) as { hidden?: boolean }).hidden).toBe(true);
+  });
+
+  it("groups two or more elements of one list, adjacent at the top-most member", () => {
+    const d = applyCommand(doc(), { type: "groupElements", refs: [r("a"), r("c")], elementGroupId: "G", name: "Hero" });
+    expect(ids(d)).toEqual(["b", "a", "c"]);
+    expect(groupOf(d, "a")).toMatchObject({ groupId: "G", groupName: "Hero" });
+    expect(groupOf(d, "c")).toMatchObject({ groupId: "G", groupName: "Hero" });
+  });
+
+  it("refuses fewer than two elements or elements from different lists", () => {
+    const d = doc();
+    expect(applyCommand(d, { type: "groupElements", refs: [r("a")], elementGroupId: "G" })).toBe(d);
+    expect(applyCommand(d, { type: "groupElements", refs: [r("a"), r("d", "b2")], elementGroupId: "G" })).toBe(d);
+  });
+
+  it("ungroups, renames, and dissolves a group left with one member", () => {
+    let d = applyCommand(doc(), { type: "groupElements", refs: [r("a"), r("b"), r("c")], elementGroupId: "G" });
+    d = applyCommand(d, { type: "renameGroup", groupId: "g", boardId: "b1", elementGroupId: "G", name: "Cards" });
+    expect(groupOf(d, "b").groupName).toBe("Cards");
+    d = applyCommand(d, { type: "ungroupElements", refs: [r("a"), r("b")] });
+    expect(groupOf(d, "a").groupId).toBeUndefined();
+    expect(groupOf(d, "c").groupId).toBeUndefined(); // last member alone: dissolved
+  });
+
+  it("deleting all but one member dissolves the group", () => {
+    let d = applyCommand(doc(), { type: "groupElements", refs: [r("a"), r("b")], elementGroupId: "G" });
+    d = applyCommand(d, { type: "deleteElements", refs: [r("a")] });
+    expect(groupOf(d, "b").groupId).toBeUndefined();
+  });
+
+  it("reorderElementTo can join or leave a group in the same step", () => {
+    let d = applyCommand(doc(), { type: "groupElements", refs: [r("b"), r("c")], elementGroupId: "G", name: "Pair" });
+    d = applyCommand(d, { type: "reorderElementTo", ref: r("a"), toIndex: 2, elementGroupId: "G" });
+    expect(groupOf(d, "a")).toMatchObject({ groupId: "G", groupName: "Pair" });
+    d = applyCommand(d, { type: "reorderElementTo", ref: r("a"), toIndex: 0, elementGroupId: null });
+    expect(groupOf(d, "a").groupId).toBeUndefined();
+  });
+
+  it("duplicating a group makes a new group; duplicating one member makes an ungrouped copy", () => {
+    let d = applyCommand(doc(), { type: "groupElements", refs: [r("a"), r("b")], elementGroupId: "G" });
+    const both = applyCommand(d, { type: "duplicateElements", refs: [r("a"), r("b")], newIds: ["a2", "b2"], offset: 10 });
+    expect(groupOf(both, "a2").groupId).toBe("G-a2");
+    expect(groupOf(both, "b2").groupId).toBe("G-a2");
+    expect(groupOf(both, "a").groupId).toBe("G");
+    d = applyCommand(d, { type: "duplicateElements", refs: [r("a")], newIds: ["a3"], offset: 10 });
+    expect(groupOf(d, "a3").groupId).toBeUndefined();
+    expect(groupOf(d, "a").groupId).toBe("G");
+  });
+});

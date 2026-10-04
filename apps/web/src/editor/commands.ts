@@ -26,6 +26,12 @@ export type Command =
   | { type: "addGroupFromTarget"; fromGroupId: string; target: TargetId; newGroupId: string }
   | { type: "deleteGroup"; groupId: string }
   | { type: "duplicateGroupAsVariant"; groupId: string; newGroupId: string }
+  | { type: "reorderElementTo"; ref: Ref; toIndex: number; elementGroupId?: string | null }
+  | { type: "setElementsLocked"; refs: Ref[]; locked: boolean }
+  | { type: "setElementsHidden"; refs: Ref[]; hidden: boolean }
+  | { type: "groupElements"; refs: Ref[]; elementGroupId: string; name?: string }
+  | { type: "ungroupElements"; refs: Ref[] }
+  | { type: "renameGroup"; groupId: string; boardId: string | null; elementGroupId: string; name: string }
   | { type: "setTexts"; texts: Array<{ id: string; text: string }> };
 
 const FULL_SCREEN = { left: 0, top: 0, width: 100, height: 100 };
@@ -34,6 +40,16 @@ function list(d: Draft<ChitrapxDoc> | ChitrapxDoc, groupId: string, boardId: str
   const g = d.groups.find((x) => x.id === groupId);
   if (!g) return undefined;
   return (boardId === null ? g.spanElements : g.boards.find((b) => b.id === boardId)?.elements) as ArtboardElement[] | undefined;
+}
+
+/** The element list a ref points into: a board's elements, or the group's span elements when `boardId` is null. */
+export const elementsOf = (d: ChitrapxDoc, groupId: string, boardId: string | null): ArtboardElement[] | undefined => list(d, groupId, boardId);
+
+/** A group tag with one member left in its list is meaningless: clear it. */
+function dissolveSingletons(els: Array<{ groupId?: string; groupName?: string }>) {
+  const counts = new Map<string, number>();
+  for (const e of els) if (e.groupId) counts.set(e.groupId, (counts.get(e.groupId) ?? 0) + 1);
+  for (const e of els) if (e.groupId && counts.get(e.groupId) === 1) { delete e.groupId; delete e.groupName; }
 }
 
 export function findElement(d: ChitrapxDoc, ref: Ref): ArtboardElement | undefined {
@@ -65,7 +81,7 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         for (const ref of cmd.refs) {
           const els = list(d, ref.groupId, ref.boardId);
           const i = els?.findIndex((e) => e.id === ref.elementId) ?? -1;
-          if (els && i >= 0) els.splice(i, 1);
+          if (els && i >= 0) { els.splice(i, 1); dissolveSingletons(els); }
         }
         return;
       case "duplicateElements":
@@ -75,6 +91,8 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           if (!els || i < 0 || !cmd.newIds[n]) return;
           const src = els[i]!;
           const copy = { ...JSON.parse(JSON.stringify(src)), id: cmd.newIds[n], position: { x: src.position.x + cmd.offset, y: src.position.y + cmd.offset } };
+          // Copies of a group form their own group; one copied member alone is dissolved below.
+          if (src.groupId) copy.groupId = `${src.groupId}-${cmd.newIds[0]}`;
           els.splice(i + 1, 0, copy);
           // Translations follow the copy.
           const b = ref.boardId ? findBoard(d, ref.groupId, ref.boardId) : undefined;
@@ -82,6 +100,7 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
             if (byEl[src.id]) byEl[cmd.newIds[n]!] = JSON.parse(JSON.stringify(byEl[src.id]));
           }
         });
+        for (const ref of cmd.refs) { const els = list(d, ref.groupId, ref.boardId); if (els) dissolveSingletons(els); }
         return;
       case "reorderElement": {
         const els = list(d, cmd.ref.groupId, cmd.ref.boardId);
@@ -92,6 +111,62 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         els.splice(to, 0, el!);
         return;
       }
+      case "reorderElementTo": {
+        const els = list(d, cmd.ref.groupId, cmd.ref.boardId);
+        const i = els?.findIndex((e) => e.id === cmd.ref.elementId) ?? -1;
+        if (!els || i < 0) return;
+        const [el] = els.splice(i, 1);
+        els.splice(Math.max(0, Math.min(els.length, cmd.toIndex)), 0, el!);
+        if (cmd.elementGroupId === null) { delete el!.groupId; delete el!.groupName; }
+        else if (cmd.elementGroupId) {
+          const name = els.find((e) => e !== el && e.groupId === cmd.elementGroupId)?.groupName;
+          el!.groupId = cmd.elementGroupId;
+          if (name) el!.groupName = name; else delete el!.groupName;
+        }
+        dissolveSingletons(els);
+        return;
+      }
+      case "setElementsLocked":
+      case "setElementsHidden": {
+        const key = cmd.type === "setElementsLocked" ? "locked" : "hidden";
+        const on = cmd.type === "setElementsLocked" ? cmd.locked : cmd.hidden;
+        for (const ref of cmd.refs) {
+          const el = list(d, ref.groupId, ref.boardId)?.find((e) => e.id === ref.elementId) as Record<string, unknown> | undefined;
+          if (!el) continue;
+          if (on) el[key] = true; else delete el[key];
+        }
+        return;
+      }
+      case "groupElements": {
+        const first = cmd.refs[0];
+        if (!first || cmd.refs.some((x) => x.groupId !== first.groupId || x.boardId !== first.boardId)) return;
+        const els = list(d, first.groupId, first.boardId);
+        if (!els) return;
+        const wanted = new Set(cmd.refs.map((x) => x.elementId));
+        const members = els.filter((e) => wanted.has(e.id));
+        if (members.length < 2) return;
+        const top = Math.max(...members.map((m) => els.indexOf(m)));
+        const next: typeof els = [];
+        els.forEach((e, i) => { if (!wanted.has(e.id)) next.push(e); if (i === top) next.push(...members); });
+        for (const m of members) { m.groupId = cmd.elementGroupId; if (cmd.name) m.groupName = cmd.name; else delete m.groupName; }
+        els.splice(0, els.length, ...next);
+        dissolveSingletons(els);
+        return;
+      }
+      case "ungroupElements":
+        for (const ref of cmd.refs) {
+          const els = list(d, ref.groupId, ref.boardId);
+          const el = els?.find((e) => e.id === ref.elementId);
+          if (el) { delete el.groupId; delete el.groupName; }
+          if (els) dissolveSingletons(els);
+        }
+        return;
+      case "renameGroup":
+        for (const e of list(d, cmd.groupId, cmd.boardId) ?? []) {
+          if (e.groupId !== cmd.elementGroupId) continue;
+          if (cmd.name.trim()) e.groupName = cmd.name.trim(); else delete e.groupName;
+        }
+        return;
       case "addBoard": {
         const g = d.groups.find((x) => x.id === cmd.groupId);
         g?.boards.splice(cmd.index ?? g.boards.length, 0, cmd.board as Draft<ArtboardState>);
