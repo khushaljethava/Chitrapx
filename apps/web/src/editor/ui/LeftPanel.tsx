@@ -5,6 +5,7 @@ import { useJobDownload } from "@/components/useJobDownload.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
+import { LayersPanel } from "./LayersPanel.tsx";
 
 type NewElement = (w: number, h: number) => Record<string, unknown>;
 const base = (w: number, h: number, ew: number, eh: number) =>
@@ -132,6 +133,8 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
         </ol>
         {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free downloads") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
+
+      <LayersPanel />
 
       <Checks />
 
