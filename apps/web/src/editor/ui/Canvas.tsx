@@ -5,6 +5,7 @@ import { foldCount, MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/docum
 import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { expandToGroups } from "../selection.ts";
 import { resizeBox, rotationFromPointer, snapMove, type Box, type Handle } from "../geometry.ts";
 
 const SNAP_PX = 6;
@@ -73,21 +74,27 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
   const items: Array<{ ref: Ref; el: ArtboardElement; offset: number }> = [
     ...group.spanElements.map((el) => ({ ref: { groupId, boardId: null, elementId: el.id }, el, offset: 0 })),
     ...group.boards.flatMap((b, i) => b.elements.map((el) => ({ ref: { groupId, boardId: b.id, elementId: el.id }, el, offset: i * boardW }))),
-  ];
+  ].filter((it) => !it.el.hidden);
+  /** Locked elements are drawn but the pointer passes through them. */
+  const hittable = items.filter((it) => !it.el.locked);
   const single = selection.length === 1 ? items.find((it) => sameRef(it.ref, selection[0]!)) : undefined;
 
   function startMove(e: React.PointerEvent, ref: Ref) {
     e.stopPropagation();
     const s = store.getState();
-    const already = s.selection.some((r) => sameRef(r, ref));
-    const next = e.shiftKey ? (already ? s.selection.filter((r) => !sameRef(r, ref)) : [...s.selection, ref]) : already ? s.selection : [ref];
+    const picked = expandToGroups(s.doc, [ref], { single: e.altKey });
+    const has = (x: Ref) => s.selection.some((r) => sameRef(r, x));
+    const already = picked.every(has);
+    const next = e.shiftKey
+      ? (already ? s.selection.filter((r) => !picked.some((p) => sameRef(p, r))) : [...s.selection, ...picked.filter((p) => !has(p))])
+      : already ? s.selection : picked;
     s.select(next);
     if (ref.boardId) s.setActiveBoard(ref.boardId);
     if (e.shiftKey && already) return;
     releaseField();
     const it = items.find((x) => sameRef(x.ref, ref))!;
     const boardOffset = ref.boardId ? it.offset : Math.floor(it.el.position.x / boardW) * boardW;
-    const others = items.filter((x) => !next.some((r) => sameRef(r, x.ref)) && x.offset === it.offset).map((x) => boxOf(x.el, x.offset));
+    const others = hittable.filter((x) => !next.some((r) => sameRef(r, x.ref)) && x.offset === it.offset).map((x) => boxOf(x.el, x.offset));
     const p = toStrip(e);
     drag.current = { kind: "move", startX: p.x, startY: p.y, applied: { x: 0, y: 0 }, boardW, boardH, boardOffset, primary: boxOf(it.el, it.offset), others };
     s.beginGesture();
@@ -96,7 +103,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
 
   function startResize(e: React.PointerEvent, handle: Handle) {
     e.stopPropagation();
-    if (!single) return;
+    if (!single || single.el.locked) return;
     const p = toStrip(e);
     releaseField();
     const lock = single.el.type === "device" || single.el.type === "image";
@@ -107,7 +114,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
 
   function startRotate(e: React.PointerEvent) {
     e.stopPropagation();
-    if (!single) return;
+    if (!single || single.el.locked) return;
     releaseField();
     const b = boxOf(single.el, single.offset);
     drag.current = { kind: "rotate", center: { x: b.x + b.w / 2, y: b.y + b.h / 2 }, ref: single.ref };
@@ -173,7 +180,7 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
             {group.boards.slice(1).map((b, i) => (
               <div key={b.id} className="pointer-events-none absolute top-0 h-full border-l border-dashed border-indigo-400/60" style={{ left: (i + 1) * boardW * zoom }} />
             ))}
-            {items.map(({ ref, el, offset }) => {
+            {hittable.map(({ ref, el, offset }) => {
               const b = boxOf(el, offset);
               const selected = selection.some((r) => sameRef(r, ref));
               return (

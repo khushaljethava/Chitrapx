@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { selectableRefs } from "./selection.ts";
 import type { EditorStore } from "./store.ts";
 import { duplicateSelection } from "./ui/Inspector.tsx";
 
@@ -21,7 +22,13 @@ export function useShortcuts(store: EditorStore) {
       if (mod && key === "a") {
         e.preventDefault();
         const b = s.doc.groups.find((g) => g.id === s.activeGroupId)?.boards.find((x) => x.id === s.activeBoardId);
-        if (b) s.select(b.elements.map((el) => ({ groupId: s.activeGroupId, boardId: b.id, elementId: el.id })));
+        if (b) s.select(b.elements.filter((el) => !el.locked && !el.hidden).map((el) => ({ groupId: s.activeGroupId, boardId: b.id, elementId: el.id })));
+        return;
+      }
+      if (mod && key === "g") {
+        e.preventDefault();
+        if (e.shiftKey) s.apply({ type: "ungroupElements", refs: s.selection });
+        else s.apply({ type: "groupElements", refs: s.selection, elementGroupId: crypto.randomUUID(), name: "Group" });
         return;
       }
       if (e.key === "Escape") { s.select([]); return; }
@@ -30,7 +37,11 @@ export function useShortcuts(store: EditorStore) {
       const step = e.shiftKey ? 10 : 1;
       const arrows: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
       const move = arrows[e.key];
-      if (move) { e.preventDefault(); s.apply({ type: "moveElements", refs: s.selection, dx: move[0], dy: move[1] }); }
+      if (move) {
+        e.preventDefault();
+        const refs = selectableRefs(s.doc, s.selection);
+        if (refs.length) s.apply({ type: "moveElements", refs, dx: move[0], dy: move[1] });
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
