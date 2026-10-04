@@ -22,7 +22,7 @@ The everyday editor tools users expect: a layers panel (reorder, lock, hide, ren
 `packages/document/src/artboard.ts`:
 
 - `BaseElement` gains `locked?: boolean` and `hidden?: boolean`.
-- Device and video-device props gain:
+- Device props (`type: "device"`) gain:
   - `showStatusBar?: boolean`
   - `statusBarPlatform?: "ios" | "android"`
   - `statusBarTheme?: "light" | "dark"`
@@ -44,12 +44,12 @@ Renderer (`packages/renderer`): an element is drawn only when neither `element.h
 
 | Command | Behaviour |
 |---|---|
-| `reorderElementTo { ref, toIndex }` | Move one element to an index in its list. |
+| `reorderElementTo { ref, toIndex, elementGroupId? }` | Move one element to an index in its list; `elementGroupId` joins a group (string) or leaves one (`null`) in the same step. |
 | `setElementsLocked { refs, locked }` | Set `locked` on every ref. |
 | `setElementsHidden { refs, hidden }` | Set `hidden` on every ref. |
-| `groupElements { refs, groupId, groupName? }` | Requires ≥ 2 refs in the same list (one board, or the span list); otherwise no-op. Moves members to be adjacent at the top-most member's index, preserving their relative order; sets `groupId` and `groupName`. |
+| `groupElements { refs, elementGroupId, name? }` | Requires ≥ 2 refs in the same list (one board, or the span list); otherwise no-op. Moves members to be adjacent at the top-most member's index, preserving their relative order; sets `groupId` and `groupName`. |
 | `ungroupElements { refs }` | Clears `groupId` and `groupName` on refs; positions unchanged. |
-| `renameGroup { groupId, boardId, name }` | Sets `groupName` on every member in that list. |
+| `renameGroup { groupId, boardId, elementGroupId, name }` | Sets `groupName` on every member in that list. |
 
 - After any command, a group left with exactly one member in a list has its tags cleared.
 - Element rename uses the existing `updateElement { props: { name } }`; an empty name clears it back to the type label.
@@ -64,7 +64,7 @@ Renderer (`packages/renderer`): an element is drawn only when neither `element.h
 
 - **Canvas** (`Canvas.tsx`): locked elements are drawn but skipped for click, drag and snap targets. Clicks go through `expandToGroups`.
 - **Shortcuts** (`shortcuts.ts`): select-all and arrow nudges skip locked elements. ⌘/Ctrl+G groups the selection; ⌘/Ctrl+Shift+G ungroups it.
-- **Naming:** new code uses `isElementLocked` to stay distinct from the store's existing `locked` (save-conflict freeze).
+- **Naming:** commands call the element-group tag `elementGroupId` (so it never clashes with the board group's `groupId`); new code uses `isElementLocked` to stay distinct from the store's existing `locked` (save-conflict freeze).
 
 ### Layers panel (`apps/web/src/editor/ui/LayersPanel.tsx`, new, inside the left panel)
 
@@ -136,7 +136,7 @@ UI and behaviour:
 
 ## 4. Dropping files and folder import
 
-- **Shared upload:** the upload flow moves from `UploadGrid.tsx` into `apps/web/src/lib/uploadScreenshot.ts` (sign → `uploadToSignedUrl` → complete). The app page and the editor both use it; server checks are unchanged (25 MB, sniffed type, checksum, dedupe).
+- **Shared upload:** the upload flow moves from `UploadGrid.tsx` into `apps/web/src/lib/uploadAsset.ts` (sign → `uploadToSignedUrl` → complete). The app page and the editor both use it; server checks are unchanged (25 MB, sniffed type, checksum, dedupe).
 - **Intake** (`apps/web/src/editor/intake.ts`, new, ported from open-screenshot-generator `src/lib/intake/intakeFiles.ts`, MIT):
   - `collectDroppedFiles(dataTransfer)` gathers entries synchronously in the drop event.
   - Folders are walked to depth 3.
@@ -161,7 +161,7 @@ UI and behaviour:
 - **Index:** add `(project_id, created_at desc)`.
 - **SP8 change:** `pinVersion` in `apps/web/src/server/jobs.ts` writes `kind: 'export'`.
 
-### Server (`apps/web/src/server/projects.ts`)
+### Server (`apps/web/src/server/versions.ts`, new)
 
 All functions take `ctx` and filter by workspace; any workspace member may call them.
 
@@ -205,7 +205,7 @@ All functions take `ctx` and filter by workspace; any workspace member may call 
 
 ## 6. Status bar
 
-`packages/document/src/deviceStatusBar.ts` (new, pure): `statusBarSpec(deviceType)` returns `{ platform, heightPct, contentPct } | null`. Percentages are of the screen height.
+`packages/document/src/deviceStatusBar.ts` (new, pure): `statusBarSpec(deviceType)` returns `{ platform, heightPct } | null`. Percentages are of the screen height.
 
 | Device types | Platform | Height | Content row |
 |---|---|---|---|
@@ -217,7 +217,7 @@ Renderer: a new `packages/renderer/src/osg/elements/StatusBar.tsx` is an SVG por
 
 - **Rendering:**
   - Draws time, 4 signal bars, Wi-Fi and a full battery in iOS or Android style, light or dark.
-  - Mounted over the screenshot inside the device frame when `showStatusBar` is true, `styleType` is 2D (`normal`), and `statusBarSpec` is not null.
+  - Mounted over the screenshot inside the device frame when `showStatusBar` is true, the device is not 3D (`styleType` not `3d-*`; flat and perspective styles are DOM-rendered and qualify), and `statusBarSpec` is not null. Video devices (`video-device`) are out of scope for v1.
 - **Solid vs transparent:** solid background fills with `statusBarColor` and shifts the screenshot down by the bar height; transparent draws over the screenshot.
 - **Defaults on first enable:** platform from the spec, `dark`, `transparent`, `9:41`.
 
