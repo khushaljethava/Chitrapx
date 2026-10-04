@@ -115,8 +115,14 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         const els = list(d, cmd.ref.groupId, cmd.ref.boardId);
         const i = els?.findIndex((e) => e.id === cmd.ref.elementId) ?? -1;
         if (!els || i < 0) return;
+        const cur = els[i]!;
+        const target = Math.max(0, Math.min(els.length - 1, cmd.toIndex));
+        const newName = typeof cmd.elementGroupId === "string" ? els.find((e) => e !== cur && e.groupId === cmd.elementGroupId)?.groupName : undefined;
+        const sameGroup = cmd.elementGroupId === undefined
+          || (cmd.elementGroupId === null ? !cur.groupId : cur.groupId === cmd.elementGroupId && cur.groupName === newName);
+        if (target === i && sameGroup) return; // nothing changes: no undo step
         const [el] = els.splice(i, 1);
-        els.splice(Math.max(0, Math.min(els.length, cmd.toIndex)), 0, el!);
+        els.splice(target, 0, el!);
         if (cmd.elementGroupId === null) { delete el!.groupId; delete el!.groupName; }
         else if (cmd.elementGroupId) {
           const name = els.find((e) => e !== el && e.groupId === cmd.elementGroupId)?.groupName;
@@ -149,7 +155,7 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         const next: typeof els = [];
         els.forEach((e, i) => { if (!wanted.has(e.id)) next.push(e); if (i === top) next.push(...members); });
         for (const m of members) { m.groupId = cmd.elementGroupId; if (cmd.name) m.groupName = cmd.name; else delete m.groupName; }
-        els.splice(0, els.length, ...next);
+        if (next.some((e, i) => e !== els[i])) els.splice(0, els.length, ...next);
         dissolveSingletons(els);
         return;
       }

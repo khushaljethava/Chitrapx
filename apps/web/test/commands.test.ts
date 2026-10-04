@@ -199,4 +199,25 @@ describe("layers and groups", () => {
     expect(groupOf(d, "a3").groupId).toBeUndefined();
     expect(groupOf(d, "a").groupId).toBe("G");
   });
+
+  it("commands that change nothing return the same document", () => {
+    const d = doc();
+    expect(applyCommand(d, { type: "reorderElementTo", ref: r("b"), toIndex: 1 })).toBe(d);
+    expect(applyCommand(d, { type: "reorderElementTo", ref: r("c"), toIndex: 99 })).toBe(d);
+    expect(applyCommand(d, { type: "reorderElementTo", ref: r("a"), toIndex: 0, elementGroupId: null })).toBe(d);
+    expect(applyCommand(d, { type: "setElementsLocked", refs: [r("a"), r("b")], locked: false })).toBe(d);
+    expect(applyCommand(d, { type: "setElementsHidden", refs: [r("a")], hidden: false })).toBe(d);
+    expect(applyCommand(d, { type: "renameGroup", groupId: "g", boardId: "b1", elementGroupId: "nope", name: "X" })).toBe(d);
+    expect(applyCommand(d, { type: "ungroupElements", refs: [r("a"), r("b")] })).toBe(d);
+    const g = applyCommand(d, { type: "groupElements", refs: [r("b"), r("c")], elementGroupId: "G", name: "Pair" });
+    expect(applyCommand(g, { type: "groupElements", refs: [r("b"), r("c")], elementGroupId: "G", name: "Pair" })).toBe(g);
+    expect(applyCommand(g, { type: "reorderElementTo", ref: r("b"), toIndex: 1, elementGroupId: "G" })).toBe(g);
+  });
+
+  it("groups elements in the span list", () => {
+    let d = applyCommand(doc(), { type: "addElement", groupId: "g", boardId: null, element: el("s2", 1500) });
+    d = applyCommand(d, { type: "groupElements", refs: [r("span", null), r("s2", null)], elementGroupId: "S", name: "Wide" });
+    expect(findElement(d, r("span", null))).toMatchObject({ groupId: "S", groupName: "Wide" });
+    expect(findElement(d, r("s2", null))).toMatchObject({ groupId: "S", groupName: "Wide" });
+  });
 });
