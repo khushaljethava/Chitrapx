@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { MAX_BOARD_EDGE } from "@chitrapx/document";
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
 import { ALL_FONTS } from "@chitrapx/renderer";
+import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
@@ -35,7 +36,8 @@ const ANIMATIONS = [["none", "None (automatic)"], ["fade", "Fade"], ["slide-up",
 
 const FITS = [["cover", "Fill the screen"], ["contain", "Fit inside"], ["fill", "Stretch"]] as const;
 
-export function Inspector({ assets }: { assets: PickerAsset[] }) {
+export function Inspector() {
+  const { assets } = useEditorAssets();
   const doc = useEditor((s) => s.doc);
   const selection = useEditor((s) => s.selection);
   const ref = selection.length === 1 ? selection[0]! : null;

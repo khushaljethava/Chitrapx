@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { ExportDialog } from "@/components/ExportDialog.tsx";
 import type { ChitrapxDoc } from "@chitrapx/document";
-import { LOCALES, type ResolveSrc } from "@chitrapx/renderer";
+import { LOCALES } from "@chitrapx/renderer";
+import { useEditorAssets } from "../assets.tsx";
 import { useEditor, useEditorStore } from "../context.tsx";
 import type { SaveStatus } from "../save.ts";
 import { VersionsDialog } from "./VersionsDialog.tsx";
@@ -14,10 +15,11 @@ const STATUS: Record<SaveStatus, string> = {
   conflict: "Changed elsewhere", error: "Could not save",
 };
 
-export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, resolveSrc }: {
+export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict }: {
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
-  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; resolveSrc: ResolveSrc;
+  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void;
 }) {
+  const { resolveSrc } = useEditorAssets();
   const store = useEditorStore();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState(false);

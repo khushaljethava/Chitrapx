@@ -22,6 +22,7 @@ export default async function EditorPage({ params }: { params: Promise<{ project
   };
   return (
     <Editor
+      appId={project.appId}
       project={{ id: project.id, name: project.name, doc: project.doc, revision: project.revision }}
       assets={assets.filter((a) => a.kind !== "recording" || a.videoUrl).map(({ id, url, width, height, kind }) => ({ id, url, width, height, kind }))}
       assetUrls={assetUrls}

@@ -2,9 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { foldCount, MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/document";
-import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
+import { BoardView } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
+import { useEditorAssets } from "../assets.tsx";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { collectDroppedFiles, isFileDrag } from "../intake.ts";
+import { useIntake } from "../useIntake.ts";
 import { expandToGroups, selectableRefs } from "../selection.ts";
 import { resizeBox, rotationFromPointer, snapMove, type Box, type Handle } from "../geometry.ts";
 
@@ -21,7 +24,10 @@ type Drag =
   | { kind: "rotate"; center: { x: number; y: number }; ref: Ref };
 
 /** The active group's boards edge to edge (seams marked), with an interaction layer on top. */
-export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
+export function Canvas() {
+  const { resolveSrc } = useEditorAssets();
+  const intake = useIntake();
+  const [fileOver, setFileOver] = useState(false);
   const store = useEditorStore();
   const doc = useEditor((s) => s.doc);
   const groupId = useEditor((s) => s.activeGroupId);
@@ -163,7 +169,24 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
   }
 
   return (
-    <div ref={viewport} className="relative flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-900">
+    <div ref={viewport} className="relative flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-900"
+      onDragOver={(e) => { if (!isFileDrag(e.dataTransfer)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setFileOver(true); }}
+      onDragLeave={(e) => { if (e.currentTarget === e.target) setFileOver(false); }}
+      onDrop={(e) => {
+        if (!isFileDrag(e.dataTransfer) || !layer.current || !group) return;
+        e.preventDefault();
+        setFileOver(false);
+        const files = collectDroppedFiles(e.dataTransfer); // must start before this handler returns
+        const p = toStrip(e);
+        const i = Math.max(0, Math.min(group.boards.length - 1, Math.floor(p.x / boardW)));
+        const board = group.boards[i]!;
+        const device = [...hittable].reverse().find((it) => {
+          if (it.ref.boardId !== board.id || it.el.type !== "device") return false;
+          const b = boxOf(it.el, it.offset);
+          return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
+        });
+        void files.then((list) => intake.dropFiles(list, { boardId: board.id, x: p.x - i * boardW, y: p.y, device: device?.ref }));
+      }}>
       <div className="p-8" style={{ width: boardW * group.boards.length * zoom + 64 }}>
         <div className="relative" style={{ width: boardW * group.boards.length * zoom, height: boardH * zoom }}>
           <div className="flex">
@@ -211,6 +234,27 @@ export function Canvas({ resolveSrc }: { resolveSrc: ResolveSrc }) {
           </div>
         </div>
       </div>
+      {fileOver && <div className="pointer-events-none absolute inset-0 z-10 border-4 border-dashed border-indigo-500 bg-indigo-500/10" aria-hidden />}
+      {(intake.progress || intake.errors.length > 0 || intake.pending) && (
+        <div className="sticky bottom-4 left-4 z-20 m-4 max-w-sm space-y-2 rounded-md bg-white p-3 text-sm shadow dark:bg-neutral-800" role="status">
+          {intake.progress && <p>{intake.progress}</p>}
+          {intake.pending && (
+            <div className="space-y-1">
+              <p>{intake.pending.assetIds.length} images uploaded.</p>
+              <div className="flex gap-1">
+                <button type="button" className="btn px-2 py-0.5 text-xs" onClick={() => intake.choose("boards")}>Create a board for each</button>
+                <button type="button" className="btn-ghost px-2 py-0.5 text-xs" onClick={() => intake.choose("here")}>Add here as images</button>
+              </div>
+            </div>
+          )}
+          {intake.errors.length > 0 && (
+            <div>
+              <ul className="error list-disc pl-4 text-xs">{intake.errors.map((m) => <li key={m}>{m}</li>)}</ul>
+              <button type="button" className="text-xs text-neutral-500 hover:underline" onClick={intake.clearErrors}>Dismiss</button>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

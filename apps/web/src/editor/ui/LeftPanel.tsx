@@ -2,6 +2,7 @@
 
 import { getTarget, TARGETS, type ArtboardElement, type TargetId } from "@chitrapx/document";
 import { useJobDownload } from "@/components/useJobDownload.ts";
+import { useIntake } from "../useIntake.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
@@ -26,6 +27,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
   const projectId = useEditor((s) => s.projectId);
   const locale = useEditor((s) => s.locale);
   const png = useJobDownload();
+  const intake = useIntake();
   const doc = useEditor((s) => s.doc);
   const groupId = useEditor((s) => s.activeGroupId);
   const boardId = useEditor((s) => s.activeBoardId);
@@ -111,6 +113,11 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
         <div className="flex items-center justify-between">
           <h2 className="label mb-0">Boards</h2>
           <button type="button" className="text-xs text-indigo-600 hover:underline" onClick={addBoard} disabled={!group}>Add board</button>
+          <label className="cursor-pointer text-xs text-indigo-600 hover:underline">
+            Import folder
+            <input type="file" multiple accept="image/png,image/jpeg,image/webp" className="sr-only" {...{ webkitdirectory: "" }}
+              onChange={(e) => { const list = Array.from(e.target.files ?? []); e.target.value = ""; if (list.length) void intake.importBoards(list); }} />
+          </label>
         </div>
         <ol className="space-y-1">
           {group?.boards.map((b, i) => (
@@ -131,6 +138,8 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
             </li>
           ))}
         </ol>
+        {intake.progress && <p className="text-xs text-neutral-500">{intake.progress}</p>}
+        {intake.errors.length > 0 && <ul className="error list-disc pl-4 text-xs" role="alert">{intake.errors.map((m) => <li key={m}>{m}</li>)}</ul>}
         {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free downloads") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
 
