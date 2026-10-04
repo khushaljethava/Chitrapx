@@ -202,6 +202,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
         <button type="button" className="btn-ghost" onClick={() => duplicateSelection(store)}>Duplicate</button>
         <button type="button" className="btn-ghost text-red-600" onClick={() => store.getState().apply({ type: "deleteElements", refs: [refr] })}>Delete</button>
       </div>
+      {refr.boardId !== null && (el.type === "text" || el.type === "device" || el.type === "video-device") && <LayoutPresets groupId={refr.groupId} boardId={refr.boardId} />}
     </div>
   );
 }

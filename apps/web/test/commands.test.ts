@@ -237,3 +237,16 @@ describe("applyLayoutPreset", () => {
     expect(findElement(d1, r("c"))!.position.y).toBeCloseTo(2796 - 50 - 2796 * 0.06);
   });
 });
+
+describe("applyLayoutPreset (device)", () => {
+  it("phone-tilt rotates and sizes a targeted device", () => {
+    const base = doc();
+    base.groups[0]!.boards[0]!.elements.push(el("p", 0, { type: "device", size: { width: 600, height: 1200 } }));
+    const d1 = applyCommand(base, { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "phone-tilt", elementIds: ["p"] });
+    const p = findElement(d1, r("p"))!;
+    expect(p.rotation).toBe(-12);
+    expect(p.size.height).toBeCloseTo(2796 * 0.72);
+    expect(p.size.width).toBeCloseTo(2796 * 0.72 / 2);
+    expect(findElement(d1, r("a"))!.position).toEqual({ x: 0, y: 10 });
+  });
+});

@@ -19,6 +19,7 @@ export function LayoutPresets({ groupId, boardId }: { groupId: string; boardId: 
     const s = store.getState();
     const spans = s.selection.some((r) => r.boardId === null);
     const elementIds = s.selection.filter((r) => r.groupId === groupId && r.boardId === boardId).map((r) => r.elementId);
+    if (s.selection.length && !elementIds.length) { setNotice("Elements across boards are not moved by presets."); return; }
     const detached = Object.entries(board?.localized ?? {}).filter(([, byEl]) =>
       Object.values(byEl).some((ov) => (ov as { detached?: string[] }).detached?.some((k) => k === "position" || k === "size"))).map(([loc]) => loc);
     s.apply({ type: "applyLayoutPreset", groupId, boardId, preset, elementIds });
