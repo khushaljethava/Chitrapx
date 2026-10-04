@@ -32,7 +32,7 @@ export const LOCALE_CODE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/;
 const COLOR = /^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla)\([0-9\s.,%/+-]+\)|[a-zA-Z]{3,30})$/;
 /** True for values the document accepts as a colour (hex, rgb/hsl functions, named colours). */
 export const isColor = (v: string) => COLOR.test(v.trim());
-const COLOR_KEYS = new Set(["color", "color1", "color2", "fillColor", "strokeColor", "frameColor", "notchColor", "tintColor", "backgroundColor", "backgroundImageTintColor"]);
+const COLOR_KEYS = new Set(["color", "color1", "color2", "fillColor", "strokeColor", "frameColor", "notchColor", "statusBarColor", "tintColor", "backgroundColor", "backgroundImageTintColor"]);
 /** Strings shown as text, never interpreted as CSS. */
 const TEXT_KEYS = new Set(["content", "name", "imageAlt", "groupName", "description"]);
 /** Anything in a styling string that could make a browser fetch or load something. */
@@ -62,6 +62,7 @@ const element = z.object({
   type: z.enum(["text", "shape", "device", "image", "video", "video-device", "gesture", "audio"]),
   position: point,
   size,
+  statusBarTime: z.string().regex(/^\d{1,2}:\d{2}$/).optional(),
 }).passthrough();
 const board = z.object({
   id: z.string().min(1),

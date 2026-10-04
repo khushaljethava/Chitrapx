@@ -17,5 +17,7 @@ export function boardFor(doc: ChitrapxDoc, groupId: string, boardIndex: number, 
   const offset = boardIndex * base.size.width;
   const span = group.spanElements.map((el) => ({ ...el, position: { ...el.position, x: el.position.x - offset } }));
   const missing = new Set<string>();
-  return { board: resolveBoardSources({ ...board, elements: [...span, ...board.elements] }, resolveSrc, missing), missing: [...missing] };
+  // SP9: hidden elements are not drawn anywhere (canvas, preview, export).
+  const elements = [...span, ...board.elements].filter((el) => !el.hidden);
+  return { board: resolveBoardSources({ ...board, elements }, resolveSrc, missing), missing: [...missing] };
 }

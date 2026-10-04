@@ -86,6 +86,12 @@ export interface BaseElement {
   // the string to each member; an unnamed group (one the MCP tool made) reads
   // as "Group" in the panel.
   groupName?: string;
+  // SP9 Layers panel. Locked: drawn, but the canvas ignores it (select it from
+  // the Layers panel to unlock). Hidden: not drawn at all, on the canvas or in
+  // exports. Neither varies per language; the per-locale `hidden` override in
+  // ElementLocaleOverride is separate and still applies.
+  locked?: boolean;
+  hidden?: boolean;
   // The palette tile this element came from, e.g. 'image:touch-as451105828'
   // (see lib/libraryIds.ts). Stamped by the palette and by MCP add_element,
   // shown at the top of the Properties panel so a layer traces back to the
@@ -218,6 +224,13 @@ export interface DeviceFrameElementProps extends BaseElement {
   frameOpacity?: number; // 0..1 alpha applied to the flat frame color (transparent devices)
   frameStyle?: 'solid' | 'outline'; // outline = colored ring around a hollow frame
   notchColor?: string; // overrides the notch / island / punch-hole fill
+  // SP9 simulated status bar, drawn over the top of the screen (2D frames only).
+  showStatusBar?: boolean;
+  statusBarPlatform?: 'ios' | 'android';
+  statusBarTheme?: 'light' | 'dark'; // 'dark' = dark text and icons, for light screenshots
+  statusBarBg?: 'transparent' | 'solid'; // solid fills with statusBarColor and pushes the screenshot down
+  statusBarColor?: string;
+  statusBarTime?: string; // like "9:41"
 }
 
 // Phone/tablet mockup with a SCREEN RECORDING playing inside its screen — the
