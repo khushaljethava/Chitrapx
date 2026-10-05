@@ -187,6 +187,7 @@ function isEmptyOverride(ov: ElementLocaleOverride | undefined): ov is undefined
   // manual control in this language, so the override has to survive.
   if (ov.detached && ov.detached.length > 0) return false;
   if (ov.hidden !== undefined) return false;
+  if (ov.marks !== undefined) return false;
   const record = ov as unknown as Record<string, unknown>;
   return ALWAYS_LOCAL_KEYS.every((key) => record[key] === undefined);
 }
@@ -316,6 +317,17 @@ export function resolveElementForLocale(
     if (value === undefined || !acceptsKey(el, key)) continue;
     if (baseRecord[key] === value) continue;
     assign(key, value);
+  }
+
+  // Marks are offsets into one wording. A language with its own wording either brings its own
+  // marks or renders unstyled; the base marks would land on the wrong letters.
+  if (el.type === 'text') {
+    const baseMarks = (el as TextElementProps).marks;
+    if (ov.marks !== undefined) {
+      if (!sameValue(ov.marks, baseMarks)) assign('marks', ov.marks);
+    } else if (baseMarks?.length && ov.content !== undefined && ov.content !== (el as TextElementProps).content) {
+      assign('marks', undefined);
+    }
   }
 
   // Anything the user pulled apart, whatever it is. Driven by the `detached`

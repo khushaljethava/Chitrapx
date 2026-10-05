@@ -426,3 +426,19 @@ describe("uploaded fonts (SP10)", () => {
     expect(pixelmatch(a.data, b.data, null, a.width, a.height, { threshold: 0.1 }) / (a.width * a.height)).toBeLessThan(0.0005);
   }, 300_000);
 });
+
+describe("rich text (SP10)", () => {
+  it("a headline with bold words and a gradient phrase matches its golden", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const t = doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "text") as Record<string, unknown>;
+    // "Track habits.\n" is 14 UTF-16 units; "Keep streaks." runs 14..27.
+    // Two lines in a box the template sized for one: grow it upwards so nothing is clipped or overlaps.
+    const size = t.size as { width: number; height: number }, pos = t.position as { x: number; y: number };
+    Object.assign(t, { size: { ...size, height: size.height * 2.5 }, position: { ...pos, y: pos.y - size.height * 1.5 }, content: "Track habits.\nKeep streaks.", fontWeight: "400", fontStyle: "normal", marks: [
+      { start: 0, end: 5, fontWeight: 800 },
+      { start: 14, end: 27, fontWeight: 800, gradient: { kind: "linear", angle: 90, stops: [{ color: "#ff3d71", at: 0 }, { color: "#7b61ff", at: 1 }] } },
+    ] });
+    const { ws, appId } = await workspaceWithApp();
+    compareGolden("rich-text-gradient.png", await singleBoardPng(ws, appId, migrate(doc)));
+  }, 180_000);
+});

@@ -12,7 +12,7 @@
 // and the weight. A probe node carrying TextElement's exact render CSS is the
 // only thing that agrees with what the canvas will do.
 
-import type { TextElementProps } from '@chitrapx/document';
+import { segments, type TextElementProps } from '@chitrapx/document';
 
 /** Matches TextElement: text renders at fontSize / 0.3 and ignores scale. */
 const DISPLAY_SCALE_FACTOR = 0.3;
@@ -45,7 +45,7 @@ function probeNode(): HTMLDivElement {
 export function measureTextHeight(
   element: Pick<
     TextElementProps,
-    'size' | 'scale' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'fontStyle' | 'lineHeight' | 'letterSpacing'
+    'size' | 'scale' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'fontStyle' | 'lineHeight' | 'letterSpacing' | 'marks'
   >,
   content: string
 ): number {
@@ -69,7 +69,19 @@ export function measureTextHeight(
   node.style.wordBreak = 'break-word';
   // A trailing newline has no line box of its own unless something follows it,
   // and a user who just pressed Enter is expecting room for that line.
-  node.textContent = content.endsWith('\n') ? `${content}​` : content;
+  // Mixed weights wrap differently, so the probe carries the same runs TextElement draws.
+  const tail = content.endsWith('\n') ? [document.createTextNode('​')] : [];
+  if (element.marks?.length) {
+    node.replaceChildren(...segments(content, element.marks).map((r) => {
+      const span = document.createElement('span');
+      span.textContent = r.text;
+      if (r.style.fontWeight) span.style.fontWeight = String(r.style.fontWeight);
+      if (r.style.italic !== undefined) span.style.fontStyle = r.style.italic ? 'italic' : 'normal';
+      return span;
+    }), ...tail);
+  } else {
+    node.textContent = content.endsWith('\n') ? `${content}​` : content;
+  }
 
   const height = node.offsetHeight;
   node.textContent = '';

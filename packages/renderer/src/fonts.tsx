@@ -17,7 +17,10 @@ export function fontUsesOf(boards: ArtboardState[]): FontUse[] {
     const t = el as TextElementProps;
     const family = t.fontFamily?.trim();
     if (!family) continue;
-    add(family, parseWeight(t.fontWeight), t.fontStyle === "italic");
+    const weight = parseWeight(t.fontWeight), italic = t.fontStyle === "italic";
+    add(family, weight, italic);
+    // Weight marks use the same family: request those faces too (the nearest one the family has).
+    for (const m of t.marks ?? []) add(family, m.fontWeight ?? weight, m.italic ?? italic);
   }
   return [...uses].map(([family, faces]) => ({ family, faces: [...faces.values()] }));
 }

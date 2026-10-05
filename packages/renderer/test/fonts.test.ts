@@ -39,6 +39,10 @@ describe("Google Fonts stylesheet", () => {
     expect(getRecommendedFontForLanguage("ja")).toBe("Noto Sans JP");
     expect(getRecommendedFontForLanguage("ar")).toBe("Noto Sans Arabic");
   });
+  it("requests the weights and italics that marks use, in the element's family", () => {
+    const uses = fontUsesOf([board([text("Playfair Display", { content: "Keep streaks", marks: [{ start: 0, end: 4, fontWeight: 800 }, { start: 5, end: 12, italic: true }] })])]);
+    expect(googleFontsHref(uses)).toBe("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,800;1,400&display=block");
+  });
 });
 
 import { renderToStaticMarkup } from "react-dom/server";

@@ -2,7 +2,7 @@
 "use client";
 import type React from 'react';
 import { useState, useEffect, useRef } from 'react';
-import type { TextElementProps as TextElementType } from '@chitrapx/document';
+import { gradientCss, segments, type Gradient, type MarkStyle, type TextElementProps as TextElementType } from '@chitrapx/document';
 import { fitTextBox } from '../lib/textFit';
 import { cssFontFamily } from '../lib/fontService';
 import { QUICK_EDIT_EVENT } from '../shims/events';
@@ -44,6 +44,19 @@ const contentEditableMode = () => {
  */
 const readEditedText = (node: HTMLElement) =>
   node.innerText.replace(/\r\n/g, '\n').replace(/\n$/, '');
+
+/** A fill for a whole box or a run: a gradient is painted into the glyphs (background-clip: text). */
+function fillCss(color: string | undefined, gradient: Gradient | undefined): React.CSSProperties {
+  if (gradient) return { backgroundImage: gradientCss(gradient), WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent', WebkitTextFillColor: 'transparent' };
+  // The text-fill colour too, so a coloured run shows inside a box whose own fill is a gradient.
+  if (color) return { color, WebkitTextFillColor: color };
+  return {};
+}
+const markCss = (s: MarkStyle): React.CSSProperties => ({
+  ...fillCss(s.color, s.gradient),
+  ...(s.fontWeight ? { fontWeight: s.fontWeight } : {}),
+  ...(s.italic !== undefined ? { fontStyle: s.italic ? 'italic' : 'normal' } : {}),
+});
 
 export function TextElement({ element, onUpdate, isSelected, artboardZoom }: TextElementProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -176,6 +189,9 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         ? 'flex-end'
         : 'flex-start';
 
+  // Marks are drawn as runs; the browser wraps them, so the export wraps exactly like the canvas.
+  const runs = element.marks?.length ? segments(element.content, element.marks) : null;
+
   return (
     <div
       // ONE node for both states, editable or not, carrying ONE set of styles.
@@ -210,6 +226,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         fontFamily: cssFontFamily(element.fontFamily),
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
+        ...(element.gradient ? fillCss(undefined, element.gradient) : {}),
         lineHeight: lineHeightValue,
         letterSpacing: trackedSpacing,
         fontWeight: element.fontWeight || 'normal',
@@ -233,7 +250,8 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
       }}
       title={isEditing ? undefined : isSelected ? 'Click to edit text' : element.content}
     >
-      {isEditing ? editSeed : element.content}
+      {/* One wrapper: the box is a flex container, and bare runs would each become a flex item that wraps on its own. */}
+      {isEditing ? editSeed : runs ? <span>{runs.map((r) => <span key={r.start} style={markCss(r.style)}>{r.text}</span>)}</span> : element.content}
     </div>
   );
 }
