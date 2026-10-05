@@ -107,6 +107,37 @@ describe("font uploads", () => {
     expect(await s.storage.exists(`${s.ctx.workspaceId}/${sha(font("pacifico.woff2"))}`)).toBe(false);
   });
 
+  it("two files for the same face uploaded at once: one is stored, the other refused (M1)", async () => {
+    const s = await setup();
+    const out = await Promise.allSettled([uploadFont(s, font("inter-400.woff2")), uploadFont(s, font("inter-400.ttf"))]);
+    expect(out.map((o) => o.status).sort()).toEqual(["fulfilled", "rejected"]);
+    expect((out.find((o) => o.status === "rejected") as PromiseRejectedResult).reason).toMatchObject({ code: "font_face_exists" });
+    expect((await listFonts(s.ctx, s.storage))[0]!.faces).toHaveLength(1);
+    expect(s.storage.files.size).toBe(1);
+  });
+
+  it("a font is never linked into an app, and deleting it keeps bytes another row shares (M2)", async () => {
+    const s = await setup();
+    const bytes = font("pacifico.woff2");
+    const face = await uploadFont(s, bytes);
+    const app = await createApp(s.ctx, { name: "App" });
+    const signed = await signUpload(s.ctx, s.storage, { appId: app.id, kind: "image", size: bytes.length, mime: "image/png", sha256: sha(bytes) });
+    expect("existing" in signed).toBe(false);
+    await db.insert(schema.assets).values({ workspaceId: s.ctx.workspaceId, appId: app.id, kind: "image", storagePath: `${s.ctx.workspaceId}/${sha(bytes)}`, mime: "image/png", bytes: bytes.length, sha256: sha(bytes) });
+    await deleteFont(s.ctx, s.storage, face.id);
+    expect(await s.storage.exists(`${s.ctx.workspaceId}/${sha(bytes)}`)).toBe(true);
+  });
+
+  it("two deletes at once cannot remove both faces of a family in use (M4)", async () => {
+    const s = await setup();
+    const regular = await uploadFont(s, font("inter-400.woff2"));
+    const bold = await uploadFont(s, font("inter-700.woff2"));
+    await projectUsing(s, "App", "Inter (custom)");
+    const out = await Promise.allSettled([deleteFont(s.ctx, s.storage, regular.id), deleteFont(s.ctx, s.storage, bold.id)]);
+    expect(out.map((o) => o.status).sort()).toEqual(["fulfilled", "rejected"]);
+    expect((await listFonts(s.ctx, s.storage))[0]!.faces).toHaveLength(1);
+  });
+
   it("another workspace cannot see or delete my fonts", async () => {
     const mine = await setup();
     const face = await uploadFont(mine, font("pacifico.woff2"));

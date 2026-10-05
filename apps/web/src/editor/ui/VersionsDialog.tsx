@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { ChitrapxDoc } from "@chitrapx/document";
-import { BoardView, type ResolveSrc } from "@chitrapx/renderer";
+import { BoardView, type RenderExtras, type ResolveSrc } from "@chitrapx/renderer";
 import { api, ApiError } from "@/server/api.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 
@@ -17,9 +17,9 @@ function ago(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict, resolveSrc }: {
+export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict, resolveSrc, extras }: {
   onClose: () => void; flush: () => Promise<boolean>;
-  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; resolveSrc: ResolveSrc;
+  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; resolveSrc: ResolveSrc; extras: RenderExtras;
 }) {
   const store = useEditorStore();
   const projectId = useEditor((s) => s.projectId);
@@ -102,7 +102,7 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
             <>
               <div className="overflow-hidden rounded border border-neutral-200 dark:border-neutral-700">
                 {preview.doc.groups[0]?.boards[0]
-                  ? <BoardView doc={preview.doc} groupId={preview.doc.groups[0].id} boardIndex={0} locale={preview.doc.localization.baseLocale} scale={240 / preview.doc.groups[0].boards[0].size.width} resolveSrc={resolveSrc} />
+                  ? <BoardView doc={preview.doc} groupId={preview.doc.groups[0].id} boardIndex={0} locale={preview.doc.localization.baseLocale} scale={240 / preview.doc.groups[0].boards[0].size.width} resolveSrc={resolveSrc} extras={extras} />
                   : <p className="p-4 text-sm text-neutral-500">This version has no boards.</p>}
               </div>
               <button type="button" className="btn w-full" disabled={busy || conflicted} onClick={() => restore(preview.v)}>Restore this version</button>

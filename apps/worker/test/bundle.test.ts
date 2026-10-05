@@ -257,6 +257,19 @@ describe("fonts in project files", () => {
     expect(p.deps.files.has(`uploads:${target}/${p.fontSha}`)).toBe(true);
   });
 
+  it("does not upload a face the workspace already has under other bytes", async () => {
+    const p = await projectWithFont();
+    await runJob(p.jobId, (input, job) => runBundle(input, job, p.deps));
+    const file = p.deps.files.get(`exports:${p.ws}/${p.jobId}.chitrapx`)!;
+    const target = await makeWorkspace((await createUser()).id, "pro");
+    await db.insert(schema.assets).values({ workspaceId: target, appId: null, kind: "font", storagePath: `${target}/${"0".repeat(64)}`, mime: "font/woff2", bytes: 1, sha256: "0".repeat(64),
+      meta: { family: "Pacifico (custom)", weight: 400, italic: false, format: "woff2" } });
+    const [app] = await db.insert(schema.apps).values({ workspaceId: target, name: "T" }).returning();
+    const r = await importInto(file, "pro", target, app!.id);
+    expect(r.job.status).toBe("done");
+    expect(r.deps.files.has(`uploads:${target}/${p.fontSha}`)).toBe(false);
+  });
+
   it("refuses a font whose bytes are not the family the manifest claims", async () => {
     const bytes = fixtureFont("inter-400.woff2"); // really "Inter (custom)"
     const zip = packBundle(manifest({ assets: [{ sha256: sha(bytes), kind: "font", mime: "font/woff2", family: "Pacifico (custom)", weight: 400, italic: false }] }) as never,

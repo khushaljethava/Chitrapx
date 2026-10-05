@@ -16,6 +16,6 @@ describe("export browser network allowlist", () => {
   it("exportOrigins allows exactly the web app, the uploads bucket and Google Fonts", async () => {
     const { exportOrigins } = await import("../src/export.ts");
     const { storageOrigin } = await import("@chitrapx/storage");
-    expect(exportOrigins()).toEqual([new URL(process.env.WEB_ORIGIN ?? "http://localhost:3000").origin, storageOrigin("uploads"), "https://fonts.googleapis.com", "https://fonts.gstatic.com"]);
+    expect(await exportOrigins()).toEqual([new URL(process.env.WEB_ORIGIN ?? "http://localhost:3000").origin, await storageOrigin("uploads"), "https://fonts.googleapis.com", "https://fonts.gstatic.com"]);
   });
 });

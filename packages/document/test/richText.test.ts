@@ -60,6 +60,19 @@ describe("segments", () => {
 });
 
 describe("remapMarks", () => {
+  it("never leaves a mark edge inside an emoji when the edit changes only its second half (M3)", () => {
+    const splits = (s: string, i: number) => /[\uD800-\uDBFF]/.test(s[i - 1] ?? "") && /[\uDC00-\uDFFF]/.test(s[i] ?? "");
+    for (const [from, to, marks] of [
+      ["a😀b", "a😃b", [{ start: 0, end: 3, fontWeight: 800 }]],
+      ["a😀b", "a😃b", [{ start: 3, end: 4, color: "#f00" }, { start: 0, end: 1, color: "#00f" }]],
+      ["go 😀", "go 😃!", [{ start: 0, end: 5, italic: true }]],
+    ] as Array<[string, string, TextMark[]]>) {
+      const out = remapMarks(from, to, marks);
+      expect(out.flatMap((m) => [m.start, m.end]).filter((i) => splits(to, i)), `${from} -> ${to}`).toEqual([]);
+    }
+    expect(remapMarks("a😀b", "a😃b", [{ start: 0, end: 3, fontWeight: 800 }])).toEqual([{ start: 0, end: 1, fontWeight: 800 }]);
+  });
+
   const bold: TextMark[] = [{ start: 6, end: 12, fontWeight: 800 }]; // "habits" in "Track habits"
   it("insert before shifts the mark", () => expect(remapMarks("Track habits", "Track my habits", bold)).toEqual([{ start: 9, end: 15, fontWeight: 800 }]));
   it("insert after leaves it", () => expect(remapMarks("Track habits", "Track habits daily", bold)).toEqual(bold));

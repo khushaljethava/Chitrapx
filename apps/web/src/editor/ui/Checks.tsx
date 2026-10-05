@@ -12,10 +12,10 @@ export function Checks() {
   const groupId = useEditor((s) => s.activeGroupId);
   const locale = useEditor((s) => s.locale);
   const group = doc.groups.find((g) => g.id === groupId);
-  const issues = useMemo(() => (group?.boards ?? []).flatMap((b, i) =>
-    lintBoard(b, { code: locale, base: doc.localization.baseLocale }).map((issue) => ({ ...issue, boardId: b.id, boardIndex: i }))),
-  [group, locale, doc.localization.baseLocale]);
   const { fonts, extras } = useEditorAssets();
+  const issues = useMemo(() => (group?.boards ?? []).flatMap((b, i) =>
+    lintBoard(b, { code: locale, base: doc.localization.baseLocale }, extras.palette).map((issue) => ({ ...issue, boardId: b.id, boardIndex: i }))),
+  [group, locale, doc.localization.baseLocale, extras.palette]);
   const content = useMemo(() => contentChecks(doc, { customFamilies: fonts.map((f) => f.family), palette: extras.palette }).filter((i) => i.groupId === groupId), [doc, fonts, extras.palette, groupId]);
   const count = issues.length + content.length;
 

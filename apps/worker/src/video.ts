@@ -72,7 +72,7 @@ export async function runVideo(raw: unknown, job: JobContext): Promise<{ actual:
     browser = await chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
     const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
     page.setDefaultTimeout(60_000);
-    const origins = exportOrigins();
+    const origins = await exportOrigins();
     await page.route("**/*", (route) => (exportUrlAllowed(route.request().url(), origins) ? route.continue() : route.abort("blockedbyclient")));
     const res = await page.goto(renderUrl(process.env.WEB_ORIGIN ?? "http://localhost:3000", job.id), { waitUntil: "load", timeout: 60_000 });
     if (!res?.ok()) throw new Error(`render page returned ${res?.status()}`);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkFont, fontFamilyFor, FontRejected, parseFont, sniffAsset, sniffFontType } from "../src/index.ts";
+import { checkFont, fontFamilyFor, FontRejected, limiter, parseFont, sniffAsset, sniffFontType } from "../src/index.ts";
 import { fixtureFont as font, withFsType } from "./fontFixtures.ts";
 
 describe("sniffFontType", () => {
@@ -43,5 +43,22 @@ describe("parseFont (fontkit in a worker thread)", () => {
     expect(fontFamilyFor("Inter")).toBe("Inter (custom)");
     expect(fontFamilyFor("Arial")).toBe("Arial (custom)");
     expect(fontFamilyFor("Acme Brand Sans")).toBe("Acme Brand Sans");
+  });
+});
+
+describe("limiter", () => {
+  it("runs at most max calls at once, keeps going after a failure, and runs every call", async () => {
+    const run = limiter(2);
+    let active = 0, peak = 0;
+    const job = (fail: boolean) => run(async () => {
+      peak = Math.max(peak, ++active);
+      await new Promise((r) => setTimeout(r, 5));
+      active--;
+      if (fail) throw new Error("boom");
+      return 1;
+    });
+    const out = await Promise.allSettled([job(false), job(true), job(false), job(false), job(false)]);
+    expect(peak).toBe(2);
+    expect(out.map((o) => o.status)).toEqual(["fulfilled", "rejected", "fulfilled", "fulfilled", "fulfilled"]);
   });
 });

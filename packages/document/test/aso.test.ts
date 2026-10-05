@@ -33,6 +33,14 @@ describe("lintBoard", () => {
     expect(codes(board("b", [shape as never, t("h", "Brew", { color: "#ffffff" })]))).not.toContain("h:low_contrast");
   });
 
+  it("resolves brand-token colours before checking contrast", () => {
+    const b = { ...board("b", [t("h", "Brew", { color: "brand:text" })]), backgroundColor: "brand:surface" };
+    const lint = (palette?: Record<string, string>) => lintBoard(b as never, undefined, palette).map((i) => i.code);
+    expect(lint({ text: "#fafafa", surface: "#ffffff" })).toContain("low_contrast");
+    expect(lint({ text: "#111111", surface: "#ffffff" })).not.toContain("low_contrast");
+    expect(lint()).not.toContain("low_contrast");
+  });
+
   it("ignores colours it cannot read instead of crashing", () => {
     expect(() => lintBoard(board("b", [t("h", "Brew", { color: "currentcolor" })]))).not.toThrow();
   });

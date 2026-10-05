@@ -1,4 +1,5 @@
 import type { ArtboardElement, ArtboardState, ShapeElementProps, TextElementProps } from "./artboard.ts";
+import { resolveBrand, type BrandPalette } from "./brand.ts";
 import { getTarget } from "./targets.ts";
 
 export type AsoIssue = {
@@ -99,9 +100,11 @@ function estimatedLines(t: TextElementProps, content: string): number {
 
 /**
  * Store-readiness checks for one board, in the given language (base text plus that language's
- * overrides). The headline is the board's largest text.
+ * overrides). The headline is the board's largest text. Brand-token colours resolve through `palette`;
+ * a token the palette lacks drops its colour, so that pair is skipped rather than guessed.
  */
-export function lintBoard(board: ArtboardState, locale?: { code: string; base: string }): AsoIssue[] {
+export function lintBoard(raw: ArtboardState, locale?: { code: string; base: string }, palette?: BrandPalette): AsoIssue[] {
+  const board = resolveBrand(raw, palette);
   const issues: AsoIssue[] = [];
   const overrides = locale && locale.code !== locale.base ? board.localized?.[locale.code] ?? {} : {};
   const texts = board.elements.map((e, i) => ({ e, i })).filter((x): x is { e: TextElementProps & ArtboardElement; i: number } => x.e.type === "text");
