@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { resolveGroup, type ChitrapxDoc, type ExportItem } from "@chitrapx/document";
-import { BoardFonts, boardFor, StaticArtboard, waitForRender, type RenderExtras } from "@chitrapx/renderer";
+import { BoardFonts, boardFor, clearLocaleFontSizeCache, fontUsesOf, StaticArtboard, waitForRender, type RenderExtras } from "@chitrapx/renderer";
 
 declare global {
   interface Window { __chitrapxReady?: { ok: boolean; errors: string[] } }
@@ -12,7 +12,11 @@ declare global {
 export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
   doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>; extras?: RenderExtras;
 }) {
+  // Auto-shrink measures text with whatever face is loaded. The first pass runs before the faces arrive,
+  // so once they have loaded the sizes are measured again before anything is captured.
+  const [fontsLoaded, setFontsLoaded] = useState(false);
   const boards = useMemo(() => {
+    void fontsLoaded; // re-measure once the faces are in
     const cache = new Map();
     return indices.map((i) => {
       const item = plan[i]!;
@@ -21,11 +25,22 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
       // Only this workspace's signed assets: the worker's browser must never fetch a URL a document names (SSRF).
       return { i, ...boardFor({ ...doc, groups: [g] }, g.id, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null, { palette: extras?.palette }) };
     });
-  }, [doc, plan, indices, assetUrls, extras?.palette]);
+  }, [doc, plan, indices, assetUrls, extras?.palette, fontsLoaded]);
   // Recordings still converting render as placeholders instead of failing the export.
   const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))], [boards]);
 
   useEffect(() => {
+    if (fontsLoaded) return;
+    let cancelled = false;
+    const families = fontUsesOf(boards.map((b) => b.board)).map((u) => u.family);
+    Promise.all(families.map((f) => document.fonts.load(`16px "${f}"`).catch(() => [])))
+      .then(() => document.fonts.ready)
+      .then(() => { if (!cancelled) { clearLocaleFontSizeCache(); setFontsLoaded(true); } });
+    return () => { cancelled = true; };
+  }, [boards, fontsLoaded]);
+
+  useEffect(() => {
+    if (!fontsLoaded) return;
     let cancelled = false;
     waitForRender(document).then((r) => {
       if (cancelled) return;
@@ -33,7 +48,7 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
       window.__chitrapxReady = { ok: errors.length === 0, errors };
     });
     return () => { cancelled = true; };
-  }, [missing]);
+  }, [missing, fontsLoaded]);
 
   return (
     <main style={{ background: "#fff", padding: 0, margin: 0 }}>
