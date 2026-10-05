@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { ArtboardElement, TextElementProps } from "./artboard.ts";
 import type { ChitrapxDoc } from "./doc.ts";
 import { fillScreenshots } from "./fill.ts";
+import { remapMarks } from "./richText.ts";
 
 /**
  * What the models return. They never produce document JSON: only these small plans,
@@ -84,6 +85,15 @@ export function repairOrder(order: number[], n: number): number[] {
   return out;
 }
 
+/** New wording for a text: its marks follow the edit like typing does, never left at offsets of the old words. */
+function setContent(el: TextElementProps, next: string) {
+  if (el.marks?.length) {
+    const marks = remapMarks(el.content ?? "", next, el.marks);
+    if (marks.length) el.marks = marks; else delete el.marks;
+  }
+  el.content = next;
+}
+
 export function applyDesign(template: ChitrapxDoc, plan: { screenshotOrder: number[]; boards: SlotCopy["boards"] }, screenshotAssetIds: string[]): ChitrapxDoc {
   const order = repairOrder(plan.screenshotOrder, screenshotAssetIds.length);
   const filled = fillScreenshots(template, order.map((i) => screenshotAssetIds[i]!));
@@ -94,7 +104,7 @@ export function applyDesign(template: ChitrapxDoc, plan: { screenshotOrder: numb
       if (!b) continue;
       for (const { id, text } of texts) {
         const el = b.elements.find((e) => e.id === id && e.type === "text") as TextElementProps | undefined;
-        if (el) el.content = text.trim().slice(0, budget(el.content ?? ""));
+        if (el) setContent(el, text.trim().slice(0, budget(el.content ?? "")));
       }
     }
   });
@@ -106,7 +116,7 @@ export function applyTexts(doc: ChitrapxDoc, texts: SlotText[]): ChitrapxDoc {
   return produce(doc, (d) => {
     for (const g of d.groups) for (const b of g.boards) for (const e of b.elements) {
       const text = byId.get(e.id);
-      if (text !== undefined && e.type === "text") (e as TextElementProps).content = text.trim().slice(0, budget((e as TextElementProps).content ?? ""));
+      if (text !== undefined && e.type === "text") setContent(e as TextElementProps, text.trim().slice(0, budget((e as TextElementProps).content ?? "")));
     }
   });
 }
@@ -129,7 +139,10 @@ export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotT
       const byEl = ((b.localized ??= {})[locale] ??= {});
       const current = byEl[e.id];
       if (current?.content !== undefined && current.origin !== "auto") continue; // a person wrote this
-      byEl[e.id] = { ...current, content: text.slice(0, budget(base)), origin: "auto" };
+      const next = text.slice(0, budget(base));
+      // The language's own marks were offsets into its old wording.
+      const { marks: _old, ...rest } = current ?? {};
+      byEl[e.id] = { ...rest, ...(current?.content === next && _old ? { marks: _old } : {}), content: next, origin: "auto" };
     }
   });
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDesign, applyTexts, applyTranslations, textSlots } from "../src/index.ts";
+import { applyDesign, applyTexts, applyTranslations, textSlots, type ChitrapxDoc } from "../src/index.ts";
 import { board, device, doc, group, text } from "./fixtures.ts";
 
 const tpl = () => doc([group([
@@ -92,5 +92,26 @@ describe("review fixes", () => {
     const out = applyTranslations(d, "de-DE", [{ id: "h1", text: "Verfolgen" }, { id: "h2", text: "Veraltet" }], sources);
     expect(out.groups[0]!.boards[0]!.localized!["de-DE"]!.h1!.content).toBe("Verfolgen");
     expect(out.groups[0]!.boards[1]!.localized?.["de-DE"]?.h2).toBeUndefined();
+  });
+});
+
+describe("AI text keeps styling on the right letters (SP10 review I1, I2)", () => {
+  const styled = () => {
+    const d = doc([group([board("b1", [{ ...text("t", 0, 0), content: "Track your habits", marks: [{ start: 11, end: 17, fontWeight: 800 }] } as never])])]);
+    d.localization.locales = [{ code: "de-DE" }];
+    return d;
+  };
+  const marksOf = (d: ChitrapxDoc) => (d.groups[0]!.boards[0]!.elements[0] as unknown as { marks?: unknown }).marks;
+
+  it("applyTexts carries marks across the edit instead of leaving old offsets", () => {
+    expect(marksOf(applyTexts(styled(), [{ id: "t", text: "Sleep better tonight" }]))).toBeUndefined();
+    expect(marksOf(applyTexts(styled(), [{ id: "t", text: "Track all your habits" }]))).toEqual([{ start: 15, end: 21, fontWeight: 800 }]);
+  });
+
+  it("re-translating drops a language's marks that belonged to the old wording", () => {
+    const d = styled();
+    d.groups[0]!.boards[0]!.localized = { "de-DE": { t: { content: "Gewohnheiten", origin: "auto", marks: [{ start: 0, end: 12, italic: true }] } } };
+    const out = applyTranslations(d, "de-DE", [{ id: "t", text: "Neue Routinen" }]);
+    expect(out.groups[0]!.boards[0]!.localized!["de-DE"]!.t).not.toHaveProperty("marks");
   });
 });

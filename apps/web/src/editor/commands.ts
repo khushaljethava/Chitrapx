@@ -99,12 +99,18 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         const same = (a: unknown) => JSON.stringify(a ?? []) === JSON.stringify(marks);
         if (cmd.locale && cmd.ref.boardId) {
           const b = findBoard(d, cmd.ref.groupId, cmd.ref.boardId);
-          if (!b || b.elements.find((e) => e.id === cmd.ref.elementId)?.type !== "text") return;
+          const baseEl = b?.elements.find((e) => e.id === cmd.ref.elementId) as { type?: string; content?: string; marks?: TextMark[] } | undefined;
+          if (!b || baseEl?.type !== "text") return;
           const existing = b.localized?.[cmd.locale]?.[cmd.ref.elementId] as Record<string, unknown> | undefined;
-          if (existing?.content === cmd.content && same(existing.marks)) return; // nothing to do: no undo step
+          // Still the base wording: only the marks are this language's, and the text stays machine-translatable.
+          const inherits = cmd.content === baseEl.content && (existing?.content === undefined || existing.content === baseEl.content);
+          // An empty list is stored when the base is styled, so clearing in this language actually clears.
+          const wanted = marks.length ? marks : inherits && baseEl.marks?.length ? [] : undefined;
+          const sameMarks = JSON.stringify(existing?.marks) === JSON.stringify(wanted);
+          if ((inherits || existing?.content === cmd.content) && sameMarks) return; // nothing to do: no undo step
           const ov = (((b.localized ??= {})[cmd.locale] ??= {})[cmd.ref.elementId] ??= {}) as Record<string, unknown>;
-          if (ov.content !== cmd.content) { ov.content = cmd.content; ov.origin = "manual"; }
-          if (marks.length) { if (!same(ov.marks)) ov.marks = marks; } else delete ov.marks;
+          if (!inherits && ov.content !== cmd.content) { ov.content = cmd.content; ov.origin = "manual"; }
+          if (wanted) { if (!sameMarks) ov.marks = wanted; } else delete ov.marks;
           return;
         }
         const el = list(d, cmd.ref.groupId, cmd.ref.boardId)?.find((e) => e.id === cmd.ref.elementId) as unknown as Record<string, unknown> | undefined;

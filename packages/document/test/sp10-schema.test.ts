@@ -58,4 +58,8 @@ describe("SP10 document fields", () => {
     expect(() => migrate(withText({ color: "brand:pink" }))).toThrow();
     expect(() => migrate(withText({ color: "brand:primary; background:url(x)" }))).toThrow();
   });
+  it("keeps a language's explicit empty marks (styling cleared in that language)", () => {
+    const d = withText({ marks: [{ start: 6, end: 12, fontWeight: 800 }] }, { "de-DE": { t: { marks: [] } } });
+    expect(migrate(d).groups[0]!.boards[0]!.localized!["de-DE"]!.t).toEqual({ marks: [] });
+  });
 });

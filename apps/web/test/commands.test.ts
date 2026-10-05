@@ -397,3 +397,12 @@ describe("applyStyle command", () => {
     expect(applyCommand(d, { type: "applyStyle", groupId: "g", styleId: "nope" })).toBe(d);
   });
 });
+
+describe("clearing styling in a language (SP10 review I3)", () => {
+  it("stores an explicit empty mark list, without copying the base text or pinning it as manual", () => {
+    const base = applyCommand(doc(), { type: "setTextRich", ref: r("a"), content: "Track habits", marks: [{ start: 6, end: 12, fontWeight: 800 }] });
+    const d = applyCommand(base, { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Track habits", marks: [] });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ marks: [] });
+    expect(applyCommand(d, { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Track habits", marks: [] })).toBe(d);
+  });
+});

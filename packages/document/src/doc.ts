@@ -104,12 +104,13 @@ export const docSchema = z.object({
 }).superRefine((doc, ctx) => cssSafe(doc.groups, ctx, ["groups"])).transform(normalizeRichText);
 
 type Loose = Record<string, unknown>;
-function normalizeTextFields(el: Loose, content: string): Loose {
+function normalizeTextFields(el: Loose, content: string, keepEmptyMarks = false): Loose {
   if (!("marks" in el) && !("gradient" in el)) return el;
   const out = { ...el };
   if ("marks" in out) {
     const marks = Array.isArray(out.marks) ? normalizeMarks(out.marks as TextMark[], content.length) : [];
-    if (marks.length) out.marks = marks; else delete out.marks;
+    // A language's explicit [] means "styling cleared here"; on base elements [] is just no marks.
+    if (marks.length || (keepEmptyMarks && Array.isArray(out.marks))) out.marks = marks; else delete out.marks;
   }
   if ("gradient" in out) {
     const g = normalizeGradient(out.gradient);
@@ -130,7 +131,7 @@ function normalizeRichText<T extends { groups: unknown[] }>(doc: T): T {
       if (!localized) continue;
       const base = new Map(elements.map((e) => [e.id, e]));
       b.localized = Object.fromEntries(Object.entries(localized).map(([loc, byEl]) => [loc, Object.fromEntries(Object.entries(byEl ?? {}).map(([id, ov]) =>
-        [id, ov && typeof ov === "object" ? normalizeTextFields(ov, String(ov.content ?? base.get(id)?.content ?? "")) : ov]))]));
+        [id, ov && typeof ov === "object" ? normalizeTextFields(ov, String(ov.content ?? base.get(id)?.content ?? ""), true) : ov]))]));
     }
   }
   return doc;
