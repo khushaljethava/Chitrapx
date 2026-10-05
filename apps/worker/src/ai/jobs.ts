@@ -13,7 +13,7 @@ import { imageBlock } from "./images.ts";
 import { MODELS, sumUsage, type StructuredModel, type Usage } from "./model.ts";
 import {
   ANALYZE_SYSTEM, catalogContext, COPY_SYSTEM, copyPrompt, PICK_SYSTEM, pickPrompt, translatePrompt, translateSystem,
-  VARIANTS_SYSTEM, variantsPrompt, type AppBrief,
+  VARIANTS_SYSTEM, variantsPrompt, appBrief,
 } from "./prompts.ts";
 
 export type AiDeps = { model: StructuredModel; loadAsset: (workspaceId: string, sha256: string) => Promise<Buffer> };
@@ -49,14 +49,14 @@ async function loadApp(job: JobContext, appId: string) {
   return app;
 }
 
-/** The job's project document and its app's name (the name is a glossary term in every language). */
-async function projectDoc(job: JobContext): Promise<{ doc: ChitrapxDoc; appName: string }> {
+/** The job's project document and its app's row (the name is a glossary term in every language; the brief steers copy). */
+async function projectDoc(job: JobContext): Promise<{ doc: ChitrapxDoc; app: typeof schema.apps.$inferSelect }> {
   if (!job.projectId) throw new FatalJobError("job_without_project");
-  const [p] = await db.select({ doc: schema.projects.doc, appName: schema.apps.name }).from(schema.projects)
+  const [p] = await db.select({ doc: schema.projects.doc, app: schema.apps }).from(schema.projects)
     .innerJoin(schema.apps, eq(schema.apps.id, schema.projects.appId))
     .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
   if (!p) throw new FatalJobError("project_missing");
-  return { doc: migrate(p.doc), appName: p.appName };
+  return { doc: migrate(p.doc), app: p.app };
 }
 
 /** One analysis per screenshot per workspace; cached by content hash. */
@@ -80,7 +80,7 @@ async function insightsFor(job: JobContext, assets: Array<{ sha256: string }>, d
   return out;
 }
 
-const designInput = z.object({ appId: z.uuid(), brief: z.string().max(2000).optional() });
+const designInput = z.object({ appId: z.uuid(), brief: z.string().max(4000).optional() });
 
 /** Screenshots in, finished screenshot set out: analyse, pick a template, write the copy, apply. */
 export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
@@ -94,7 +94,7 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
 
   const usage: Usage[] = [];
   const insights = await insightsFor(job, assets, deps, usage);
-  const brief: AppBrief = { name: app.name, description: app.description, platform: app.platformHint, brief: input.data.brief ?? "", brand: app.brand };
+  const brief = appBrief(app, { brief: input.data.brief });
 
   const pick = await deps.model.generate({
     model: MODELS.writer, system: PICK_SYSTEM, cachedContext: catalogContext(catalog()), schema: templateChoiceSchema, effort: "medium",
@@ -129,11 +129,11 @@ const localeName = (code: string) => { try { return new Intl.DisplayNames(["en"]
 export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps) {
   const input = translateInput.safeParse(raw);
   if (!input.success) throw new FatalJobError("invalid_input");
-  const { doc, appName } = await projectDoc(job);
+  const { doc, app } = await projectDoc(job);
   const texts = allTexts(doc).filter((t) => t.text.trim());
   if (!texts.length) throw new FatalJobError("nothing_to_translate");
   if (texts.reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw new FatalJobError("too_much_text");
-  const glossary = [appName].filter(Boolean);
+  const glossary = [app.name].filter(Boolean);
 
   const usage: Usage[] = [];
   const results: Array<{ locale: string; texts: Array<{ id: string; text: string }> }> = [];
@@ -160,13 +160,13 @@ export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps
 
 /** Three alternative copy sets; the editor applies one. Never changes the document itself. */
 export async function runAiCopy(_raw: unknown, job: JobContext, deps: AiDeps) {
-  const { doc, appName } = await projectDoc(job);
+  const { doc, app } = await projectDoc(job);
   const texts = allTexts(doc).filter((t) => t.text.trim());
   if (!texts.length) throw new FatalJobError("nothing_to_rewrite");
   if (texts.reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw new FatalJobError("too_much_text");
   const { data, usage } = await deps.model.generate({
     model: MODELS.writer, system: VARIANTS_SYSTEM, schema: variantsSchema, effort: "medium",
-    content: [{ type: "text", text: variantsPrompt(appName, texts) }],
+    content: [{ type: "text", text: variantsPrompt(appBrief(app), texts) }],
   });
   const known = new Set(texts.map((t) => t.id));
   const variants = TONES.map((tone) => ({ tone, texts: (data.variants.find((v) => v.tone === tone)?.texts ?? []).filter((t) => known.has(t.id)) }))

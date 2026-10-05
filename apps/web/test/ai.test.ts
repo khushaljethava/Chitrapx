@@ -5,7 +5,7 @@ import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { startAiDesign, startCopyVariants, startTranslate } from "@/server/ai.ts";
-import { createApp } from "@/server/apps.ts";
+import { createApp, getApp } from "@/server/apps.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createProject, listProjects } from "@/server/projects.ts";
 
@@ -68,5 +68,31 @@ describe("text limits", () => {
     await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, p.id));
     await expect(startTranslate(s.ctx, boss, p.id, { locales: ["de-DE"] })).rejects.toMatchObject({ code: "too_much_text" });
     await expect(startCopyVariants(s.ctx, boss, p.id)).rejects.toMatchObject({ code: "too_much_text" });
+  });
+});
+
+describe("AI brief (SP11)", () => {
+  const inputOf = async (jobId: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, jobId)))[0]!.input;
+
+  it("design remembers the brief on the app and sends it, serialised, to the job", async () => {
+    const s = await setup(20);
+    const { jobId } = await startAiDesign(s.ctx, boss, s.app.id, { brief: "For home baristas", audience: "Coffee nerds", tone: "calm", keywords: ["pour over"] });
+    expect(await inputOf(jobId)).toEqual({ appId: s.app.id, brief: "For home baristas\nAudience: Coffee nerds\nTone: calm\nKeywords: pour over" });
+    expect((await getApp(s.ctx, s.app.id)).brief).toEqual({ text: "For home baristas", audience: "Coffee nerds", tone: "calm", keywords: ["pour over"] });
+  });
+
+  it("a body with only the free-text brief works as before and keeps the saved fields", async () => {
+    const s = await setup(30);
+    await startAiDesign(s.ctx, boss, s.app.id, { brief: "first", tone: "bold" });
+    const { jobId } = await startAiDesign(s.ctx, boss, s.app.id, { brief: "second" });
+    expect(await inputOf(jobId)).toEqual({ appId: s.app.id, brief: "second\nTone: bold" });
+  });
+
+  it("a brief over 2000 characters is refused with a message, and nothing is created or charged", async () => {
+    const s = await setup(20);
+    await expect(startAiDesign(s.ctx, boss, s.app.id, { brief: "x".repeat(2001) }))
+      .rejects.toMatchObject({ issues: [expect.objectContaining({ message: "Keep the brief under 2000 characters" })] });
+    expect(await balance(db, s.ctx.workspaceId)).toBe(20);
+    expect(await listProjects(s.ctx, s.app.id)).toEqual([]);
   });
 });

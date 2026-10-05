@@ -1,4 +1,4 @@
-import type { CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
+import { briefText, type AppBriefFields, type CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
 
 export type AppBrief = {
   name: string;
@@ -7,6 +7,14 @@ export type AppBrief = {
   brief: string;
   brand: { primaryColor?: string; secondaryColor?: string };
 };
+
+/** The parts of an apps row every prompt reads. */
+export type AppRow = { name: string; description: string; platformHint: string; brand: AppBrief["brand"]; brief: AppBriefFields };
+
+/** What every prompt knows about the app. `submitted` is what an AI design was started with; otherwise the saved brief is used. */
+export function appBrief(app: AppRow, submitted: { brief?: string } = {}): AppBrief {
+  return { name: app.name, description: app.description, platform: app.platformHint, brief: submitted.brief ?? briefText(app.brief), brand: app.brand };
+}
 
 const STYLE = `Write like the best App Store screenshot copy: short, concrete benefits a shopper understands at a glance.
 Headlines are 2 to 5 words per line. Use the app's own vocabulary from the screenshots. No hype words like "revolutionary" or "ultimate", no exclamation marks, no em or en dashes, no emoji unless the original slot used them.`;
@@ -58,4 +66,5 @@ export const VARIANTS_SYSTEM = `You rewrite App Store screenshot copy in three t
 ${STYLE}
 Keep each slot's role and roughly its length. Return all three tones, each with text for every id.`;
 
-export const variantsPrompt = (appName: string, texts: SlotText[]) => `App: ${appName}\nCurrent copy (id and text):\n${JSON.stringify(texts)}`;
+export const variantsPrompt = (app: Pick<AppBrief, "name" | "brief">, texts: SlotText[]) =>
+  `App: ${app.name}\nBrief: ${app.brief || "(none)"}\nCurrent copy (id and text):\n${JSON.stringify(texts)}`;

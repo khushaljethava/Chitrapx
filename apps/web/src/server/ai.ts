@@ -2,13 +2,18 @@ import { and, count, eq } from "drizzle-orm";
 import type { PgBoss } from "pg-boss";
 import { z } from "zod";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { allTexts, LOCALE_CODE, type ChitrapxDoc } from "@chitrapx/document";
-import { getApp } from "./apps.ts";
+import { allTexts, briefFields, briefText, LOCALE_CODE, type AppBriefFields, type ChitrapxDoc } from "@chitrapx/document";
+import { getApp, updateApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest } from "./http.ts";
 import { createProject, deleteProject, getProject } from "./projects.ts";
 
-const designInput = z.object({ brief: z.string().trim().max(2000).optional() });
+const designInput = z.object({
+  brief: briefFields.text.optional(),
+  audience: briefFields.audience.optional(),
+  tone: briefFields.tone.optional(),
+  keywords: briefFields.keywords.optional(),
+});
 const translateInput = z.object({ locales: z.array(z.string().regex(LOCALE_CODE)).min(1).max(20) });
 
 /** Same limit the worker enforces: text sent to the model per job. */
@@ -23,14 +28,22 @@ const enqueue = (ctx: Ctx, boss: PgBoss, projectId: string, type: "ai_design" | 
 /** Creates the project the design lands in, then queues the job. If queueing fails it is removed; if the job fails, the worker removes it. */
 export async function startAiDesign(ctx: Ctx, boss: PgBoss, appId: string, raw: unknown) {
   const app = await getApp(ctx, appId);
-  const { brief } = designInput.parse(raw ?? {});
+  const input = designInput.parse(raw ?? {});
   const [{ n }] = (await db.select({ n: count() }).from(schema.assets).where(and(
     eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, app.id), eq(schema.assets.kind, "screenshot"),
   ))) as [{ n: number }];
   if (!n) throw badRequest("no_screenshots");
+  // Remembered on the app for the next design and for copy variants; fields not sent keep their saved values.
+  const patch: AppBriefFields = {};
+  if (input.brief !== undefined) patch.text = input.brief;
+  if (input.audience !== undefined) patch.audience = input.audience;
+  if (input.tone !== undefined) patch.tone = input.tone;
+  if (input.keywords !== undefined) patch.keywords = input.keywords;
+  const saved = Object.keys(patch).length ? (await updateApp(ctx, app.id, { brief: patch })).brief : app.brief;
+  const brief = briefText(saved);
   const project = await createProject(ctx, app.id, { name: "AI design", kind: "screenshots" });
   try {
-    const { jobId } = await enqueue(ctx, boss, project.id, "ai_design", { appId: app.id, brief });
+    const { jobId } = await enqueue(ctx, boss, project.id, "ai_design", { appId: app.id, ...(brief && { brief }) });
     return { projectId: project.id, jobId };
   } catch (err) {
     await deleteProject(ctx, project.id);

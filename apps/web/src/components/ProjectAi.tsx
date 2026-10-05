@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { LOCALES } from "@chitrapx/renderer";
@@ -9,7 +10,7 @@ import { JOB_LABEL, jobError } from "./jobText.ts";
 type Job = { id: string; type: string; status: string; error: string | null; createdAt: string };
 
 /** AI job status for a project (refreshes the page when one finishes) and the translate action. */
-export function ProjectAi({ projectId, codes }: { projectId: string; codes: string[] }) {
+export function ProjectAi({ projectId, appId, brief, codes }: { projectId: string; appId: string; brief: string; codes: string[] }) {
   const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [chosen, setChosen] = useState<string[]>([]);
@@ -41,6 +42,10 @@ export function ProjectAi({ projectId, codes }: { projectId: string; codes: stri
   const latestFailed = jobs.find((j) => j.status === "failed");
   return (
     <section className="card space-y-3">
+      <p className="text-sm text-neutral-600 dark:text-neutral-400">
+        AI brief: {brief ? brief.split("\n")[0] : "none yet"}{" "}
+        <Link href={`/dashboard/apps/${appId}#ai-brief`} className="text-indigo-600 hover:underline">Edit</Link>
+      </p>
       {active.map((j) => (
         <p key={j.id} className="flex items-center gap-2 text-sm" role="status">
           <span className="h-3 w-3 animate-spin rounded-full border-2 border-indigo-300 border-t-indigo-600" />

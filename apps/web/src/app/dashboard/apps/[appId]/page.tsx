@@ -32,7 +32,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
           <DeleteAppButton appId={app.id} />
         </div>
       </div>
-      <AiDesignCard appId={app.id} screenshotCount={assets.filter((a) => a.kind === "screenshot").length} />
+      <AiDesignCard appId={app.id} screenshotCount={assets.filter((a) => a.kind === "screenshot").length} brief={app.brief} />
       <ProjectList appId={app.id} projects={projects.map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt: updatedAt.toISOString() }))} maxProjects={PLANS[ctx.plan].maxProjects} />
       <UploadGrid appId={app.id} logoAssetId={app.brand.logoAssetId} assets={assets.filter((a) => a.kind !== "recording").map(({ id, url, width, height }) => ({ id, url, width, height }))} />
       <UploadGrid appId={app.id} kind="recording" assets={assets.filter((a) => a.kind === "recording").map(({ id, url, width, height, meta }) => ({ id, url, width, height, pending: !meta?.ready && !meta?.error, error: meta?.error }))} />

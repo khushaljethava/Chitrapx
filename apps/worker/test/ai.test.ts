@@ -151,6 +151,18 @@ describe("ai_copy", () => {
     expect((job.output as { variants: Array<{ tone: string }> }).variants.map((v) => v.tone)).toEqual(["confident", "warm", "punchy"]);
     expect((await projectRow(s.project.id)).revision).toBe(0);
   });
+
+  it("copy variants use the app's stored brief", async () => {
+    const s = await setup(1);
+    await db.update(schema.apps).set({ brief: { text: "For home baristas", keywords: ["pour over"] } }).where(eq(schema.apps.id, s.app.id));
+    const [t] = await db.select().from(schema.templates).where(eq(schema.templates.slug, "amoura-dating"));
+    await db.update(schema.projects).set({ doc: migrate(t!.doc) }).where(eq(schema.projects.id, s.project.id));
+    const { model, calls } = fakeModel(() => ({ variants: ["confident", "warm", "punchy"].map((tone) => ({ tone, texts: [{ id: "amoura-b1-headline-1-1", text: tone }] })) }));
+    const jobId = await queue(s.ws, s.project.id, "ai_copy", {}, 3);
+    await runJob(jobId, (input, job) => runAiCopy(input, job, deps(model)));
+    expect((await jobRow(jobId)).status).toBe("done");
+    expect((calls[0]!.content[0] as { text: string }).text).toContain("Brief: For home baristas\nKeywords: pour over");
+  });
 });
 
 describe("review fixes", () => {
