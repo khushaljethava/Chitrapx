@@ -29,6 +29,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
           <h1 className="text-2xl font-semibold">{app.name}</h1>
         </div>
         <div className="flex items-center gap-3">
+          <Link href={`/dashboard/apps/${app.id}/launch-assets`} className="btn-ghost">Launch assets</Link>
           <ImportProjectButton appId={app.id} />
           <DeleteAppButton appId={app.id} />
         </div>
