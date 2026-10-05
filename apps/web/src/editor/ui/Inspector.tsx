@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { docFontFamilies, MAX_BOARD_EDGE, statusBarSpec } from "@chitrapx/document";
-import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
+import { applyMark, clearMark, docFontFamilies, MAX_BOARD_EDGE, rangeStyle, statusBarSpec } from "@chitrapx/document";
+import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, StylePatch, TextElementProps } from "@chitrapx/document";
 import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
+import { marksFor, stylingNotCarried } from "../richTextModel.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
 import { facesOf } from "@/lib/fontFaces.ts";
 import { FontPicker } from "./FontPicker.tsx";
 import { FontUploadDialog } from "./FontUploadDialog.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
+import { RichTextToolbar } from "./RichTextToolbar.tsx";
 import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
 const WEIGHTS = [["300", "Light"], ["400", "Regular"], ["500", "Medium"], ["600", "Semibold"], ["700", "Bold"], ["800", "Extra bold"], ["900", "Black"]] as const;
@@ -120,6 +122,22 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
     return () => window.removeEventListener("chitrapx:edit-text", focus);
   }, []);
 
+  const [sel, setSel] = useState<{ start: number; end: number } | null>(null);
+  const textBase = el as TextElementProps;
+  const textValue = override?.content ?? a.content ?? "";
+  const currentMarks = el.type === "text" ? marksFor(textBase, override, localized) : [];
+  const applyRich = (patch: StylePatch | "clear") => {
+    if (!sel) return;
+    const next = patch === "clear" ? clearMark(currentMarks, sel) : applyMark(currentMarks, sel, patch);
+    const s = store.getState();
+    const typing = document.activeElement === content.current;
+    s.endGesture(); // the typing so far is its own undo step…
+    s.apply({ type: "setTextRich", ref: refr, locale: localized ? locale : undefined, content: textValue, marks: next }); // …and so is this
+    if (typing) s.beginGesture();
+    const keepSel = sel;
+    requestAnimationFrame(() => content.current?.setSelectionRange(keepSel.start, keepSel.end));
+  };
+
   const set = (props: Record<string, unknown>) => store.getState().apply({ type: "updateElement", ref: refr, props: props as Partial<ArtboardElement> });
   /** Text and font follow the language being edited; everything else is shared by all languages. */
   const setLocalizable = (key: "content" | "fontFamily", value: string) =>
@@ -139,7 +157,17 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
       {el.type === "text" && (
         <>
           <Row label="Text" htmlFor="i-content">
-            <textarea id="i-content" ref={content} className="input min-h-20" value={override?.content ?? a.content ?? ""} onChange={(e) => setLocalizable("content", e.target.value)} {...g} />
+            <div className="relative">
+              {sel && (
+                <div className="absolute bottom-full left-0 z-20 mb-1">
+                  <RichTextToolbar style={rangeStyle(currentMarks, sel)} onApply={applyRich} />
+                </div>
+              )}
+              <textarea id="i-content" ref={content} className="input min-h-20" value={textValue} onChange={(e) => setLocalizable("content", e.target.value)}
+                onSelect={(e) => { const t = e.currentTarget; setSel(t.selectionEnd > t.selectionStart ? { start: t.selectionStart, end: t.selectionEnd } : null); }}
+                {...g} />
+            </div>
+            {localized && stylingNotCarried(textBase, override) && <p className="text-xs text-amber-700 dark:text-amber-300">Styling not carried to this language — reapply</p>}
             <OverrideNote k="content" />
           </Row>
           <FontPicker id="i-font" label="Font" value={override?.fontFamily ?? a.fontFamily ?? ""} used={used}

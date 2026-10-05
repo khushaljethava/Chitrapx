@@ -1,6 +1,6 @@
 import { produce, type Draft } from "immer";
 import {
-  applyTexts, layoutFor, matchElements, LAYOUT_KEYS, presetKind, retarget, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyTexts, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, type TextMark, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
@@ -23,6 +23,7 @@ export type Command =
   | { type: "moveBoard"; groupId: string; boardId: string; toIndex: number }
   | { type: "updateBoard"; groupId: string; boardId: string; props: Partial<ArtboardState> }
   | { type: "setOverride"; ref: Ref; locale: string; props: Partial<ElementLocaleOverride> }
+  | { type: "setTextRich"; ref: Ref; locale?: string; content: string; marks: TextMark[] }
   | { type: "resetOverride"; ref: Ref; locale: string; keys: string[] }
   | { type: "setScreenshot"; ref: Ref; src: string | undefined; locale?: string }
   | { type: "addLocale"; code: string }
@@ -69,7 +70,33 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
     switch (cmd.type) {
       case "updateElement": {
         const el = list(d, cmd.ref.groupId, cmd.ref.boardId)?.find((e) => e.id === cmd.ref.elementId);
-        if (el) Object.assign(el, cmd.props);
+        if (!el) return;
+        const t = el as unknown as Record<string, unknown>;
+        const props = cmd.props as Record<string, unknown>;
+        // A content edit carries the element's marks with it, in the same undo step.
+        const remap = t.type === "text" && typeof props.content === "string" && !("marks" in props) && Array.isArray(t.marks) && t.marks.length;
+        const marks = remap ? remapMarks(String(t.content ?? ""), props.content as string, t.marks as TextMark[]) : null;
+        Object.assign(el, cmd.props);
+        if (marks) { if (marks.length) t.marks = marks; else delete t.marks; }
+        return;
+      }
+      case "setTextRich": {
+        const marks = normalizeMarks(cmd.marks, cmd.content.length);
+        const same = (a: unknown) => JSON.stringify(a ?? []) === JSON.stringify(marks);
+        if (cmd.locale && cmd.ref.boardId) {
+          const b = findBoard(d, cmd.ref.groupId, cmd.ref.boardId);
+          if (!b || b.elements.find((e) => e.id === cmd.ref.elementId)?.type !== "text") return;
+          const existing = b.localized?.[cmd.locale]?.[cmd.ref.elementId] as Record<string, unknown> | undefined;
+          if (existing?.content === cmd.content && same(existing.marks)) return; // nothing to do: no undo step
+          const ov = (((b.localized ??= {})[cmd.locale] ??= {})[cmd.ref.elementId] ??= {}) as Record<string, unknown>;
+          if (ov.content !== cmd.content) { ov.content = cmd.content; ov.origin = "manual"; }
+          if (marks.length) { if (!same(ov.marks)) ov.marks = marks; } else delete ov.marks;
+          return;
+        }
+        const el = list(d, cmd.ref.groupId, cmd.ref.boardId)?.find((e) => e.id === cmd.ref.elementId) as unknown as Record<string, unknown> | undefined;
+        if (!el || el.type !== "text") return;
+        if (el.content !== cmd.content) el.content = cmd.content;
+        if (marks.length) { if (!same(el.marks)) el.marks = marks; } else if (el.marks) delete el.marks;
         return;
       }
       case "moveElements":
@@ -314,9 +341,15 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         const byEl = (byLocale[cmd.locale] ??= {});
         const current = (byEl[cmd.ref.elementId] ??= {}) as Record<string, unknown>;
         if (cmd.type === "setOverride") {
+          const baseContent = (b.elements.find((e) => e.id === cmd.ref.elementId) as { content?: string } | undefined)?.content ?? "";
+          const before = typeof current.content === "string" ? current.content : baseContent;
           Object.assign(current, cmd.props);
           // A person typed this: machine translation must never overwrite it.
           if ("content" in cmd.props && !("origin" in cmd.props)) current.origin = "manual";
+          if ("content" in cmd.props && !("marks" in cmd.props) && Array.isArray(current.marks)) {
+            const m = remapMarks(before, String(current.content ?? ""), current.marks as TextMark[]);
+            if (m.length) current.marks = m; else delete current.marks;
+          }
         }
         else for (const k of cmd.keys) delete current[k];
         if (!Object.keys(current).length) delete byEl[cmd.ref.elementId];

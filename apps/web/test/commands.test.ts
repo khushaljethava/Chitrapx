@@ -346,3 +346,44 @@ describe("addBoardsFromAssets (localized)", () => {
     expect(loc["a-n1"]).toEqual({ content: "Hallo" });
   });
 });
+
+import { createEditorStore } from "@/editor/store.ts";
+
+describe("rich text commands", () => {
+  const withMarks = () => applyCommand(doc(), { type: "setTextRich", ref: r("a"), content: "Track habits", marks: [{ start: 6, end: 12, fontWeight: 800 }] });
+  const marksOf = (d: ChitrapxDoc, id = "a") => (findElement(d, r(id)) as { marks?: unknown }).marks;
+
+  it("setTextRich writes content and normalised marks; the same again changes nothing", () => {
+    const d = applyCommand(doc(), { type: "setTextRich", ref: r("a"), content: "Track habits", marks: [{ start: 6, end: 99, fontWeight: 800 }] });
+    expect(findElement(d, r("a"))).toMatchObject({ content: "Track habits", marks: [{ start: 6, end: 12, fontWeight: 800 }] });
+    expect(applyCommand(d, { type: "setTextRich", ref: r("a"), content: "Track habits", marks: [{ start: 6, end: 12, fontWeight: 800 }] })).toBe(d);
+  });
+
+  it("setTextRich in a language writes that language's own content and marks only", () => {
+    const d = applyCommand(withMarks(), { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Gewohnheiten", marks: [{ start: 0, end: 5, italic: true }] });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toMatchObject({ content: "Gewohnheiten", marks: [{ start: 0, end: 5, italic: true }], origin: "manual" });
+    expect(marksOf(d)).toEqual([{ start: 6, end: 12, fontWeight: 800 }]);
+  });
+
+  it("typing keeps the styling on the same words (updateElement remaps marks)", () => {
+    const shifted = applyCommand(withMarks(), { type: "updateElement", ref: r("a"), props: { content: "Track my habits" } as never });
+    expect(marksOf(shifted)).toEqual([{ start: 9, end: 15, fontWeight: 800 }]);
+    const inside = applyCommand(withMarks(), { type: "updateElement", ref: r("a"), props: { content: "Track hab-its" } as never });
+    expect(marksOf(inside)).toEqual([{ start: 6, end: 13, fontWeight: 800 }]);
+    const gone = applyCommand(withMarks(), { type: "updateElement", ref: r("a"), props: { content: "Track " } as never });
+    expect(findElement(gone, r("a"))).not.toHaveProperty("marks");
+  });
+
+  it("typing in a language remaps that language's marks", () => {
+    let d = applyCommand(withMarks(), { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Gewohnheiten", marks: [{ start: 0, end: 12, italic: true }] });
+    d = applyCommand(d, { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Neue Gewohnheiten" } });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a!.marks).toEqual([{ start: 5, end: 17, italic: true }]);
+  });
+
+  it("applying a style is one undo step", () => {
+    const store = createEditorStore({ projectId: "p", doc: withMarks(), revision: 0 });
+    store.getState().apply({ type: "setTextRich", ref: r("a"), content: "Track habits", marks: [{ start: 0, end: 5, italic: true }] });
+    store.getState().undo();
+    expect(marksOf(store.getState().doc)).toEqual([{ start: 6, end: 12, fontWeight: 800 }]);
+  });
+});
