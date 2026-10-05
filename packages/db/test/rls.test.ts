@@ -106,3 +106,62 @@ describe("RLS: users cannot write their own workspace's rows either (all writes 
     });
   }
 });
+
+describe("RLS: community feed and analytics (SP16, migration 0013)", () => {
+  type Posts = { published: string; hidden: string; removed: string };
+  const post = async (ids: Ids, status: string) => (await pool.query(
+    "insert into community_posts (author_id, workspace_id, title, category, kind, doc, status, license_accepted_at) values ($1, $2, 'T', 'screenshots', 'screenshots', '{}', $3, now()) returning id",
+    [ids.user, ids.ws, status])).rows[0].id as string;
+  let bp: Posts;
+  let ap: Posts;
+  beforeAll(async () => {
+    bp = { published: await post(b, "published"), hidden: await post(b, "hidden"), removed: await post(b, "removed") };
+    ap = { published: await post(a, "published"), hidden: await post(a, "hidden"), removed: await post(a, "removed") };
+    for (const [p, reporter] of [[bp.published, a.user], [ap.published, b.user]] as const) {
+      await pool.query("insert into community_reports (post_id, reporter_id, reason) values ($1, $2, 'spam')", [p, reporter]);
+      await pool.query("insert into community_imports (post_id, user_id) values ($1, $2)", [p, reporter]);
+    }
+    await pool.query("insert into community_actions (post_id, staff_id, action) values ($1, $2, 'restore')", [bp.hidden, b.user]);
+    await pool.query("insert into analytics_events (name, path) values ('page_view', '/')");
+  });
+
+  it("A reads B's published post but never B's hidden or removed ones, and all of its own", async () => {
+    const seen = async (id: string) => (await asUser(a.user, (db) => db.execute(sql`select 1 from community_posts where id = ${id}`))).rows.length;
+    expect(await seen(bp.published)).toBe(1);
+    expect(await seen(bp.hidden)).toBe(0);
+    expect(await seen(bp.removed)).toBe(0);
+    expect(await seen(ap.hidden)).toBe(1);
+  });
+
+  it("A cannot publish, edit or remove posts, even its own", async () => {
+    await expect(asUser(a.user, (_db, c) => c.query(
+      "insert into community_posts (author_id, workspace_id, title, category, kind, doc, license_accepted_at) values ($1, $2, 'x', 'screenshots', 'screenshots', '{}', now())", [a.user, a.ws]))).rejects.toThrow();
+    for (const id of [bp.published, ap.published]) {
+      const upd = await asUser(a.user, (db) => db.execute(sql`update community_posts set status = 'published', import_count = 999 where id = ${id}`));
+      expect(upd.rowCount ?? 0).toBe(0);
+      const gone = await asUser(a.user, (db) => db.execute(sql.raw(`DELETE FROM community_posts WHERE id = '${id}'`)));
+      expect(gone.rowCount ?? 0).toBe(0);
+    }
+  });
+
+  it("reports and imports: A reads only its own rows and cannot write any", async () => {
+    for (const table of ["community_reports", "community_imports"]) {
+      const col = table === "community_reports" ? "reporter_id" : "user_id";
+      const rows = await asUser(a.user, (db) => db.execute(sql.raw(`select ${col} as who from ${table}`)));
+      expect(rows.rows.length).toBeGreaterThan(0);
+      expect(rows.rows.every((r) => (r as { who: string }).who === a.user)).toBe(true);
+      const gone = await asUser(a.user, (db) => db.execute(sql.raw(`DELETE FROM ${table}`)));
+      expect(gone.rowCount ?? 0).toBe(0);
+    }
+    await expect(asUser(a.user, (_db, c) => c.query("insert into community_reports (post_id, reporter_id, reason) values ($1, $2, 'x')", [bp.hidden, a.user]))).rejects.toThrow();
+    await expect(asUser(a.user, (_db, c) => c.query("insert into community_imports (post_id, user_id) values ($1, $2)", [bp.hidden, a.user]))).rejects.toThrow();
+  });
+
+  it("the moderation log and analytics events are server-only", async () => {
+    for (const table of ["community_actions", "analytics_events"]) {
+      const rows = await asUser(a.user, (db) => db.execute(sql.raw(`select 1 from ${table}`)));
+      expect(rows.rows).toHaveLength(0);
+    }
+    await expect(asUser(a.user, (_db, c) => c.query("insert into analytics_events (name) values ('x')"))).rejects.toThrow();
+  });
+});
