@@ -65,6 +65,18 @@ describe("chips in the document", () => {
     expect(ovOf(applyTranslations(manual, "de-DE", [{ id: "c#0", text: "Schnell" }], { overwriteManual: true }))!.chips).toEqual(["Schnell"]);
   });
 
+  it("machine translation fills the blanks of a hand-written list and keeps the typed chips (SP11 final review)", () => {
+    const d = writeTranslations(project(), [{ locale: "de-DE", id: "c#1", text: "Privat" }]);
+    const out = applyTranslations(d, "de-DE", [{ id: "c#0", text: "Schnell" }, { id: "c#1", text: "Geheim" }, { id: "c#2", text: "Offline-Modus" }]);
+    expect(ovOf(out)).toEqual({ chips: ["Schnell", "Privat", "Offline-Modus"], origin: "manual", sourceHash: hash32("Fast\nPrivate\nOffline") });
+    expect(cellFor(out, translationRows(out)[2]!, "de-DE")).toEqual({ text: "Privat", state: "manual" });
+    // Every chip typed: nothing to fill, the document is left as it was.
+    const full = writeTranslations(project(), ["Flott", "Privat", "Offline"].map((text, i) => ({ locale: "de-DE", id: `c#${i}`, text })));
+    expect(ovOf(applyTranslations(full, "de-DE", [{ id: "c#0", text: "Schnell" }]))!.chips).toEqual(["Flott", "Privat", "Offline"]);
+    // A cleared chip after filling goes back to the base, the rest stay.
+    expect(ovOf(writeTranslations(out, [{ locale: "de-DE", id: "c#0", text: "" }]))!.chips).toEqual(["", "Privat", "Offline-Modus"]);
+  });
+
   it("the table has one row per chip, and a typed chip is a manual list entry", () => {
     expect(translationRows(project()).map((r) => [r.id, r.label, r.base])).toEqual([
       ["h", "h", "Track habits"], ["c#0", "Chips 1", "Fast"], ["c#1", "Chips 2", "Private"], ["c#2", "Chips 3", "Offline"],

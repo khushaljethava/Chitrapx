@@ -211,9 +211,16 @@ export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotT
       if (e.type === "chips") {
         const el = e as unknown as ChipsElementProps;
         const words = el.chips.map((_, i) => byId.get(chipId(el.id, i)));
-        if (!words.some(Boolean) || manual(current?.chips)) continue;
+        if (!words.some(Boolean)) continue;
         const src = from ? b.localized?.[from]?.[el.id]?.chips : undefined;
         if (el.chips.some((c, i) => changedSince(chipId(el.id, i), src?.[i] || c))) continue;
+        if (manual(current?.chips)) {
+          // A person typed some chips: keep those, and the list's manual mark and hash; AI words fill only the blanks.
+          const typed = current!.chips!;
+          const chips = normalizeChipOverride(el.chips.map((_, i) => typed[i] || words[i]?.slice(0, CHIP_MAX_CHARS) || ""), el.chips.length);
+          if (chips && JSON.stringify(chips) !== JSON.stringify(typed)) b.localized![locale]![el.id] = { ...current, chips };
+          continue;
+        }
         const chips = normalizeChipOverride(words.map((w, i) => w?.slice(0, CHIP_MAX_CHARS) || current?.chips?.[i] || ""), el.chips.length);
         if (!chips) continue;
         ((b.localized ??= {})[locale] ??= {})[el.id] = { ...current, chips, origin: "auto", sourceHash: hash32(chipsSource(el.chips)) };
