@@ -13,7 +13,7 @@
     "@anthropic-ai/sdk": "^0.131.0",
     "@chitrapx/db": "workspace:^",
     "@chitrapx/document": "workspace:^",
-    "@supabase/supabase-js": "^2.117.2",
+    "@chitrapx/storage": "workspace:^",
     "drizzle-orm": "^0.45.3",
     "fflate": "^0.8.3",
     "immer": "^11.1.18",

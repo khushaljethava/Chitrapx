@@ -5,6 +5,7 @@ RUN corepack enable
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json tsconfig.base.json ./
 COPY packages/db/package.json packages/db/
 COPY packages/document/package.json packages/document/
+COPY packages/storage/package.json packages/storage/
 COPY apps/worker/package.json apps/worker/
 RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
 # Headless Chromium plus its system libraries, for exports.
@@ -13,6 +14,7 @@ RUN cd apps/worker && pnpm exec playwright install --with-deps chromium
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && apt-get clean
 COPY packages/db packages/db
 COPY packages/document packages/document
+COPY packages/storage packages/storage
 COPY packages/assets packages/assets
 COPY apps/worker apps/worker
 ENV NODE_ENV=production

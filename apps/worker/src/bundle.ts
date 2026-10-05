@@ -11,6 +11,7 @@ import {
 import { boss } from "./boss.ts";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 import { extractZipEntry, readZipDirectory, ZipError } from "./zip.ts";
+import { STAGING_PREFIX } from "@chitrapx/storage";
 
 export type BundleDeps = {
   /** An object from the uploads bucket. */
@@ -137,7 +138,7 @@ async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets
 /** A .chitrapx file in this workspace's upload staging becomes a new project in `appId`. */
 export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps, queue: QueueRecording = queueRecording) {
   const input = importInput.parse(raw);
-  const staging = `${job.workspaceId}/staging/${input.uploadId}`;
+  const staging = `${STAGING_PREFIX}${job.workspaceId}/${input.uploadId}`;
   try {
     // Only a missing object is permanent; any other storage error is retried.
     const buf = await deps.download(staging).catch((err) => { throw err instanceof FatalJobError ? new FatalJobError("bundle_invalid") : err; });
@@ -191,5 +192,5 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
 export async function cleanupFailedImport(tx: Db, job: JobContext, deps: Pick<BundleDeps, "remove">): Promise<void> {
   const [row] = await tx.select({ input: schema.jobs.input }).from(schema.jobs).where(eq(schema.jobs.id, job.id));
   const uploadId = z.uuid().safeParse((row?.input as { uploadId?: unknown } | null)?.uploadId);
-  if (uploadId.success) await deps.remove(`${job.workspaceId}/staging/${uploadId.data}`).catch(() => {});
+  if (uploadId.success) await deps.remove(`${STAGING_PREFIX}${job.workspaceId}/${uploadId.data}`).catch(() => {});
 }

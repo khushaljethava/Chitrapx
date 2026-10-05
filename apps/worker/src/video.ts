@@ -5,11 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { and, eq } from "drizzle-orm";
 import { chromium } from "playwright";
-import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { db, PRICES, renderUrl, schema } from "@chitrapx/db";
 import { LOCALE_CODE, migrate, VIDEO_FORMAT_IDS, VIDEO_FORMATS, VIDEO_FPS } from "@chitrapx/document";
-import { EXPORTS_BUCKET, exportOrigins, exportUrlAllowed } from "./export.ts";
+import { exportOrigins, exportUrlAllowed } from "./export.ts";
+import { storage } from "./storage.ts";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 
 const input = z.object({
@@ -104,8 +104,6 @@ export async function runVideo(raw: unknown, job: JobContext): Promise<{ actual:
   const bytes = await readFile(out);
   await discard(out);
   const path = `${job.workspaceId}/${job.id}.mp4`;
-  const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
-  const { error } = await storage.from(EXPORTS_BUCKET).upload(path, bytes, { contentType: "video/mp4", upsert: true });
-  if (error) throw new Error(`upload failed: ${error.message}`);
+  await storage().put(path, bytes, "video/mp4", "exports");
   return { actual: PRICES.video, output: { path, kind: "video", bytes: bytes.byteLength, duration, format: parsed.data.format } };
 }

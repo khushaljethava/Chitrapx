@@ -2,6 +2,8 @@ import { grantMonthlyCredits, pool, type JobType } from "@chitrapx/db";
 import { boss } from "./boss.ts";
 import { cleanups, handlers } from "./handlers.ts";
 import { runJob, sweepAbandonedJobs } from "./runJob.ts";
+import { storageConfig } from "@chitrapx/storage";
+storageConfig(); // a worker without storage settings stops here, naming the variable
 
 boss.on("error", (err) => console.error("[pg-boss]", err));
 await boss.start();

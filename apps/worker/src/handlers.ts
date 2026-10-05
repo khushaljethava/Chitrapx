@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { ObjectMissingError } from "@chitrapx/storage";
 import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
@@ -11,6 +11,7 @@ import { pipeline } from "node:stream/promises";
 import type { ReadableStream as WebReadableStream } from "node:stream/web";
 import { markRecordingFailed, processRecording, type RecordingDeps } from "./recording.ts";
 import { runVideo } from "./video.ts";
+import { storage } from "./storage.ts";
 import { FatalJobError, type FailureCleanup, type JobHandler } from "./runJob.ts";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -20,59 +21,40 @@ let deps: AiDeps | null = null;
 function aiDeps(): AiDeps {
   if (deps) return deps;
   if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) throw new FatalJobError("ai_not_configured");
-  const uploads = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  }).storage.from("uploads");
   deps = {
     model: anthropicModel(),
     async loadAsset(workspaceId, sha256) {
-      const { data, error } = await uploads.download(`${workspaceId}/${sha256}`);
-      if (error) throw new FatalJobError(`asset_missing:${sha256.slice(0, 12)}`);
-      return Buffer.from(await data.arrayBuffer());
+      try { return await storage().download(`${workspaceId}/${sha256}`); }
+      catch (err) { if (err instanceof ObjectMissingError) throw new FatalJobError(`asset_missing:${sha256.slice(0, 12)}`); throw err; }
     },
   };
   return deps;
 }
 
-const uploadsBucket = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-  auth: { persistSession: false, autoRefreshToken: false },
-}).storage.from("uploads");
-
 /** Recordings can be 500 MB: streamed to disk, never buffered. */
 const recordingDeps: RecordingDeps = {
   async download(workspaceId, sha256, dest) {
-    const { data, error } = await uploadsBucket().createSignedUrl(`${workspaceId}/${sha256}`, 600);
-    if (error) throw new FatalJobError("asset_missing");
-    const res = await fetch(data.signedUrl);
-    if (!res.ok || !res.body) throw new Error(`download failed: ${res.status}`);
-    await pipeline(Readable.fromWeb(res.body as unknown as WebReadableStream), createWriteStream(dest));
+    const body = await storage().downloadStream(`${workspaceId}/${sha256}`).catch((err) => {
+      throw err instanceof ObjectMissingError ? new FatalJobError("asset_missing") : err;
+    });
+    await pipeline(Readable.fromWeb(body as unknown as WebReadableStream), createWriteStream(dest));
   },
   async upload(path, file, contentType) {
-    const { error } = await uploadsBucket().upload(path, await readFile(file), { contentType, upsert: true });
-    if (error) throw new Error(`upload failed: ${error.message}`);
+    await storage().put(path, await readFile(file), contentType);
   },
 };
 
-const storageApi = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-  auth: { persistSession: false, autoRefreshToken: false },
-}).storage;
-
 export const bundleDeps: BundleDeps = {
   async download(path) {
-    const { data, error } = await storageApi().from("uploads").download(path);
-    if (error) {
+    try { return await storage().download(path); }
+    catch (err) {
       // Only a missing object is permanent; other storage errors may clear on retry.
-      const e = error as { status?: number; statusCode?: string | number; message?: string };
-      if (String(e.statusCode) === "404" || e.status === 404 || /not found/i.test(e.message ?? "")) throw new FatalJobError(`asset_missing:${path.split("/").pop()!.slice(0, 12)}`);
-      throw new Error(`download failed: ${e.message}`);
+      if (err instanceof ObjectMissingError) throw new FatalJobError(`asset_missing:${path.split("/").pop()!.slice(0, 12)}`);
+      throw err;
     }
-    return Buffer.from(await data.arrayBuffer());
   },
-  async upload(path, bytes, contentType, bucket) {
-    const { error } = await storageApi().from(bucket).upload(path, bytes, { contentType, upsert: true });
-    if (error) throw new Error(`upload failed: ${error.message}`);
-  },
-  async remove(path) { await storageApi().from("uploads").remove([path]); },
+  async upload(path, bytes, contentType, bucket) { await storage().put(path, bytes, contentType, bucket); },
+  async remove(path) { await storage().remove(path); },
 };
 
 export const handlers: Record<JobType, JobHandler> = {

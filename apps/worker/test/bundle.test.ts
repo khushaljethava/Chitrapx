@@ -78,7 +78,7 @@ async function importInto(bundle: Uint8Array, plan: "free" | "pro" = "pro", ws?:
   const uploadId = crypto.randomUUID();
   const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId, uploadId, name: "Imported" } }).returning();
   const deps = memoryDeps();
-  deps.files.set(`${ws}/staging/${uploadId}`, Buffer.from(bundle));
+  deps.files.set(`staging/${ws}/${uploadId}`, Buffer.from(bundle));
   tweak?.(deps);
   const thrown = await runJob(job!.id, (input, j) => runImport(input, j, deps, async () => {})).then(() => undefined, (e: unknown) => e);
   return { ws, appId, uploadId, deps, thrown, job: await jobRow(job!.id) };
@@ -94,7 +94,7 @@ describe("project_import", () => {
     const src = (p!.doc as ReturnType<typeof docWith>).groups[0]!.boards[0]!.elements[0]!.screenshotSrc;
     const [asset] = await db.select().from(schema.assets).where(eq(schema.assets.id, src.replace("asset:", "")));
     expect(asset).toMatchObject({ workspaceId: r.ws, appId: r.appId, sha256: sha(PNG), mime: "image/png", width: 2, height: 3 });
-    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+    expect(r.deps.files.has(`staging/${r.ws}/${r.uploadId}`)).toBe(false);
     expect(r.deps.files.get(`uploads:${r.ws}/${sha(PNG)}`)).toEqual(PNG);
   });
 
@@ -103,7 +103,7 @@ describe("project_import", () => {
     expect(r.job.status).toBe("failed");
     expect(r.job.error).toBe(code);
     expect(await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, r.ws))).toEqual([]);
-    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+    expect(r.deps.files.has(`staging/${r.ws}/${r.uploadId}`)).toBe(false);
   }
 
   it("rejects more than 500 entries before extracting", () =>
@@ -157,10 +157,10 @@ describe("project_import", () => {
     });
     expect(r.thrown).toBeInstanceOf(Error);
     expect(r.job.status).toBe("queued");
-    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(true);
+    expect(r.deps.files.has(`staging/${r.ws}/${r.uploadId}`)).toBe(true);
     await runJob(r.job.id, (input, j) => runImport(input, j, r.deps, async () => {}));
     expect((await jobRow(r.job.id)).status).toBe("done");
-    expect(r.deps.files.has(`${r.ws}/staging/${r.uploadId}`)).toBe(false);
+    expect(r.deps.files.has(`staging/${r.ws}/${r.uploadId}`)).toBe(false);
   });
 
   it("removes the staged upload when the import fails for good", async () => {
@@ -168,9 +168,9 @@ describe("project_import", () => {
     const ws = await makeWorkspace((await createUser()).id);
     const uploadId = crypto.randomUUID();
     const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId: crypto.randomUUID(), uploadId, name: "n" } }).returning();
-    deps.files.set(`${ws}/staging/${uploadId}`, Buffer.from("x"));
+    deps.files.set(`staging/${ws}/${uploadId}`, Buffer.from("x"));
     await cleanupFailedImport(db, { id: job!.id, workspaceId: ws, projectId: null }, deps);
-    expect(deps.files.has(`${ws}/staging/${uploadId}`)).toBe(false);
+    expect(deps.files.has(`staging/${ws}/${uploadId}`)).toBe(false);
   });
 
   it("rejects a manifest that lists the same asset twice", () =>

@@ -1,12 +1,11 @@
 import { strToU8, zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
-import { createClient } from "@supabase/supabase-js";
+import { storageOrigin } from "@chitrapx/storage";
 import { exportSource, PRICES, renderUrl } from "@chitrapx/db";
 import { checkExportable, exportBatches, storeReadiness } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 import { finishPng, reportText, type FileIssue } from "./storeFiles.ts";
-
-export const EXPORTS_BUCKET = "exports";
+import { storage } from "./storage.ts";
 
 /**
  * The export browser may only reach our web app, our storage, and Google Fonts. Anything a
@@ -20,7 +19,7 @@ export function exportUrlAllowed(url: string, origins: string[]): boolean {
 }
 
 export function exportOrigins(): string[] {
-  return [process.env.WEB_ORIGIN ?? "http://localhost:3000", process.env.NEXT_PUBLIC_SUPABASE_URL!, "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
+  return [process.env.WEB_ORIGIN ?? "http://localhost:3000", storageOrigin("uploads"), "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
     .map((o) => new URL(o).origin);
 }
 
@@ -29,10 +28,6 @@ export function pngSize(buf: Buffer): { width: number; height: number } {
   if (buf.length < 24 || buf.toString("ascii", 1, 4) !== "PNG") throw new Error("not a PNG");
   return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
 }
-
-const storage = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-  auth: { persistSession: false, autoRefreshToken: false },
-}).storage.from(EXPORTS_BUCKET);
 
 // ponytail: one Chromium per job; keep a warm browser per worker when export volume grows.
 async function launch(): Promise<Browser> {
@@ -82,8 +77,7 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
     const only = plan.length === 1 ? files[plan[0]!.file] : undefined;
     if (!only) throw new FatalJobError("single_export_needs_one_board");
     const path = `${job.workspaceId}/${job.id}.png`;
-    const { error } = await storage().upload(path, only, { contentType: "image/png", upsert: true });
-    if (error) throw new Error(`upload failed: ${error.message}`);
+    await storage().put(path, only, "image/png", "exports");
     return { actual: PRICES.export_single, output: { path, files: 1, bytes: only.byteLength } };
   }
 
@@ -91,7 +85,6 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
   files["report.txt"] = strToU8(reportText(src.doc, plan, pre, post));
   const zip = zipSync(files, { level: 0 }); // PNGs are already compressed
   const path = `${job.workspaceId}/${job.id}.zip`;
-  const { error } = await storage().upload(path, zip, { contentType: "application/zip", upsert: true });
-  if (error) throw new Error(`upload failed: ${error.message}`);
+  await storage().put(path, zip, "application/zip", "exports");
   return { actual: PRICES.export, output: { path, files: plan.length, bytes: zip.byteLength, issues: pre.length + post.length } };
 }

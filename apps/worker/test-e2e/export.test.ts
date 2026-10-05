@@ -6,13 +6,14 @@ import { strFromU8, unzipSync } from "fflate";
 import pixelmatch from "pixelmatch";
 import { PNG } from "pngjs";
 import sharp from "sharp";
-import { createClient } from "@supabase/supabase-js";
+import { EXPORTS_BUCKET } from "@chitrapx/storage";
 import { beforeAll, describe, expect, it } from "vitest";
 import { balance, db, renderUrl, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { defaultSelection, exportPlan, fillScreenshots, migrate, type ChitrapxDoc, type ExportSelection, type TargetId } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { EXPORTS_BUCKET, pngSize, runExport } from "../src/export.ts";
+import { pngSize, runExport } from "../src/export.ts";
+import { storage } from "../src/storage.ts";
 import { runBundle, runImport } from "../src/bundle.ts";
 import { bundleDeps } from "../src/handlers.ts";
 import { runJob } from "../src/runJob.ts";
@@ -37,10 +38,7 @@ async function exportJob(doc: ChitrapxDoc) {
 }
 
 async function zipFiles(ws: string, jobId: string): Promise<Record<string, Uint8Array>> {
-  const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
-  const { data, error } = await storage.from(EXPORTS_BUCKET).download(`${ws}/${jobId}.zip`);
-  if (error) throw error;
-  return unzipSync(new Uint8Array(await data.arrayBuffer()));
+  return unzipSync(new Uint8Array(await storage().download(`${ws}/${jobId}.zip`, EXPORTS_BUCKET)));
 }
 
 const jobRow = async (id: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, id)))[0]!;
@@ -128,10 +126,9 @@ describe("video", () => {
     await runJob(job!.id, runVideo);
     expect((await jobRow(job!.id)).status).toBe("done");
 
-    const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
-    const { data } = await storage.from(EXPORTS_BUCKET).download(`${ws}/${job!.id}.mp4`);
+    const data = await storage().download(`${ws}/${job!.id}.mp4`, EXPORTS_BUCKET);
     const file = join(GOLDEN, `../.video-test-${job!.id}.mp4`);
-    writeFileSync(file, Buffer.from(await data!.arrayBuffer()));
+    writeFileSync(file, data);
     const probe = JSON.parse(execFileSync("ffprobe", ["-v", "error", "-show_streams", "-show_format", "-of", "json", file]).toString());
     const { unlinkSync } = await import("node:fs");
     unlinkSync(file);
@@ -160,9 +157,8 @@ describe("video with a screen recording", () => {
     await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: 10, reason: "adjust" });
     const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "R" }).returning();
     const sha = crypto.randomUUID().replace(/-/g, "").padEnd(64, "0");
-    const uploads = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage.from("uploads");
-    await uploads.upload(`${ws}/${sha}.webm`, read(webm), { contentType: "video/webm", upsert: true });
-    await uploads.upload(`${ws}/${sha}.poster.jpg`, read(poster), { contentType: "image/jpeg", upsert: true });
+    await storage().put(`${ws}/${sha}.webm`, read(webm), "video/webm");
+    await storage().put(`${ws}/${sha}.poster.jpg`, read(poster), "image/jpeg");
     const [asset] = await db.insert(schema.assets).values({ workspaceId: ws, appId: app!.id, kind: "recording", storagePath: `${ws}/${sha}`, mime: "video/mp4", bytes: 1, sha256: sha,
       meta: { ready: true, webm: `${ws}/${sha}.webm`, poster: `${ws}/${sha}.poster.jpg`, duration: 4, width: 360, height: 780 } }).returning();
 
@@ -177,10 +173,9 @@ describe("video with a screen recording", () => {
     await runJob(job!.id, runVideo);
     expect(await jobRow(job!.id)).toMatchObject({ status: "done" });
 
-    const storage = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
-    const { data } = await storage.from(EXPORTS_BUCKET).download(`${ws}/${job!.id}.mp4`);
+    const data = await storage().download(`${ws}/${job!.id}.mp4`, EXPORTS_BUCKET);
     const mp4 = join(tmp, "out.mp4");
-    writeFileSync(mp4, Buffer.from(await data!.arrayBuffer()));
+    writeFileSync(mp4, data);
     const frame = (t: string) => { const f = join(tmp, `f${t}.png`); execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-ss", t, "-i", mp4, "-frames:v", "1", f]); return PNG.sync.read(read(f)); };
     const a = frame("1.8"), b = frame("2.5"); // after entrance motion settles, before the 2.6 s crossfade
     const changed = pixelmatch(a.data, b.data, null, a.width, a.height, { threshold: 0.1 });
@@ -211,8 +206,6 @@ describe("golden renders", () => {
     });
   }
 });
-
-const storageApi = () => createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } }).storage;
 
 /** Fails when `png` differs from packages/assets/golden/<name> in more than 0.5% of pixels; writes it when missing or UPDATE_GOLDEN is set. */
 function compareGolden(name: string, png: Buffer) {
@@ -288,16 +281,14 @@ describe("sizes and export (SP8)", () => {
     await runJob(jobId, (input, job) => runExport(input, job, "single"));
     expect((await jobRow(jobId)).status).toBe("done");
     expect(await balance(db, ws)).toBe(10);
-    const { data, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${jobId}.png`);
-    if (error) throw error;
-    compareGolden("single-amoura-02.png", Buffer.from(await data.arrayBuffer()));
+    compareGolden("single-amoura-02.png", await storage().download(`${ws}/${jobId}.png`, EXPORTS_BUCKET));
   });
 
   it("a project file imported into another app exports identical PNGs", async () => {
     const { ws, appId } = await workspaceWithApp();
     const shot = await sharp({ create: { width: 1179, height: 2556, channels: 3, background: "#3366ff" } }).png().toBuffer();
     const hash = createHash("sha256").update(shot).digest("hex");
-    await storageApi().from("uploads").upload(`${ws}/${hash}`, shot, { contentType: "image/png", upsert: true });
+    await storage().put(`${ws}/${hash}`, shot, "image/png");
     const [asset] = await db.insert(schema.assets).values({ workspaceId: ws, appId, kind: "screenshot", storagePath: `${ws}/${hash}`, mime: "image/png", bytes: shot.length, sha256: hash, width: 1179, height: 2556 }).returning();
     const doc = { ...fillScreenshots(await templateDoc("amoura-dating"), [asset!.id]), brand: { appId } }; // real projects carry brand.appId
     const sourceId = await newProject(ws, appId, doc);
@@ -305,10 +296,9 @@ describe("sizes and export (SP8)", () => {
     const [bundleJob] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId: sourceId, type: "project_bundle", creditsReserved: 0 }).returning();
     await runJob(bundleJob!.id, (input, job) => runBundle(input, job, bundleDeps));
     expect((await jobRow(bundleJob!.id)).status).toBe("done");
-    const { data: file, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${bundleJob!.id}.chitrapx`);
-    if (error) throw error;
+    const file = await storage().download(`${ws}/${bundleJob!.id}.chitrapx`, EXPORTS_BUCKET);
     const uploadId = crypto.randomUUID();
-    await storageApi().from("uploads").upload(`${ws}/staging/${uploadId}`, Buffer.from(await file.arrayBuffer()), { contentType: "application/zip" });
+    await storage().put(`staging/${ws}/${uploadId}`, file, "application/zip");
 
     const [target] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Target" }).returning();
     const [importJob] = await db.insert(schema.jobs).values({ workspaceId: ws, type: "project_import", creditsReserved: 0, input: { appId: target!.id, uploadId, name: "Copy" } }).returning();
@@ -351,9 +341,7 @@ describe("editor essentials (SP9)", () => {
     const j = await pinnedExport(ws, id, { targets: [g.target], locales: [doc.localization.baseLocale], board: { groupId: g.id, boardIndex: 0 } }, "export_single");
     await runJob(j, (input, job) => runExport(input, job, "single"));
     expect((await jobRow(j)).status).toBe("done");
-    const { data, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${j}.png`);
-    if (error) throw error;
-    return Buffer.from(await data.arrayBuffer());
+    return storage().download(`${ws}/${j}.png`, EXPORTS_BUCKET);
   }
 
   it("a hidden element is not in the exported PNG", async () => {
