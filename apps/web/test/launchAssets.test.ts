@@ -6,7 +6,7 @@ import { balance, db, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createApp } from "@/server/apps.ts";
-import { enqueueAppIcons } from "@/server/launchAssets.ts";
+import { enqueueAppIcons, enqueueLogo } from "@/server/launchAssets.ts";
 
 let boss: PgBoss;
 beforeAll(async () => {
@@ -33,6 +33,36 @@ async function asset(ctx: Ctx, appId: string, o: AssetOpts = {}) {
   return row!;
 }
 const jobsOf = (ctx: Ctx) => db.select().from(schema.jobs).where(eq(schema.jobs.workspaceId, ctx.workspaceId));
+
+describe("logo enqueue", () => {
+  it("is free, picks a seed when none is sent and keeps the one sent", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Logo" });
+    const picked = await enqueueLogo(ctx, boss, { appId: app.id, text: "ab" });
+    expect(picked.seed).toBeGreaterThanOrEqual(0);
+    expect(picked.seed).toBeLessThanOrEqual(0xffffffff);
+    const kept = await enqueueLogo(ctx, boss, { appId: app.id, seed: 42 });
+    expect(kept.seed).toBe(42);
+    const jobs = await jobsOf(ctx);
+    expect(jobs.map((j) => j.input).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))).toEqual(
+      [{ appId: app.id, text: "", seed: 42 }, { appId: app.id, text: "ab", seed: picked.seed }].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))));
+    expect(await balance(db, ctx.workspaceId)).toBe(0);
+  });
+
+  it("refuses another workspace's app and a seed out of range", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Logo" });
+    await expect(enqueueLogo(await ctxWith(0), boss, { appId: app.id })).rejects.toMatchObject({ status: 404 });
+    await expect(enqueueLogo(ctx, boss, { appId: app.id, seed: 2 ** 32 })).rejects.toThrow();
+  });
+
+  it("the 31st free job in an hour is refused with 429", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Logo" });
+    await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single", creditsReserved: 0 })));
+    await expect(enqueueLogo(ctx, boss, { appId: app.id })).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+  });
+});
 
 describe("app icons enqueue", () => {
   it("reserves one credit and stores the request with the source's hash and defaults", async () => {

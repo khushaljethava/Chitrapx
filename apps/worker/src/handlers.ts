@@ -5,6 +5,7 @@ import { anthropicModel } from "./ai/model.ts";
 import { cleanupFailedImport, runBundle, runImport, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
 import { runAppIcons } from "./icons/index.ts";
+import { runLogo } from "./icons/logo.ts";
 import { createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -77,7 +78,7 @@ export const handlers: Record<JobType, JobHandler> = {
   ai_chips: (input, job) => runAiChips(input, job, aiDeps()),
   ai_reference: (input, job) => runAiReference(input, job, aiDeps()),
   app_icons: (input, job) => runAppIcons(input, job, bundleDeps),
-  logo_starter: async () => { throw new FatalJobError("not_implemented"); },
+  logo_starter: (input, job) => runLogo(input, job, bundleDeps),
   collage: async () => { throw new FatalJobError("not_implemented"); },
   mockup: async () => { throw new FatalJobError("not_implemented"); },
 };

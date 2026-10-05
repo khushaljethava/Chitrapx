@@ -30,3 +30,18 @@ export type AppIconsRequest = z.infer<typeof appIconsRequest>;
 /** What the app_icons job reads: the request plus the source's content hash (its storage key). */
 export const appIconsInput = appIconsRequest.extend({ sha256: z.string().regex(SHA256) });
 export type AppIconsInput = z.infer<typeof appIconsInput>;
+
+/** Logo seeds are 32-bit so they survive JSON and JavaScript numbers exactly. */
+export const LOGO_SEED_MAX = 0xffffffff;
+export const LOGO_TEXT_MAX = 4;
+
+/** The wordmark as drawn: trimmed, whitespace removed, at most 4 characters; null when nothing is left (launch's clean_logo_text). */
+export function cleanLogoText(text: string | undefined | null): string | null {
+  const chars = [...(text ?? "").replace(/\s+/gu, "")].slice(0, LOGO_TEXT_MAX);
+  return chars.length ? chars.join("") : null;
+}
+
+const seed = z.number().int().min(0).max(LOGO_SEED_MAX);
+export const logoRequest = z.object({ appId: z.uuid(), text: z.string().max(40).optional(), seed: seed.optional() }).strict();
+export const logoInput = z.object({ appId: z.uuid(), text: z.string().max(40).default(""), seed });
+export type LogoInput = z.infer<typeof logoInput>;

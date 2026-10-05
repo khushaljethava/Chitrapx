@@ -1,10 +1,13 @@
+import { randomInt } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, MIN_ICON_SOURCE } from "@chitrapx/document";
+import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, LOGO_SEED_MAX, logoRequest, MIN_ICON_SOURCE } from "@chitrapx/document";
+import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { HttpError, notFound } from "./http.ts";
+import { assertFreeQuota } from "./jobs.ts";
 
 type Asset = typeof schema.assets.$inferSelect;
 
@@ -26,4 +29,16 @@ export async function enqueueAppIcons(ctx: Ctx, boss: PgBoss, raw: unknown): Pro
   if (a.width !== a.height) throw new HttpError(400, "icon_not_square", `The icon image must be square; this one is ${a.width}×${a.height}`);
   if (a.width < MIN_ICON_SOURCE) throw new HttpError(400, "icon_too_small", `The icon image must be at least ${MIN_ICON_SOURCE}×${MIN_ICON_SOURCE}`);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "app_icons", input: { ...body, sha256: a.sha256 } }));
+}
+
+/** logo_starter (free, hourly allowance): a seeded 1024 logo stored as an image of the app. Returns the seed used. */
+export async function enqueueLogo(ctx: Ctx, boss: PgBoss, raw: unknown): Promise<{ jobId: string; seed: number }> {
+  const body = logoRequest.parse(raw ?? {});
+  await getApp(ctx, body.appId);
+  const seed = body.seed ?? randomInt(0, LOGO_SEED_MAX + 1);
+  const { jobId } = await withTx(async (tx) => {
+    await assertFreeQuota(tx, ctx.workspaceId);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "logo_starter", input: { appId: body.appId, text: body.text ?? "", seed } });
+  });
+  return { jobId, seed };
 }

@@ -12,6 +12,8 @@ RUN pnpm install --frozen-lockfile --filter @chitrapx/worker...
 RUN cd apps/worker && pnpm exec playwright install --with-deps chromium
 # ffmpeg (libx264, AAC) for preview videos.
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg && apt-get clean
+# Starter logo wordmarks (SP12): Noto Sans and Noto Sans CJK (SIL OFL), found by librsvg through fontconfig.
+RUN apt-get update && apt-get install -y --no-install-recommends fonts-noto-core fonts-noto-cjk && apt-get clean
 COPY packages/db packages/db
 COPY packages/document packages/document
 COPY packages/storage packages/storage

@@ -7,6 +7,7 @@ import { balance, db, schema, type JobType } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { BundleDeps } from "../src/bundle.ts";
 import { runAppIcons } from "../src/icons/index.ts";
+import { runLogo } from "../src/icons/logo.ts";
 import { runJob, type JobHandler } from "../src/runJob.ts";
 
 const sha = (b: Uint8Array) => createHash("sha256").update(b).digest("hex");
@@ -32,6 +33,34 @@ async function queued(type: JobType, cost: number, input: unknown) {
 }
 const jobRow = async (id: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, id)))[0]!;
 const run = (jobId: string, handler: JobHandler) => runJob(jobId, handler);
+
+describe("logo_starter job", () => {
+  it("stores the logo as an image of the app, once per seed and text, and returns the seed", async () => {
+    const { ws, jobId } = await queued("logo_starter", 0, {});
+    const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Logo app" }).returning();
+    await db.update(schema.jobs).set({ input: { appId: app!.id, text: " Hi ", seed: 77 } }).where(eq(schema.jobs.id, jobId));
+    const deps = memoryDeps();
+    await run(jobId, (input, job) => runLogo(input, job, deps));
+    const job = await jobRow(jobId);
+    expect(job).toMatchObject({ status: "done", output: { seed: 77, text: "Hi" } });
+    const assetId = (job.output as { assetId: string }).assetId;
+    const [a] = await db.select().from(schema.assets).where(eq(schema.assets.id, assetId));
+    expect(a).toMatchObject({ appId: app!.id, kind: "image", mime: "image/png", width: 1024, height: 1024 });
+    expect(sha(deps.files.get(`uploads:${ws}/${a!.sha256}`)!)).toBe(a!.sha256);
+
+    const again = (await db.insert(schema.jobs).values({ workspaceId: ws, type: "logo_starter", creditsReserved: 0, input: { appId: app!.id, text: "Hi", seed: 77 } }).returning())[0]!;
+    await run(again.id, (input, j) => runLogo(input, j, deps));
+    expect((await jobRow(again.id)).output).toMatchObject({ assetId });
+  });
+
+  it("fails for an app of another workspace", async () => {
+    const other = await makeWorkspace((await createUser()).id);
+    const [app] = await db.insert(schema.apps).values({ workspaceId: other, name: "Not yours" }).returning();
+    const { jobId } = await queued("logo_starter", 0, { appId: app!.id, seed: 1 });
+    await run(jobId, (input, job) => runLogo(input, job, memoryDeps()));
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "app_missing" });
+  });
+});
 
 describe("app_icons job", () => {
   it("stores the icon ZIP in exports and settles one credit", async () => {
