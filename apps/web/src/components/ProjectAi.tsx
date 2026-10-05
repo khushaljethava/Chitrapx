@@ -66,6 +66,7 @@ export function ProjectAi({ projectId, appId, brief, codes }: { projectId: strin
           Translate{chosen.length ? ` (${chosen.length * 2} credits)` : ""}
         </button>
       </div>
+      <Link href={`/editor/${projectId}?translations=1`} className="text-sm text-indigo-600 hover:underline">Open the translations table</Link>
       {error && <p role="alert" className="error">{error}</p>}
     </section>
   );

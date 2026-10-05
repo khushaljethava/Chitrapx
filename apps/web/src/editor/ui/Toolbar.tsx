@@ -9,20 +9,22 @@ import { useEditorAssets } from "../assets.tsx";
 import { useEditor, useEditorStore } from "../context.tsx";
 import type { SaveStatus } from "../save.ts";
 import { VersionsDialog } from "./VersionsDialog.tsx";
+import { TranslationsTable } from "./TranslationsTable.tsx";
 
 const STATUS: Record<SaveStatus, string> = {
   saved: "All changes saved", saving: "Saving", unsaved: "Unsaved changes", offline: "Offline, kept on this device",
   conflict: "Changed elsewhere", error: "Could not save",
 };
 
-export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict }: {
+export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations }: {
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
-  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void;
+  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; openTranslations?: boolean;
 }) {
   const { resolveSrc, fonts, extras } = useEditorAssets();
   const store = useEditorStore();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState(false);
+  const [translating, setTranslating] = useState(!!openTranslations);
   const doc = useEditor((s) => s.doc);
   // The export covers every size, so every group's checks apply.
   const checks = useMemo(() => exporting ? contentChecks(doc, { customFamilies: fonts.map((f) => f.family), palette: extras.palette }) : [], [exporting, doc, fonts, extras.palette]);
@@ -65,6 +67,8 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
         </select>
       </nav>
       <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
+      <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
+      {translating && <TranslationsTable name={name} onClose={() => setTranslating(false)} />}
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>
       {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} extras={extras} />}
       <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>

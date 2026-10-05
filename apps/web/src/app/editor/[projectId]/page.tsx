@@ -12,7 +12,7 @@ import { brandPalette } from "@chitrapx/document";
 
 export const metadata = { title: "Editor · Chitrapx" };
 
-export default async function EditorPage({ params }: { params: Promise<{ projectId: string }> }) {
+export default async function EditorPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<{ translations?: string }> }) {
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
   const storage = appStorage();
@@ -32,6 +32,7 @@ export default async function EditorPage({ params }: { params: Promise<{ project
       assetUrls={assetUrls}
       fonts={fonts}
       extras={{ faces: facesOf(fonts), palette: brandPalette(app.brand) }}
+      openTranslations={(await searchParams).translations === "1"}
     />
   );
 }

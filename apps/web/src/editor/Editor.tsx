@@ -16,13 +16,14 @@ import { LeftPanel } from "./ui/LeftPanel.tsx";
 import { Toolbar } from "./ui/Toolbar.tsx";
 import type { PickerAsset } from "./ui/fields.tsx";
 
-export function Editor({ appId, project, assets, assetUrls, fonts, extras }: {
+export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations }: {
   appId: string;
   project: { id: string; name: string; doc: ChitrapxDoc; revision: number };
   assets: PickerAsset[];
   assetUrls: Record<string, string>;
   fonts: FontFamilyRow[];
   extras: RenderExtras;
+  openTranslations?: boolean;
 }) {
   const [store] = useState(() => createEditorStore({ projectId: project.id, doc: project.doc, revision: project.revision }));
   const { status, error, conflict, loadTheirs, keepMine, flush, adoptServerDoc, reportConflict } = useAutosave(store);
@@ -32,7 +33,7 @@ export function Editor({ appId, project, assets, assetUrls, fonts, extras }: {
     <EditorContext.Provider value={store}>
       <EditorAssetsProvider appId={appId} assets={assets} urls={assetUrls} fonts={fonts} extras={extras}>
       <div className="flex h-screen flex-col">
-        <Toolbar name={project.name} projectId={project.id} status={status} error={error} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} />
+        <Toolbar name={project.name} projectId={project.id} status={status} error={error} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} openTranslations={openTranslations} />
         <div className="flex min-h-0 flex-1">
           <LeftPanel flush={flush} />
           <Canvas />
