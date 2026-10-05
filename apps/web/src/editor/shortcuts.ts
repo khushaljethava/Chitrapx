@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { mirrorsLocale } from "@chitrapx/renderer";
 import { selectableRefs } from "./selection.ts";
 import type { EditorStore } from "./store.ts";
 import { duplicateSelection } from "./ui/Inspector.tsx";
@@ -14,6 +15,22 @@ export function shouldIgnoreKey(e: Pick<KeyboardEvent, "defaultPrevented" | "tar
   const t = e.target as Element | null;
   if (t?.closest?.('[aria-roledescription="sortable"][aria-pressed="true"]')) return true; // dnd-kit keyboard drag in progress
   return !!t?.closest?.('[aria-modal="true"]');
+}
+
+/**
+ * Arrow keys move the selection 1 px (10 with Shift). Returns true when the key is an arrow, so it is consumed.
+ * A mirrored right-to-left view is preview-only, as on the canvas: base coordinates would move the opposite way.
+ */
+export function nudgeSelection(store: EditorStore, key: string, shift: boolean): boolean {
+  const step = shift ? 10 : 1;
+  const arrows: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
+  const move = arrows[key];
+  if (!move) return false;
+  const s = store.getState();
+  if (mirrorsLocale(s.doc.localization, s.locale)) return true;
+  const refs = selectableRefs(s.doc, s.selection);
+  if (refs.length) s.apply({ type: "moveElements", refs, dx: move[0], dy: move[1] });
+  return true;
 }
 
 /** Editor shortcuts; ignored while a form field has focus so typing never removes or nudges an element. */
@@ -42,14 +59,7 @@ export function useShortcuts(store: EditorStore) {
       if (e.key === "Escape") { s.select([]); return; }
       if (!s.selection.length) return;
       if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); s.apply({ type: "deleteElements", refs: s.selection }); return; }
-      const step = e.shiftKey ? 10 : 1;
-      const arrows: Record<string, [number, number]> = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
-      const move = arrows[e.key];
-      if (move) {
-        e.preventDefault();
-        const refs = selectableRefs(s.doc, s.selection);
-        if (refs.length) s.apply({ type: "moveElements", refs, dx: move[0], dy: move[1] });
-      }
+      if (nudgeSelection(store, e.key, e.shiftKey)) e.preventDefault();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
