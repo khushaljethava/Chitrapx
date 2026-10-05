@@ -26,9 +26,9 @@ export type VideoFrameProps = {
 export function VideoFrame({ doc, groupId, locale, timeline, time, width, height, resolveSrc, extras }: VideoFrameProps) {
   const group = doc.groups.find((g) => g.id === groupId);
   const boards = useMemo(() => (group?.boards ?? []).map((_, i) => {
-    const b = boardFor(doc, groupId, i, locale, resolveSrc).board;
+    const b = boardFor(doc, groupId, i, locale, resolveSrc, { palette: extras?.palette }).board;
     return { ...b, elements: defaultAnimations(b.elements) };
-  }), [doc, group, groupId, locale, resolveSrc]);
+  }), [doc, group, groupId, locale, resolveSrc, extras?.palette]);
   const layers = framesAt(timeline, time);
   return (
     <div style={{ position: "relative", width, height, overflow: "hidden", background: "#000" }}>

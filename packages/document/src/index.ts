@@ -17,3 +17,4 @@ export * from "./fontCatalog.ts";
 export * from "./docFonts.ts";
 export * from "./gradient.ts";
 export * from "./richText.ts";
+export * from "./brand.ts";

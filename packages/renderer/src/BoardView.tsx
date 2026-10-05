@@ -19,7 +19,8 @@ export type BoardViewProps = {
 
 /** One board exactly as it exports, at `scale`. Props only: no stores, no fetching. */
 export function BoardView({ doc, groupId, boardIndex, locale, scale, resolveSrc, extras }: BoardViewProps) {
-  const { board } = useMemo(() => boardFor(doc, groupId, boardIndex, locale, resolveSrc), [doc, groupId, boardIndex, locale, resolveSrc]);
+  const { board } = useMemo(() => boardFor(doc, groupId, boardIndex, locale, resolveSrc, { palette: extras?.palette }),
+    [doc, groupId, boardIndex, locale, resolveSrc, extras?.palette]);
   return (
     <>
       <BoardFonts boards={[board]} faces={extras?.faces} />

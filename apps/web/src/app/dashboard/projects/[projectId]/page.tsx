@@ -15,7 +15,7 @@ import { appStorage } from "@/server/storage.ts";
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const [assetUrls, extras] = await Promise.all([assetUrlMap(ctx, appStorage(), project.doc), renderExtras(ctx, appStorage(), { doc: project.doc })]);
+  const [assetUrls, extras] = await Promise.all([assetUrlMap(ctx, appStorage(), project.doc), renderExtras(ctx, appStorage(), { doc: project.doc, appId: project.appId })]);
   return (
     <>
       <div>

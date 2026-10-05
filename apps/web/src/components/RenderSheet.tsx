@@ -19,9 +19,9 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
       // A derived size draws its source group retargeted in memory; the saved document never changes.
       const g = resolveGroup(doc, item, cache);
       // Only this workspace's signed assets: the worker's browser must never fetch a URL a document names (SSRF).
-      return { i, ...boardFor({ ...doc, groups: [g] }, g.id, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null) };
+      return { i, ...boardFor({ ...doc, groups: [g] }, g.id, item.boardIndex, item.locale, (src) => assetUrls[src] ?? null, { palette: extras?.palette }) };
     });
-  }, [doc, plan, indices, assetUrls]);
+  }, [doc, plan, indices, assetUrls, extras?.palette]);
   // Recordings still converting render as placeholders instead of failing the export.
   const missing = useMemo(() => [...new Set(boards.flatMap((b) => b.missing))], [boards]);
 

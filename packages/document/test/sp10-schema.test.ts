@@ -53,4 +53,9 @@ describe("SP10 document fields", () => {
     const g = migrate(withText({ marks: [{ start: 6, end: 12, fontWeight: 800 }] })).groups[0]!;
     expect((retarget(g, "iphone-6.5").boards[0]!.elements[0] as unknown as { marks: unknown }).marks).toEqual([{ start: 6, end: 12, fontWeight: 800 }]);
   });
+  it("accepts brand tokens wherever a colour goes, and nothing else after brand:", () => {
+    expect(() => migrate(withText({ color: "brand:text", marks: [{ start: 0, end: 5, color: "brand:accent" }] }))).not.toThrow();
+    expect(() => migrate(withText({ color: "brand:pink" }))).toThrow();
+    expect(() => migrate(withText({ color: "brand:primary; background:url(x)" }))).toThrow();
+  });
 });

@@ -11,7 +11,7 @@ import { appStorage } from "@/server/storage.ts";
 export default async function PreviewPage({ params }: { params: Promise<{ projectId: string }> }) {
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const [app, assetUrls, extras] = await Promise.all([getApp(ctx, project.appId), assetUrlMap(ctx, appStorage(), project.doc), renderExtras(ctx, appStorage(), { doc: project.doc })]);
+  const [app, assetUrls, extras] = await Promise.all([getApp(ctx, project.appId), assetUrlMap(ctx, appStorage(), project.doc), renderExtras(ctx, appStorage(), { doc: project.doc, appId: project.appId })]);
   const subtitle = (app.description.split(/(?<=[.!?])\s/)[0] ?? "").slice(0, 80) || "Your app subtitle";
   return (
     <>

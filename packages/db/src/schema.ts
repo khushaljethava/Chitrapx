@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { BrandToken } from "@chitrapx/document";
 import {
   index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid,
 } from "drizzle-orm/pg-core";
@@ -43,6 +44,8 @@ export type Brand = {
   headingFont?: string;
   bodyFont?: string;
   logoAssetId?: string;
+  /** SP10: up to six token colours; primaryColor/secondaryColor seed it until saved. */
+  palette?: Array<{ token: BrandToken; color: string }>;
 };
 
 export const profiles = pgTable("profiles", {

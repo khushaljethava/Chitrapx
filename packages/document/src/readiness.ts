@@ -1,4 +1,5 @@
 import { lintBoard } from "./aso.ts";
+import { docBrandTokens, type BrandPalette } from "./brand.ts";
 import { docFontFamilies } from "./docFonts.ts";
 import { isReservedFamily } from "./fontCatalog.ts";
 import type { BoardGroup, ChitrapxDoc } from "./doc.ts";
@@ -112,7 +113,7 @@ export function storeReadiness(plan: ExportItem[], doc: ChitrapxDoc): ReadinessI
 export type ContentIssue = {
   severity: "warning"; code: "font_missing" | "brand_token_unset" | "placeholder"; message: string; groupId: string; boardIndex: number;
 };
-export type ContentContext = { customFamilies: readonly string[] };
+export type ContentContext = { customFamilies: readonly string[]; palette?: BrandPalette };
 
 export function contentChecks(doc: ChitrapxDoc, ctx: ContentContext): ContentIssue[] {
   const out: ContentIssue[] = [];
@@ -125,6 +126,12 @@ export function contentChecks(doc: ChitrapxDoc, ctx: ContentContext): ContentIss
         if (reported.has(family) || isReservedFamily(family) || uploaded.has(family)) continue;
         reported.add(family);
         out.push({ severity: "warning", code: "font_missing", message: `Font ${family} is missing`, groupId: g.id, boardIndex });
+      }
+      for (const token of docBrandTokens(part)) {
+        const key = `brand:${token}`;
+        if (reported.has(key) || ctx.palette?.[token]) continue;
+        reported.add(key);
+        out.push({ severity: "warning", code: "brand_token_unset", message: `Brand colour ${token} not set`, groupId: g.id, boardIndex });
       }
     }
   }

@@ -114,3 +114,12 @@ describe("contentChecks: fonts", () => {
     expect(contentChecks(doc([group([board("b", [text("t", 0, 0)])])]), { customFamilies: [] })).toEqual([]); // Inter is in the catalogue
   });
 });
+
+describe("contentChecks: brand colours", () => {
+  it("warns about each token the palette lacks", () => {
+    const d = doc([group([board("b1", [{ ...text("t", 0, 0), color: "brand:accent" } as never]), board("b2", [{ ...text("u", 0, 0), color: "brand:primary" } as never])])]);
+    expect(contentChecks(d, { customFamilies: [], palette: { primary: "#111111" } })).toEqual([
+      { severity: "warning", code: "brand_token_unset", message: "Brand colour accent not set", groupId: "g1", boardIndex: 0 },
+    ]);
+  });
+});

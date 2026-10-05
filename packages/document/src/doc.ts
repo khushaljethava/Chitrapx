@@ -34,7 +34,7 @@ export interface ChitrapxDoc {
 export const MAX_BOARD_EDGE = 8192;
 /** BCP 47-ish store locale codes: "en-US", "zh-Hans", "sq". Never a path. */
 export const LOCALE_CODE = /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/;
-const COLOR = /^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla)\([0-9\s.,%/+-]+\)|[a-zA-Z]{3,30})$/;
+const COLOR = /^(#[0-9a-fA-F]{3,8}|(rgb|rgba|hsl|hsla)\([0-9\s.,%/+-]+\)|[a-zA-Z]{3,30}|brand:(primary|secondary|accent|surface|text|muted))$/;
 /** True for values the document accepts as a colour (hex, rgb/hsl functions, named colours). */
 export const isColor = (v: string) => COLOR.test(v.trim());
 const COLOR_KEYS = new Set(["color", "color1", "color2", "fillColor", "strokeColor", "frameColor", "notchColor", "statusBarColor", "tintColor", "backgroundColor", "backgroundImageTintColor"]);

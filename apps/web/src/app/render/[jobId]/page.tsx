@@ -37,7 +37,7 @@ export default async function RenderPage({ params, searchParams }: {
     const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
     // A recording that is not converted is missing here, so a paid render fails and refunds instead of omitting it.
     const urls = await assetUrlMap(jobCtx, appStorage(), doc);
-    const extras = await renderExtras(jobCtx, appStorage(), { doc });
+    const extras = await renderExtras(jobCtx, appStorage(), { doc, appId: project.appId });
     return <VideoSheet doc={doc} groupId={group.id} locale={input.locale ?? doc.localization.baseLocale} format={format} secondsPerBoard={input.secondsPerBoard ?? 3} assetUrls={urls} extras={extras} />;
   }
   const src = await exportSource(job);
@@ -46,6 +46,7 @@ export default async function RenderPage({ params, searchParams }: {
   const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
   const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
   const assetUrls = await assetUrlMap(jobCtx, appStorage(), src.doc);
-  const extras = await renderExtras(jobCtx, appStorage(), { doc: src.doc });
+  const [p] = await db.select({ appId: schema.projects.appId }).from(schema.projects).where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
+  const extras = await renderExtras(jobCtx, appStorage(), { doc: src.doc, appId: p?.appId });
   return <RenderSheet doc={src.doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} extras={extras} />;
 }

@@ -19,13 +19,13 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
   adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void;
 }) {
-  const { resolveSrc, fonts } = useEditorAssets();
+  const { resolveSrc, fonts, extras } = useEditorAssets();
   const store = useEditorStore();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState(false);
   const doc = useEditor((s) => s.doc);
   // The export covers every size, so every group's checks apply.
-  const checks = useMemo(() => exporting ? contentChecks(doc, { customFamilies: fonts.map((f) => f.family) }) : [], [exporting, doc, fonts]);
+  const checks = useMemo(() => exporting ? contentChecks(doc, { customFamilies: fonts.map((f) => f.family), palette: extras.palette }) : [], [exporting, doc, fonts, extras.palette]);
   const zoom = useEditor((s) => s.zoom);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);

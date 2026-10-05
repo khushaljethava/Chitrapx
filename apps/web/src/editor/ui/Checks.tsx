@@ -15,8 +15,8 @@ export function Checks() {
   const issues = useMemo(() => (group?.boards ?? []).flatMap((b, i) =>
     lintBoard(b, { code: locale, base: doc.localization.baseLocale }).map((issue) => ({ ...issue, boardId: b.id, boardIndex: i }))),
   [group, locale, doc.localization.baseLocale]);
-  const { fonts } = useEditorAssets();
-  const content = useMemo(() => contentChecks(doc, { customFamilies: fonts.map((f) => f.family) }).filter((i) => i.groupId === groupId), [doc, fonts, groupId]);
+  const { fonts, extras } = useEditorAssets();
+  const content = useMemo(() => contentChecks(doc, { customFamilies: fonts.map((f) => f.family), palette: extras.palette }).filter((i) => i.groupId === groupId), [doc, fonts, extras.palette, groupId]);
   const count = issues.length + content.length;
 
   return (

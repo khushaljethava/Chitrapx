@@ -47,6 +47,15 @@ describe("apps", () => {
     expect(await status(createApp(ctx, { name: "F", brand: { headingFont: 'Evil"; }' } }))).toBe(400);
     expect(await status(createApp(ctx, { name: "G", brand: { headingFont: "Pacifico (custom)" } }))).toBe(200);
   });
+  it("validates the palette: hex only, known tokens, each once, at most six", async () => {
+    const ctx = await ctxFor("pro");
+    const app = await createApp(ctx, { name: "P" });
+    const ok = [{ token: "primary", color: "#112233" }, { token: "accent", color: "#445566" }];
+    expect((await updateApp(ctx, app.id, { brand: { palette: ok } })).brand.palette).toEqual(ok);
+    expect(await status(updateApp(ctx, app.id, { brand: { palette: [{ token: "primary", color: "red" }] } }))).toBe(400);
+    expect(await status(updateApp(ctx, app.id, { brand: { palette: [{ token: "pink", color: "#112233" }] } }))).toBe(400);
+    expect(await status(updateApp(ctx, app.id, { brand: { palette: [{ token: "text", color: "#111111" }, { token: "text", color: "#222222" }] } }))).toBe(400);
+  });
 });
 
 describe("projects", () => {
