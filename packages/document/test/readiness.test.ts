@@ -123,3 +123,13 @@ describe("contentChecks: brand colours", () => {
     ]);
   });
 });
+
+describe("contentChecks: placeholders", () => {
+  it("warns once per board with [word] left in, including translations", () => {
+    const b1 = board("Hero", [{ ...text("t", 0, 0), content: "The calm way to [verb] [noun]." } as never]);
+    const b2 = board("Two", [text("u", 0, 0)]);
+    b2.localized = { "de-DE": { u: { content: "Nie wieder [pain]." } } };
+    expect(contentChecks(doc([group([b1, b2])]), { customFamilies: [] }).filter((i) => i.code === "placeholder").map((i) => i.message))
+      .toEqual(["Unfilled placeholder in Hero", "Unfilled placeholder in Two"]);
+  });
+});

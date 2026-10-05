@@ -6,6 +6,7 @@ import { useIntake } from "../useIntake.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
+import { HeadlineIdeas } from "./HeadlineIdeas.tsx";
 import { LayersPanel } from "./LayersPanel.tsx";
 
 type NewElement = (w: number, h: number) => Record<string, unknown>;
@@ -150,6 +151,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
       <Checks />
 
       <CopyIdeas />
+      <HeadlineIdeas />
     </aside>
   );
 }

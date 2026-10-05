@@ -1,5 +1,7 @@
 import { lintBoard } from "./aso.ts";
+import type { ArtboardState, TextElementProps } from "./artboard.ts";
 import { docBrandTokens, type BrandPalette } from "./brand.ts";
+import { hasPlaceholder } from "./copyFormulas.ts";
 import { docFontFamilies } from "./docFonts.ts";
 import { isReservedFamily } from "./fontCatalog.ts";
 import type { BoardGroup, ChitrapxDoc } from "./doc.ts";
@@ -132,6 +134,12 @@ export function contentChecks(doc: ChitrapxDoc, ctx: ContentContext): ContentIss
         if (reported.has(key) || ctx.palette?.[token]) continue;
         reported.add(key);
         out.push({ severity: "warning", code: "brand_token_unset", message: `Brand colour ${token} not set`, groupId: g.id, boardIndex });
+      }
+      if (part !== g.spanElements) {
+        const b = part as ArtboardState;
+        const texts = [...b.elements.filter((e) => e.type === "text").map((e) => (e as TextElementProps).content ?? ""),
+          ...Object.values(b.localized ?? {}).flatMap((byEl) => Object.values(byEl).map((ov) => ov.content ?? ""))];
+        if (texts.some(hasPlaceholder)) out.push({ severity: "warning", code: "placeholder", message: `Unfilled placeholder in ${b.name}`, groupId: g.id, boardIndex });
       }
     }
   }
