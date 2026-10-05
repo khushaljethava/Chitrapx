@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { hash32 } from "@chitrapx/document";
 import type { ChitrapxDoc } from "@chitrapx/document";
 import { createEditorStore } from "@/editor/store.ts";
+
+/** The base text of element t, which every hand edit is hashed against (SP11 F3). */
+const baseOf = (doc: ChitrapxDoc) => (doc.groups[0]!.boards[0]!.elements.find((e) => e.id === "t") as unknown as { content: string }).content;
 
 const d = (): ChitrapxDoc => ({
   schemaVersion: 1, kind: "screenshots", localization: { baseLocale: "en-US", locales: [{ code: "de-DE" }] },
@@ -31,7 +35,7 @@ describe("editor store", () => {
     s.getState().apply({ type: "setOverride", ref, locale: "de-DE", props: { content: "Hallo" } });
     s.getState().apply({ type: "setOverride", ref, locale: "de-DE", props: { content: "Servus" } });
     s.getState().undo();
-    expect(s.getState().doc.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { t: { content: "Hallo", origin: "manual" } } });
+    expect(s.getState().doc.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { t: { content: "Hallo", origin: "manual", sourceHash: hash32(baseOf(s.getState().doc)) } } });
   });
 
   it("a gesture is one undo step however many moves it makes", () => {
