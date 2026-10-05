@@ -169,7 +169,7 @@ Note on the competitor architecture: open-screenshot-generator does live editing
 
 ## Data model and API changes
 
-Migrations (numbering continues after `0008_billing.sql`; adjust to whatever SP9 to SP14 have taken):
+Migrations (numbering continues after `0008_billing.sql`; adjust to whatever SP9 to SP13 have taken):
 
 | Table / change | Purpose |
 |---|---|

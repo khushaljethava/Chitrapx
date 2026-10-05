@@ -214,13 +214,13 @@ Gap-closing sub-projects, agreed 2026-10-03 after comparing Chitrapx with the si
 11. Localization and AI copy (translations table with CSV/JSON, RTL, feature chips, vertical presets, competitor board)
 12. Launch assets (icon generator, logo starter, collage)
 13. Developer automation (public API and keys, CLI with render/verify/capture/record, MCP server)
-14. Store publishing and sync (App Store Connect and Google Play upload, Google Drive and GitHub sync)
+14. ~~Store publishing and sync~~ (dropped 2026-10-05; see A13)
 15. Collaboration (share a copy, team roles, live co-editing)
 16. Polish (update banner, changelog, analytics consent, community template feed)
 
 ## A13. Out of scope
 
-Desktop app, browser extension, bring-your-own AI key (conflicts with credits), text-to-speech and video title cards. The public API/CLI/MCP, store upload, collaboration and team roles moved into sub-projects 13–15.
+Desktop app, browser extension, bring-your-own AI key (conflicts with credits), text-to-speech and video title cards. Store publishing and sync (App Store Connect / Google Play upload, Google Drive / GitHub sync) was dropped on 2026-10-05: users download exports and upload them themselves. The public API/CLI/MCP, collaboration and team roles live in sub-projects 13 and 15.
 
 ---
 

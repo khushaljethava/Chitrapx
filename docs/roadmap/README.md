@@ -4,17 +4,17 @@ Features Chitrapx is missing compared with the six reference tools in this works
 
 | # | Group | Status | File |
 |---|---|---|---|
-| SP8 | Sizes and export | Done (branch `sp8-sizes-export`) | [sp08-sizes-export.md](sp08-sizes-export.md) |
-| SP9 | Editor essentials | Not started | [sp09-editor-essentials.md](sp09-editor-essentials.md) |
+| SP8 | Sizes and export | Done (on `main`) | [sp08-sizes-export.md](sp08-sizes-export.md) |
+| SP9 | Editor essentials | Done (on `main`) | [sp09-editor-essentials.md](sp09-editor-essentials.md) |
 | SP10 | Typography and style | Not started | [sp10-typography-style.md](sp10-typography-style.md) |
 | SP11 | Localization and AI copy | Not started | [sp11-localization-ai-copy.md](sp11-localization-ai-copy.md) |
 | SP12 | Launch assets | Not started | [sp12-launch-assets.md](sp12-launch-assets.md) |
 | SP13 | Developer automation | Not started | [sp13-developer-automation.md](sp13-developer-automation.md) |
-| SP14 | Store publishing and sync | Not started | [sp14-store-publishing-sync.md](sp14-store-publishing-sync.md) |
+| SP14 | Store publishing and sync | Dropped (2026-10-05): not building store upload or Drive/GitHub sync | — |
 | SP15 | Collaboration | Not started | [sp15-collaboration.md](sp15-collaboration.md) |
 | SP16 | Polish | Not started | [sp16-polish.md](sp16-polish.md) |
 
-Build order: SP9 → SP10 → SP11 → SP12 → SP13 → SP14 → SP15. SP16 can go in any time.
+Build order: SP10 → SP11 → SP12 → SP13 → SP15. SP16 can go in any time.
 
 ## Reference repos
 
