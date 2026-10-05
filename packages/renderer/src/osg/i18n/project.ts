@@ -199,6 +199,31 @@ function autoFamilyFor(entry: LocaleEntry | undefined): string | undefined {
   return getRecommendedFontForLanguage(def?.translateCode || entry.code);
 }
 
+// --- right-to-left -------------------------------------------------------------
+
+/**
+ * SP11: scripts that need more room between lines than Latin at the same size. Derived like the auto-shrink
+ * and only where the language has its own text, so a later change to the base line height still reaches it.
+ */
+const MIN_LINE_HEIGHT: Record<string, number> = { ur: 1.8, ar: 1.3, fa: 1.3 };
+
+function minLineHeightFor(entry: LocaleEntry | undefined): number | undefined {
+  if (!entry) return undefined;
+  const lang = (getLocaleDef(entry.code)?.translateCode || entry.code).split('-')[0]!;
+  return MIN_LINE_HEIGHT[lang];
+}
+
+/** True when `locale` shows the boards mirrored: the project opted in and the language reads right to left. */
+export function mirrorsLocale(localization: { mirrorRtl?: boolean } | undefined, locale: string | null): boolean {
+  return !!locale && !!localization?.mirrorRtl && !!getLocaleDef(locale)?.rtl;
+}
+
+/** The element reflected across the board's vertical centre line; its tilt flips with it. Content is never flipped. */
+export function mirrorElement(el: ArtboardElement, boardWidth: number): ArtboardElement {
+  const width = el.size.width * (el.scale || 1);
+  return { ...el, position: { x: boardWidth - el.position.x - width, y: el.position.y }, rotation: el.rotation ? -el.rotation : el.rotation } as ArtboardElement;
+}
+
 // --- derived font size -------------------------------------------------------
 
 const fontSizeCache = new Map<string, number>();
@@ -351,6 +376,13 @@ export function resolveElementForLocale(
     if (family && family !== (next as TextElementProps).fontFamily) assign('fontFamily', family);
   }
 
+  // SP11: Arabic and Urdu need more leading than Latin at the same size. A detached line height is the user's choice.
+  if (ov.content !== undefined && !isDetached(ov, 'lineHeight')) {
+    const min = minLineHeightFor(entry);
+    const current = (next as TextElementProps).lineHeight ?? 1.2;
+    if (min && current < min) assign('lineHeight', min);
+  }
+
   if (entry?.autoFit !== false && !isDetached(ov, 'fontSize')) {
     const text = next as TextElementProps;
     const size = resolveLocaleFontSize(text, text.content);
@@ -376,16 +408,17 @@ export function projectArtboards(base: ArtboardState[], locale: string | null): 
   if (locale === (localization.baseLocale || DEFAULT_BASE_LOCALE)) return base;
   const entry = (localization.locales || []).find((candidate) => candidate?.code === locale);
   if (!entry) return base;
+  const mirror = mirrorsLocale(localization, locale);
 
   let changed = false;
   const projected = base.map((board) => {
     const overrides = board.localized?.[locale];
-    if (!overrides) return board;
+    if (!overrides && !mirror) return board;
 
     let boardChanged = false;
     const elements: ArtboardElement[] = [];
     for (const el of board.elements) {
-      const ov = overrides[el.id];
+      const ov = overrides?.[el.id];
       // Hidden is expressed by absence, so every renderer gets it for free and
       // none of them needs to learn the word "locale". unprojectArtboards reads
       // the same absence back as hidden, never as a delete.
@@ -393,7 +426,9 @@ export function projectArtboards(base: ArtboardState[], locale: string | null): 
         boardChanged = true;
         continue;
       }
-      const resolved = resolveElementForLocale(el, ov, entry);
+      let resolved = resolveElementForLocale(el, ov, entry);
+      // A position this language holds itself is where the user put it: never mirrored again.
+      if (mirror && !isDetached(ov, 'position')) resolved = mirrorElement(resolved, board.size.width);
       if (resolved !== el) boardChanged = true;
       elements.push(resolved);
     }
@@ -573,6 +608,11 @@ export function unprojectArtboards(
   if (locale === (localization.baseLocale || DEFAULT_BASE_LOCALE)) return view;
   const entry = (localization.locales || []).find((candidate) => candidate?.code === locale);
   if (!entry) return view;
+  // A mirrored view holds reflected positions; writing them back would move every language. Mirrored views are preview-only.
+  if (mirrorsLocale(localization, locale)) {
+    devError('a mirrored locale view is preview-only, dropping the commit', { locale });
+    return base;
+  }
 
   const projected = projectArtboards(base, locale);
   if (projected.length !== view.length) {

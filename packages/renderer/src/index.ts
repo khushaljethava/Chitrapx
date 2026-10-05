@@ -11,3 +11,4 @@ export { animationStateAt, type AnimationState } from "./osg/lib/animation";
 export { defaultAnimations } from "./motion.ts";
 export { VideoFrame, type VideoFrameProps } from "./VideoFrame.tsx";
 export { fitTextBox } from "./osg/lib/textFit";
+export { mirrorsLocale } from "./osg/i18n/project";

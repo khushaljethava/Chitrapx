@@ -463,6 +463,11 @@ export interface ProjectLocalization {
   baseLocale: string;
   /** Export languages in order. Never contains baseLocale. */
   locales: LocaleEntry[];
+  /**
+   * SP11: mirror element positions in right-to-left languages (Arabic, Hebrew, Persian, Urdu). Derived at
+   * projection time and never stored per element; a position detached for a language is left alone.
+   */
+  mirrorRtl?: boolean;
 }
 
 export interface ArtboardState {

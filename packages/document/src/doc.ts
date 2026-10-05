@@ -90,6 +90,7 @@ const group = z.object({
 const localization = z.object({
   baseLocale: z.string().regex(LOCALE_CODE).default(DEFAULT_BASE_LOCALE),
   locales: z.array(z.object({ code: z.string().regex(LOCALE_CODE) }).passthrough()).default([]),
+  mirrorRtl: z.boolean().optional(),
 }).passthrough().refine((l) => {
   const codes = [l.baseLocale, ...l.locales.map((x) => x.code)];
   return new Set(codes).size === codes.length;
