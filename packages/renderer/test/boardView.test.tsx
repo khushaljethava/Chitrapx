@@ -65,10 +65,10 @@ describe("fonts", () => {
   it("builds one Google Fonts link for the families in use, skipping system fonts", () => {
     const families = fontFamiliesOf([boardFor(makeDoc(), "g", 0, "en-US", resolve).board]);
     expect(families).toEqual(["Bricolage Grotesque"]);
-    const href = googleFontsHref(["Bricolage Grotesque", "Arial", "DM Serif Display"])!;
+    const href = googleFontsHref([{ family: "Bricolage Grotesque", faces: [] }, { family: "Arial", faces: [] }, { family: "DM Serif Display", faces: [] }])!;
     expect(href).toContain("family=Bricolage+Grotesque");
     expect(href).toContain("family=DM+Serif+Display");
     expect(href).not.toContain("Arial");
-    expect(googleFontsHref(["Arial"])).toBeNull();
+    expect(googleFontsHref([{ family: "Arial", faces: [] }])).toBeNull();
   });
 });

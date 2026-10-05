@@ -13,3 +13,4 @@ export * from "./bundle.ts";
 export * from "./layout.ts";
 export * from "./match.ts";
 export * from "./deviceStatusBar.ts";
+export * from "./fontCatalog.ts";

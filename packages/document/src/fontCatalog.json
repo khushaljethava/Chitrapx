@@ -1,0 +1,3449 @@
+[
+ {
+  "family": "Abril Fatface",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Adamina",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Albert Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Alegreya",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Alfa Slab One",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Allura",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Almarai",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Amatic SC",
+  "category": "handwriting",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Amiri",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Anek Latin",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Anton",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Architects Daughter",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Archivo",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Archivo Black",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Archivo Narrow",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Arvo",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Asap",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Assistant",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Atkinson Hyperlegible",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Audiowide",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bagel Fat One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Baloo 2",
+  "category": "display",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Bangers",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Barlow",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Barlow Condensed",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Barlow Semi Condensed",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Be Vietnam Pro",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bebas Neue",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Big Shoulders",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bitter",
+  "category": "serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Black Han Sans",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bodoni Moda",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Boogaloo",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bowlby One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bricolage Grotesque",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bungee",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Bungee Shade",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cabin",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cairo",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Calistoga",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cardo",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Caveat",
+  "category": "handwriting",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Caveat Brush",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Chango",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cherry Bomb One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Chewy",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Chivo",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cinzel",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Climate Crisis",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cookie",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cormorant",
+  "category": "serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Cormorant Garamond",
+  "category": "serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Courgette",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Courier Prime",
+  "category": "monospace",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Covered By Your Grace",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Crimson Pro",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Crimson Text",
+  "category": "serif",
+  "weights": [
+   400,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Dancing Script",
+  "category": "handwriting",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Dela Gothic One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "DM Mono",
+  "category": "monospace",
+  "weights": [
+   300,
+   400,
+   500
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "DM Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "DM Serif Display",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "DM Serif Text",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Domine",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "EB Garamond",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Encode Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Epilogue",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Exo 2",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Familjen Grotesk",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Figtree",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Fira Code",
+  "category": "monospace",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Fira Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Fira Sans Condensed",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Fjalla One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Frank Ruhl Libre",
+  "category": "serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Fraunces",
+  "category": "serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Fredoka",
+  "category": "display",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Geist",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Geist Mono",
+  "category": "monospace",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Gloock",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Gloria Hallelujah",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Gochi Hand",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Golos Text",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Great Vibes",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Hanken Grotesk",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Heebo",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Hind",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Homemade Apple",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "IBM Plex Mono",
+  "category": "monospace",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "IBM Plex Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "IBM Plex Sans Arabic",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Inconsolata",
+  "category": "monospace",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Indie Flower",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Instrument Sans",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Instrument Serif",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Inter",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Inter Tight",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "JetBrains Mono",
+  "category": "monospace",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Jost",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Just Another Hand",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Kalam",
+  "category": "handwriting",
+  "weights": [
+   300,
+   400,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Kanit",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "thai"
+  ]
+ },
+ {
+  "family": "Karla",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Kaushan Script",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Krona One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lateef",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Lato",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   300,
+   400,
+   700,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lexend",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Libre Baskerville",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Libre Caslon Text",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Libre Franklin",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lilita One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Literata",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lobster",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lora",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Luckiest Guy",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Lusitana",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "M PLUS Rounded 1c",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   300,
+   400,
+   500,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Manrope",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Marcellus",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Markazi Text",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Martian Mono",
+  "category": "monospace",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Merriweather",
+  "category": "serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Merriweather Sans",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Michroma",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Monoton",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Montserrat",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Mrs Saint Delafield",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Mukta",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Mulish",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Newsreader",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Nothing You Could Do",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Nastaliq Urdu",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "urdu",
+   "latin",
+   "arabic"
+  ]
+ },
+ {
+  "family": "Noto Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "multilingual",
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Noto Sans Arabic",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans Bengali",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "bengali",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans Devanagari",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "devanagari",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans Hebrew",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "hebrew",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans JP",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "cjk",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans KR",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "cjk",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans SC",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "cjk",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans TC",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "cjk",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Sans Thai",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "thai",
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Serif",
+  "category": "serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Serif Display",
+  "category": "serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Noto Serif JP",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "cjk",
+   "latin"
+  ]
+ },
+ {
+  "family": "Nunito",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Nunito Sans",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Old Standard TT",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Onest",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Open Sans",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Orbitron",
+  "category": "display",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Oswald",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Outfit",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Overpass",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Oxygen",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Pacifico",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Parisienne",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Passion One",
+  "category": "display",
+  "weights": [
+   400,
+   700,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Patrick Hand",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Paytone One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Permanent Marker",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Playfair Display",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Plus Jakarta Sans",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Poppins",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Prata",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Press Start 2P",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Prompt",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "thai"
+  ]
+ },
+ {
+  "family": "PT Sans",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "PT Serif",
+  "category": "serif",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Public Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Quicksand",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Raleway",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Rammetto One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Ranchers",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Readex Pro",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "arabic"
+  ]
+ },
+ {
+  "family": "Red Hat Display",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Red Hat Text",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Reenie Beanie",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Righteous",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Roboto",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Roboto Flex",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900,
+   1000
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Roboto Mono",
+  "category": "monospace",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Roboto Slab",
+  "category": "serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Rock Salt",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Rozha One",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Rubik",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin",
+   "arabic",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Rubik Glitch",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Rubik Mono One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Russo One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Sacramento",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Saira",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Saira Condensed",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Satisfy",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Scheherazade New",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Schibsted Grotesk",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Shadows Into Light",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Shippori Mincho",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Shrikhand",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Signika",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Silkscreen",
+  "category": "display",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Sniglet",
+  "category": "display",
+  "weights": [
+   400,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Sora",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Source Code Pro",
+  "category": "monospace",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Source Sans 3",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Source Serif 4",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Space Grotesk",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Space Mono",
+  "category": "monospace",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Spectral",
+  "category": "serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Staatliches",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Syne",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Syne Mono",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Tajawal",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "arabic",
+   "latin"
+  ]
+ },
+ {
+  "family": "Teko",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "devanagari"
+  ]
+ },
+ {
+  "family": "Titan One",
+  "category": "display",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Titillium Web",
+  "category": "sans-serif",
+  "weights": [
+   200,
+   300,
+   400,
+   600,
+   700,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Ubuntu",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Ubuntu Mono",
+  "category": "monospace",
+  "weights": [
+   400,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Unbounded",
+  "category": "display",
+  "weights": [
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Urbanist",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Varela Round",
+  "category": "sans-serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin",
+   "hebrew"
+  ]
+ },
+ {
+  "family": "Wix Madefor Display",
+  "category": "sans-serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   800
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Work Sans",
+  "category": "sans-serif",
+  "weights": [
+   100,
+   200,
+   300,
+   400,
+   500,
+   600,
+   700,
+   800,
+   900
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Yellowtail",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Yeseva One",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Young Serif",
+  "category": "serif",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Yuji Syuku",
+  "category": "handwriting",
+  "weights": [
+   400
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Zen Kaku Gothic New",
+  "category": "sans-serif",
+  "weights": [
+   300,
+   400,
+   500,
+   700,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Zen Old Mincho",
+  "category": "serif",
+  "weights": [
+   400,
+   500,
+   600,
+   700,
+   900
+  ],
+  "italics": false,
+  "scripts": [
+   "latin"
+  ]
+ },
+ {
+  "family": "Zilla Slab",
+  "category": "serif",
+  "weights": [
+   300,
+   400,
+   500,
+   600,
+   700
+  ],
+  "italics": true,
+  "scripts": [
+   "latin"
+  ]
+ }
+]
