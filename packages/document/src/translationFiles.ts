@@ -77,7 +77,7 @@ function plan(doc: ChitrapxDoc, entries: Array<{ id: string; values: Array<{ loc
     const row = rows.get(id);
     if (!row) { if (!unknownIds.includes(id)) unknownIds.push(id); continue; }
     for (const { locale, text } of values) {
-      if (text === "") continue;
+      if (!text.trim()) continue; // a blank (or spaces-only) cell never clears or blanks a translation
       const from = cellFor(doc, row, locale).text;
       if (from === text) { unchanged++; continue; }
       changes.push({ locale, id, text, from, label: row.label, kind: from ? "changed" : "added" });

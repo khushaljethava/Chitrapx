@@ -128,7 +128,8 @@ export function writeTranslations(doc: ChitrapxDoc, writes: TranslationWrite[]):
   const chipEdits = new Map<string, Map<number, string>>();
   for (const w of writes) {
     if (!known.has(w.locale)) continue;
-    const text = w.text.replace(/\r\n?/g, "\n");
+    // Spaces only would render a blank text while the table says "untranslated": treat it as a clear.
+    const text = w.text.trim() ? w.text.replace(/\r\n?/g, "\n") : "";
     const chip = parseChipId(w.id);
     if (chip) {
       const key = `${w.locale}\u0000${chip.elementId}`;

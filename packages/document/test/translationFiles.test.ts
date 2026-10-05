@@ -79,3 +79,10 @@ describe("JSON", () => {
     }
   });
 });
+
+it("a whitespace-only cell never clears or blanks a translation (review #1)", () => {
+  const d = project();
+  const sheet = ["id,board,label,en-US,de-DE,fr-FR", "h2,Screen 2,x,Share recipes,  ,   "].join("\n");
+  expect(planCsvImport(d, sheet).changes).toEqual([]);
+  expect(planJsonImport(d, JSON.stringify({ "fr-FR": { h2: " " } })).changes).toEqual([]);
+});

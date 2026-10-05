@@ -119,3 +119,9 @@ describe("textsIn", () => {
     expect(textsIn(d, "en-US").find((x) => x.id === "h1")!.text).toBe("Track every brew");
   });
 });
+
+it("writing a whitespace-only cell clears it back to the base instead of blanking it (review #1)", () => {
+  const d = writeTranslations(project(), [{ locale: "de-DE", id: "h1", text: "Jeden" }]);
+  expect(ov(writeTranslations(d, [{ locale: "de-DE", id: "h1", text: "   " }]), 0, 0, "de-DE", "h1")).toBeUndefined();
+  expect(writeTranslations(project(), [{ locale: "de-DE", id: "h1", text: " \n " }])).toEqual(project());
+});

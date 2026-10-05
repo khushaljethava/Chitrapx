@@ -5,7 +5,7 @@ import { useState } from "react";
 import { applyPreset, BRIEF_MAX, BRIEF_TONES, PRESETS, presetFor, type AppBriefFields, type PresetKey } from "@chitrapx/document";
 import { api } from "@/server/api.ts";
 
-const keywordList = (s: string) => s.split(",").map((k) => k.trim()).filter(Boolean);
+import { briefPatch } from "./briefForm.ts";
 
 /** The brief is saved on the app when a design starts, so it is prefilled next time and reused by copy variants and chips. */
 export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: string; screenshotCount: number; brief: AppBriefFields }) {
@@ -15,6 +15,7 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
   /** Fills empty fields only; a written brief is replaced only after the user says so. */
   function pickPreset(key: PresetKey | "") {
     setPreset(key);
+    setSaved(false);
     if (!key) return;
     const p = presetFor(key)!;
     const replace = !!form.text.trim() && form.text.trim() !== p.aiBrief && window.confirm(`Replace your brief with the ${p.label} starter text?`);
@@ -25,18 +26,27 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
   }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
+  const [briefSaved, setSaved] = useState(false);
+  const set = (patch: Partial<typeof form>) => { setSaved(false); setForm((f) => ({ ...f, ...patch })); };
   const length = form.text.trim().length;
 
   async function start() {
     setBusy(true);
     setError("");
     try {
-      const { projectId } = await api<{ projectId: string }>(`/api/apps/${appId}/ai-design`, "POST", {
-        brief: form.text, audience: form.audience, tone: form.tone, keywords: keywordList(form.keywords), preset,
-      });
+      const { text, ...rest } = briefPatch(form, preset);
+      const { projectId } = await api<{ projectId: string }>(`/api/apps/${appId}/ai-design`, "POST", { brief: text, ...rest });
       router.push(`/dashboard/projects/${projectId}`);
     } catch (err) { setError((err as Error).message); setBusy(false); }
+  }
+
+  /** Saves the brief without starting a design; chips and copy variants read it too. */
+  async function save() {
+    setBusy(true);
+    setError("");
+    try { await api(`/api/apps/${appId}`, "PATCH", { brief: briefPatch(form, preset) }); setSaved(true); router.refresh(); }
+    catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
   }
 
   return (
@@ -78,6 +88,7 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
       {saved.competitor && <p className="text-xs text-neutral-500">Competitor notes from your reference board are included.</p>}
       <div className="flex items-center gap-3">
         <button className="btn" onClick={start} disabled={busy || screenshotCount === 0}>{busy ? "Starting" : "Design with AI (10 credits)"}</button>
+        <button type="button" className="btn-ghost" onClick={save} disabled={busy}>{briefSaved ? "Brief saved" : "Save brief"}</button>
         {screenshotCount === 0 && <span className="text-sm text-neutral-500">Upload screenshots below first.</span>}
       </div>
       {error && <p role="alert" className="error">{error}</p>}
