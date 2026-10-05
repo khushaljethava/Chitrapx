@@ -78,8 +78,8 @@ ${board.map(slotLine).join("\n")}`;
   }).join("\n\n")}`;
 }
 
-export function translateSystem(localeName: string, glossary: string[]) {
-  return `Translate App Store screenshot text into ${localeName}. Keep it as short and punchy as the source; a translation may be shorter but should not be much longer. Keep line breaks where the source has them. Keep these terms exactly as written, untranslated: ${glossary.length ? glossary.map((g) => JSON.stringify(g)).join(", ") : "(none)"}. Keep numbers, symbols and emoji. Return one translation for every id.`;
+export function translateSystem(localeName: string, glossary: string[], sourceName?: string) {
+  return `Translate App Store screenshot text${sourceName ? ` from ${sourceName}` : ""} into ${localeName}. Keep it as short and punchy as the source; a translation may be shorter but should not be much longer. Keep line breaks where the source has them. Keep these terms exactly as written, untranslated: ${glossary.length ? glossary.map((g) => JSON.stringify(g)).join(", ") : "(none)"}. Keep numbers, symbols and emoji. Return one translation for every id.`;
 }
 
 export const translatePrompt = (texts: SlotText[]) => JSON.stringify(texts);

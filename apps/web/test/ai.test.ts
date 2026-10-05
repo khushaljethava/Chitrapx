@@ -104,3 +104,21 @@ describe("AI brief (SP11)", () => {
     await expect(startAiDesign(s.ctx, boss, s.app.id, { preset: "crypto-casino" })).rejects.toBeInstanceOf(ZodError);
   });
 });
+
+describe("translate from any language (SP11)", () => {
+  it("takes a project language as the source, refuses an unknown one or one that is also a target, and passes overwriteManual", async () => {
+    const s = await setup(20);
+    const p = await createProject(s.ctx, s.app.id, { name: "T", templateSlug: "amoura-dating" });
+    const row = (await db.select().from(schema.projects).where(eq(schema.projects.id, p.id)))[0]!;
+    await db.update(schema.projects).set({ doc: { ...(row.doc as object), localization: { baseLocale: "en-US", locales: [{ code: "fr-FR" }] } } }).where(eq(schema.projects.id, p.id));
+    const inputOf = async (jobId: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, jobId)))[0]!.input;
+
+    await expect(startTranslate(s.ctx, boss, p.id, { locales: ["de-DE"], sourceLocale: "it" })).rejects.toMatchObject({ code: "unknown_source_locale" });
+    await expect(startTranslate(s.ctx, boss, p.id, { locales: ["fr-FR"], sourceLocale: "fr-FR" })).rejects.toMatchObject({ code: "source_in_targets" });
+    const a = await startTranslate(s.ctx, boss, p.id, { locales: ["ar-SA", "de-DE"], sourceLocale: "fr-FR", overwriteManual: true });
+    expect(await inputOf(a.jobId)).toEqual({ locales: ["ar-SA", "de-DE"], sourceLocale: "fr-FR", overwriteManual: true });
+    expect(await balance(db, s.ctx.workspaceId)).toBe(16);
+    const b = await startTranslate(s.ctx, boss, p.id, { locales: ["de-DE"], sourceLocale: "en-US" });
+    expect(await inputOf(b.jobId)).toEqual({ locales: ["de-DE"] });
+  });
+});

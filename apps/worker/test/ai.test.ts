@@ -3,7 +3,7 @@ import sharp from "sharp";
 import { beforeAll, describe, expect, it } from "vitest";
 import { balance, db, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
-import { migrate, textSlots, type ChitrapxDoc } from "@chitrapx/document";
+import { allTexts, migrate, textSlots, type ChitrapxDoc } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
 import type { StructuredModel, StructuredRequest } from "../src/ai/model.ts";
@@ -206,5 +206,57 @@ describe("review fixes", () => {
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect((await jobRow(jobId)).status).toBe("done");
     expect(calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(1);
+  });
+});
+
+describe("translate from another language (SP11)", () => {
+  /** amoura with every text in French; the first one also hand-written in Arabic and German. */
+  async function frenchProject(s: Awaited<ReturnType<typeof setup>>) {
+    const [t] = await db.select().from(schema.templates).where(eq(schema.templates.slug, "amoura-dating"));
+    const doc = migrate(t!.doc);
+    for (const g of doc.groups) for (const b of g.boards) for (const e of b.elements) {
+      if (e.type === "text") ((b.localized ??= {})["fr-FR"] ??= {})[e.id] = { content: `FR ${(e as unknown as { content: string }).content}`, origin: "auto" };
+    }
+    const b0 = doc.groups[0]!.boards[0]!;
+    const firstId = b0.elements.find((e) => e.type === "text")!.id;
+    b0.localized!["ar-SA"] = { [firstId]: { content: "مكتوب يدويا", origin: "manual" } };
+    b0.localized!["de-DE"] = { [firstId]: { content: "Von Hand", origin: "manual" } };
+    doc.localization.locales = [{ code: "fr-FR" }, { code: "ar-SA" }, { code: "de-DE" }];
+    await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, s.project.id));
+    return { doc, firstId };
+  }
+
+  it("translates ar-SA and de-DE from fr-FR, keeps the hand-written cell, and charges only the language that came back", async () => {
+    const s = await setup(1);
+    await db.update(schema.apps).set({ glossary: ["Pour-over Pro"] }).where(eq(schema.apps.id, s.app.id));
+    const { doc, firstId } = await frenchProject(s);
+    const { model, calls } = fakeModel((req) => {
+      const sent = JSON.parse((req.content[0] as { text: string }).text) as Array<{ id: string; text: string }>;
+      if (req.system.includes("German")) return { texts: [] }; // German fails: skipped, not charged
+      return { texts: sent.map((x) => ({ id: x.id, text: `AR ${x.text}` })) };
+    });
+    const jobId = await queue(s.ws, s.project.id, "ai_translate", { locales: ["ar-SA", "de-DE"], sourceLocale: "fr-FR" }, 4);
+    await runJob(jobId, (input, job) => runAiTranslate(input, job, deps(model)));
+
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { locales: ["ar-SA"], skipped: ["de-DE"] } });
+    expect(calls.every((c) => c.system.includes("from French") && c.system.includes('"Pour-over Pro"') && c.system.includes('"Bloom"'))).toBe(true);
+    const sent = JSON.parse((calls[0]!.content[0] as { text: string }).text) as Array<{ text: string }>;
+    expect(sent.every((x) => x.text.startsWith("FR "))).toBe(true);
+    const out = (await projectRow(s.project.id)).doc as ChitrapxDoc;
+    expect(out.groups[0]!.boards[0]!.localized!["ar-SA"]![firstId]).toEqual({ content: "مكتوب يدويا", origin: "manual" });
+    const other = allTexts(doc).find((x) => x.id !== firstId && x.text.trim())!;
+    const where = out.groups[0]!.boards.find((b) => b.elements.some((e) => e.id === other.id))!;
+    expect(where.localized!["ar-SA"]![other.id]!.content).toMatch(/^AR FR /);
+    expect(await balance(db, s.ws)).toBe(28);
+  });
+
+  it("overwriteManual replaces a hand-written cell", async () => {
+    const s = await setup(1);
+    const { firstId } = await frenchProject(s);
+    const { model } = fakeModel((req) => ({ texts: (JSON.parse((req.content[0] as { text: string }).text) as Array<{ id: string; text: string }>).map((x) => ({ id: x.id, text: `[de] ${x.text}` })) }));
+    const jobId = await queue(s.ws, s.project.id, "ai_translate", { locales: ["de-DE"], overwriteManual: true }, 2);
+    await runJob(jobId, (input, job) => runAiTranslate(input, job, deps(model)));
+    const out = (await projectRow(s.project.id)).doc as ChitrapxDoc;
+    expect(out.groups[0]!.boards[0]!.localized!["de-DE"]![firstId]).toMatchObject({ content: expect.stringMatching(/^\[de\] /), origin: "auto" });
   });
 });

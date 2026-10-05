@@ -16,15 +16,17 @@ const STATUS: Record<SaveStatus, string> = {
   conflict: "Changed elsewhere", error: "Could not save",
 };
 
-export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations }: {
+export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations, glossary: initialGlossary }: {
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
-  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; openTranslations?: boolean;
+  adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; openTranslations?: boolean; glossary: string[];
 }) {
   const { resolveSrc, fonts, extras } = useEditorAssets();
   const store = useEditorStore();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState(false);
   const [translating, setTranslating] = useState(!!openTranslations);
+  // Kept here, not in the dialog, so reopening it shows the list as last saved.
+  const [glossary, setGlossary] = useState(initialGlossary);
   const doc = useEditor((s) => s.doc);
   // The export covers every size, so every group's checks apply.
   const checks = useMemo(() => exporting ? contentChecks(doc, { customFamilies: fonts.map((f) => f.family), palette: extras.palette }) : [], [exporting, doc, fonts, extras.palette]);
@@ -68,7 +70,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       </nav>
       <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
       <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
-      {translating && <TranslationsTable name={name} onClose={() => setTranslating(false)} />}
+      {translating && <TranslationsTable name={name} glossary={glossary} onGlossary={setGlossary} onClose={() => setTranslating(false)} />}
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>
       {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} extras={extras} />}
       <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>

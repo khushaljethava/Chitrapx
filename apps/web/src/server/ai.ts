@@ -15,7 +15,11 @@ const designInput = z.object({
   keywords: briefFields.keywords.optional(),
   preset: z.enum(PRESET_KEYS).or(z.literal("")).optional(),
 });
-const translateInput = z.object({ locales: z.array(z.string().regex(LOCALE_CODE)).min(1).max(20) });
+const translateInput = z.object({
+  locales: z.array(z.string().regex(LOCALE_CODE)).min(1).max(20),
+  sourceLocale: z.string().regex(LOCALE_CODE).optional(),
+  overwriteManual: z.boolean().optional(),
+});
 
 /** Same limit the worker enforces: text sent to the model per job. */
 const MAX_TEXT_CHARS = 20_000;
@@ -55,11 +59,17 @@ export async function startAiDesign(ctx: Ctx, boss: PgBoss, appId: string, raw: 
 
 export async function startTranslate(ctx: Ctx, boss: PgBoss, projectId: string, raw: unknown) {
   const project = await getProject(ctx, projectId);
-  const { locales } = translateInput.parse(raw ?? {});
-  if (locales.includes(project.doc.localization.baseLocale)) throw badRequest("base_locale");
+  const { locales, sourceLocale, overwriteManual } = translateInput.parse(raw ?? {});
+  const loc = project.doc.localization;
+  if (locales.includes(loc.baseLocale)) throw badRequest("base_locale");
+  const source = sourceLocale && sourceLocale !== loc.baseLocale ? sourceLocale : undefined;
+  if (source && !loc.locales.some((l) => l.code === source)) throw badRequest("unknown_source_locale");
+  if (source && locales.includes(source)) throw badRequest("source_in_targets");
   if (!project.doc.groups.length) throw badRequest("project_is_empty");
   assertTextFits(project.doc);
-  return enqueue(ctx, boss, project.id, "ai_translate", { locales: [...new Set(locales)] });
+  return enqueue(ctx, boss, project.id, "ai_translate", {
+    locales: [...new Set(locales)], ...(source && { sourceLocale: source }), ...(overwriteManual && { overwriteManual: true }),
+  });
 }
 
 export async function startCopyVariants(ctx: Ctx, boss: PgBoss, projectId: string) {

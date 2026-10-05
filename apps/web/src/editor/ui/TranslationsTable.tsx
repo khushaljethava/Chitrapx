@@ -4,6 +4,9 @@ import { useMemo, useRef, useState } from "react";
 import { ImportError, lengthWarning, planCsvImport, planJsonImport, toCsv, toJson, type CellState, type ImportPlan } from "@chitrapx/document";
 import { LOCALES } from "@chitrapx/renderer";
 import { useEditor, useEditorStore } from "../context.tsx";
+import { api } from "@/server/api.ts";
+import { useEditorAssets } from "../assets.tsx";
+import { useDocJob } from "../docJobs.tsx";
 import { tableModel } from "../translationsModel.ts";
 
 const CELL_CLASS: Record<CellState, string> = {
@@ -37,8 +40,88 @@ function download(name: string, text: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Machine translation into chosen languages from the base or any other column. 2 credits per language that comes back. */
+function AiTranslate() {
+  const run = useDocJob();
+  const projectId = useEditor((s) => s.projectId);
+  const loc = useEditor((s) => s.doc.localization);
+  const locked = useEditor((s) => s.locked);
+  const [source, setSource] = useState(loc.baseLocale);
+  const [targets, setTargets] = useState<string[]>([]);
+  const [overwrite, setOverwrite] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState("");
+  const options = loc.locales.map((l) => l.code).filter((c) => c !== source);
+  const chosen = targets.filter((t) => options.includes(t));
+
+  async function translate() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const job = await run(() => api<{ jobId: string }>(`/api/projects/${projectId}/translate`, "POST",
+        { locales: chosen, sourceLocale: source, ...(overwrite && { overwriteManual: true }) }));
+      const out = job.output as { locales?: string[]; skipped?: string[] } | null;
+      setMessage(`Translated ${out?.locales?.join(", ") || "nothing"}.${out?.skipped?.length ? ` Not translated, not charged: ${out.skipped.join(", ")}.` : ""}`);
+      setTargets([]);
+    } catch (err) { setMessage((err as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  return (
+    <section className="flex flex-wrap items-end gap-3 rounded-md border border-neutral-200 p-2 text-xs dark:border-neutral-800" aria-label="AI translation">
+      <div>
+        <label className="label" htmlFor="tr-source">Translate from</label>
+        <select id="tr-source" className="input py-1 text-xs" value={source} onChange={(e) => setSource(e.target.value)}>
+          {[loc.baseLocale, ...loc.locales.map((l) => l.code)].map((c) => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <fieldset className="flex flex-wrap gap-2">
+        <legend className="label">Into</legend>
+        {options.map((c) => (
+          <label key={c} className="flex items-center gap-1">
+            <input type="checkbox" checked={chosen.includes(c)} onChange={(e) => setTargets((t) => (e.target.checked ? [...t, c] : t.filter((x) => x !== c)))} /> {c}
+          </label>
+        ))}
+      </fieldset>
+      <label className="flex items-center gap-1" title="Off: cells written by hand are kept">
+        <input type="checkbox" checked={overwrite} onChange={(e) => setOverwrite(e.target.checked)} /> Overwrite hand-written translations
+      </label>
+      <button type="button" className="btn px-2 py-1" disabled={!chosen.length || busy || locked} onClick={translate}>
+        {busy ? "Translating" : `Translate (${chosen.length * 2} credits)`}
+      </button>
+      {message && <p role="status" className="w-full">{message}</p>}
+    </section>
+  );
+}
+
+/** Terms AI translation keeps exactly as written; saved on the app. The list lives in the toolbar so it survives reopening. */
+function Glossary({ terms, setTerms }: { terms: string[]; setTerms: (terms: string[]) => void }) {
+  const { appId } = useEditorAssets();
+  const [draft, setDraft] = useState("");
+  const [error, setError] = useState("");
+  async function save(next: string[]) {
+    setError("");
+    try { setTerms((await api<{ glossary: string[] }>(`/api/apps/${appId}`, "PATCH", { glossary: next })).glossary); }
+    catch (err) { setError((err as Error).message); }
+  }
+  return (
+    <section className="flex flex-wrap items-center gap-1 text-xs" aria-label="Glossary">
+      <span className="label">Do not translate:</span>
+      {terms.map((t) => (
+        <span key={t} className="inline-flex items-center rounded bg-neutral-100 px-1.5 dark:bg-neutral-800">
+          {t}<button type="button" aria-label={`Remove ${t}`} className="ml-1 text-neutral-500 hover:text-red-600" onClick={() => save(terms.filter((x) => x !== t))}>x</button>
+        </span>
+      ))}
+      <input className="input w-36 py-0.5 text-xs" placeholder="Add a term" value={draft} onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => { if (e.key === "Enter" && draft.trim()) { void save([...terms, draft.trim()]); setDraft(""); } }} />
+      <span className="text-neutral-500">The app name is always kept.</span>
+      {error && <span role="alert" className="error">{error}</span>}
+    </section>
+  );
+}
+
 /** Every text in every language. Cell edits and imports are one undo step each; autosave stores them. */
-export function TranslationsTable({ name, onClose }: { name: string; onClose: () => void }) {
+export function TranslationsTable({ name, glossary, onGlossary, onClose }: { name: string; glossary: string[]; onGlossary: (terms: string[]) => void; onClose: () => void }) {
   const store = useEditorStore();
   const doc = useEditor((s) => s.doc);
   const locked = useEditor((s) => s.locked);
@@ -85,6 +168,8 @@ export function TranslationsTable({ name, onClose }: { name: string; onClose: ()
           <input ref={file} type="file" accept=".csv,.json,text/csv,application/json" hidden onChange={(e) => e.target.files?.[0] && pick(e.target.files[0])} />
           <button type="button" className="btn px-2 py-1 text-xs" onClick={onClose}>Done</button>
         </header>
+        <AiTranslate />
+        <Glossary terms={glossary} setTerms={onGlossary} />
 
         {error && <p role="alert" className="error text-xs">{error}</p>}
         {plan && (

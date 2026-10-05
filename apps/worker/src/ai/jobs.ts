@@ -4,7 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, PRESET_KEYS, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
+  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
   type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
 } from "@chitrapx/document";
@@ -122,25 +122,32 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   return { actual: PRICES.ai_design, output: { templateSlug: template.slug, reasoning: pick.data.reasoning, usage: sumUsage(usage) } };
 }
 
-const translateInput = z.object({ locales: z.array(z.string().regex(LOCALE_CODE)).min(1).max(20) });
+const translateInput = z.object({
+  locales: z.array(z.string().regex(LOCALE_CODE)).min(1).max(20),
+  sourceLocale: z.string().regex(LOCALE_CODE).optional(),
+  overwriteManual: z.boolean().optional(),
+});
 const localeName = (code: string) => { try { return new Intl.DisplayNames(["en"], { type: "language" }).of(code) ?? code; } catch { return code; } };
 
-/** Machine-translates every text slot into each language as automatic overrides; manual ones are kept. */
+/** Machine-translates every text from the base or another language into each target, as automatic overrides. */
 export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps) {
   const input = translateInput.safeParse(raw);
   if (!input.success) throw new FatalJobError("invalid_input");
   const { doc, app } = await projectDoc(job);
-  const texts = allTexts(doc).filter((t) => t.text.trim());
+  const base = doc.localization.baseLocale;
+  const from = input.data.sourceLocale && input.data.sourceLocale !== base ? input.data.sourceLocale : undefined;
+  // A text the source language has not translated goes out in the base language.
+  const texts = textsIn(doc, from ?? base).filter((t) => t.text.trim());
   if (!texts.length) throw new FatalJobError("nothing_to_translate");
   if (texts.reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw new FatalJobError("too_much_text");
-  const glossary = [app.name].filter(Boolean);
+  const glossary = [...new Set([app.name, ...app.glossary].filter(Boolean))];
 
   const usage: Usage[] = [];
   const results: Array<{ locale: string; texts: Array<{ id: string; text: string }> }> = [];
   for (const locale of input.data.locales) {
-    if (locale === doc.localization.baseLocale) continue;
+    if (locale === base || locale === from) continue;
     const { data, usage: u } = await deps.model.generate({
-      model: MODELS.fast, system: translateSystem(localeName(locale), glossary), schema: translationsSchema,
+      model: MODELS.fast, system: translateSystem(localeName(locale), glossary, from && localeName(from)), schema: translationsSchema,
       content: [{ type: "text", text: translatePrompt(texts) }],
     });
     usage.push(u);
@@ -150,10 +157,11 @@ export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps
     results.push({ locale, texts: usable });
   }
   if (!results.length) throw new FatalJobError("ai_incomplete");
-  // Applied to the latest document under the lock: edits made meanwhile are kept, and a slot whose
-  // base text changed while translating is skipped rather than given a stale translation.
+  // Applied to the latest document under the lock: edits made meanwhile are kept, and a slot whose source text
+  // changed while translating is skipped rather than given a stale translation.
   const sources = new Map(texts.map((t) => [t.id, t.text]));
-  await updateProjectDoc(job, (current) => results.reduce((d, r) => applyTranslations(d, r.locale, r.texts, { sources }), current));
+  await updateProjectDoc(job, (current) => results.reduce((d, r) =>
+    applyTranslations(d, r.locale, r.texts, { sources, sourceLocale: from, overwriteManual: input.data.overwriteManual }), current));
   const skipped = input.data.locales.filter((l) => !results.some((r) => r.locale === l));
   return { actual: PRICES.ai_translate * results.length, output: { locales: results.map((r) => r.locale), skipped, usage: sumUsage(usage) } };
 }

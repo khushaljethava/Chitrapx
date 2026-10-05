@@ -1,6 +1,7 @@
 import { produce, type Draft } from "immer";
 import type { ArtboardState, ElementLocaleOverride, TextElementProps } from "./artboard.ts";
 import type { ChitrapxDoc } from "./doc.ts";
+import { allTexts, type SlotText } from "./ai.ts";
 import { hash32 } from "./hash.ts";
 import { remapMarks } from "./richText.ts";
 
@@ -138,5 +139,15 @@ export function writeTranslations(doc: ChitrapxDoc, writes: TranslationWrite[]):
         put(b, locale, e.id, next);
       }
     }
+  });
+}
+
+/** Every distinct text as `locale` reads it: that language's own text where it has one, the base text otherwise. */
+export function textsIn(doc: ChitrapxDoc, locale: string): SlotText[] {
+  const all = allTexts(doc);
+  if (locale === doc.localization.baseLocale) return all;
+  return all.map((t) => {
+    const own = overrideOf(doc, locale, t.id)?.content;
+    return own?.trim() ? { id: t.id, text: own } : t;
   });
 }

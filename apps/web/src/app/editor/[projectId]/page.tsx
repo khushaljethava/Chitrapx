@@ -33,6 +33,7 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       fonts={fonts}
       extras={{ faces: facesOf(fonts), palette: brandPalette(app.brand) }}
       openTranslations={(await searchParams).translations === "1"}
+      glossary={app.glossary}
     />
   );
 }

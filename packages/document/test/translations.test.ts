@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  applyTranslations, cellFor, hash32, lengthWarning, localeProgress, translationRows, writeTranslations, type ChitrapxDoc,
+  applyTranslations, cellFor, hash32, textsIn, lengthWarning, localeProgress, translationRows, writeTranslations, type ChitrapxDoc,
 } from "../src/index.ts";
 import { board, doc, group, text } from "./fixtures.ts";
 
@@ -107,4 +107,15 @@ describe("applyTranslations (SP11)", () => {
 it("hash32 is FNV-1a 32 bit, 8 hex characters", () => {
   expect(hash32("")).toBe("811c9dc5");
   expect(hash32("a")).toBe("e40c292c");
+});
+
+describe("textsIn", () => {
+  it("reads a language's own text, and the base where it has none", () => {
+    const d = project();
+    d.groups[0]!.boards[0]!.localized = { "fr-FR": { h1: { content: "Suivre chaque café" }, x1: { content: "  " } } };
+    expect(textsIn(d, "fr-FR").filter((x) => x.text.trim())).toEqual([
+      { id: "h1", text: "Suivre chaque café" }, { id: "x1", text: "Second line of copy here" }, { id: "h2", text: "Share recipes" },
+    ]);
+    expect(textsIn(d, "en-US").find((x) => x.id === "h1")!.text).toBe("Track every brew");
+  });
 });
