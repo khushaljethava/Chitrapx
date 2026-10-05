@@ -5,6 +5,7 @@ import { useJobDownload } from "@/components/useJobDownload.ts";
 import { useIntake } from "../useIntake.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
+import { StylePicker } from "./StylePicker.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
 import { HeadlineIdeas } from "./HeadlineIdeas.tsx";
 import { LayersPanel } from "./LayersPanel.tsx";
@@ -148,6 +149,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
 
       <LayersPanel />
 
+      <StylePicker />
       <Checks />
 
       <CopyIdeas />

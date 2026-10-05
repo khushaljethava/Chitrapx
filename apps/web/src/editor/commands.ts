@@ -1,6 +1,6 @@
 import { produce, type Draft } from "immer";
 import {
-  applyTexts, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, type TextMark, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyStyle, applyTexts, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, type TextMark, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
@@ -37,7 +37,8 @@ export type Command =
   | { type: "groupElements"; refs: Ref[]; elementGroupId: string; name?: string }
   | { type: "ungroupElements"; refs: Ref[] }
   | { type: "renameGroup"; groupId: string; boardId: string | null; elementGroupId: string; name: string }
-  | { type: "setTexts"; texts: Array<{ id: string; text: string }> };
+  | { type: "setTexts"; texts: Array<{ id: string; text: string }> }
+  | { type: "applyStyle"; groupId: string; styleId: string; fits?: Record<string, { size: { width: number; height: number }; position: { x: number; y: number } }> };
 
 const FULL_SCREEN = { left: 0, top: 0, width: 100, height: 100 };
 
@@ -66,6 +67,19 @@ const findBoard = (d: Draft<ChitrapxDoc>, groupId: string, boardId: string) =>
 /** The only way the document changes. Pure: returns a new document (structurally shared), never mutates. */
 export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
   if (cmd.type === "setTexts") return applyTexts(doc, cmd.texts);
+  if (cmd.type === "applyStyle") {
+    const styled = applyStyle(doc, cmd.groupId, cmd.styleId);
+    if (styled === doc || !cmd.fits || !Object.keys(cmd.fits).length) return styled;
+    // Boxes the new type no longer fits grow in the same step (measured by the caller after the fonts loaded).
+    return produce(styled, (d) => {
+      for (const b of d.groups.find((g) => g.id === cmd.groupId)?.boards ?? []) for (const e of b.elements) {
+        const fit = cmd.fits![`${b.id}:${e.id}`];
+        if (!fit) continue;
+        if (e.size.width !== fit.size.width || e.size.height !== fit.size.height) e.size = fit.size;
+        if (e.position.x !== fit.position.x || e.position.y !== fit.position.y) e.position = fit.position;
+      }
+    });
+  }
   return produce(doc, (d) => {
     switch (cmd.type) {
       case "updateElement": {

@@ -45,7 +45,7 @@ function probeNode(): HTMLDivElement {
 export function measureTextHeight(
   element: Pick<
     TextElementProps,
-    'size' | 'scale' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'fontStyle' | 'lineHeight' | 'letterSpacing' | 'marks'
+    'size' | 'scale' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'fontStyle' | 'lineHeight' | 'letterSpacing' | 'marks' | 'textTransform'
   >,
   content: string
 ): number {
@@ -65,6 +65,7 @@ export function measureTextHeight(
       : 'normal';
   node.style.fontWeight = String(element.fontWeight || 'normal');
   node.style.fontStyle = element.fontStyle || 'normal';
+  node.style.textTransform = element.textTransform || 'none';
   node.style.whiteSpace = 'pre-wrap';
   node.style.wordBreak = 'break-word';
   // A trailing newline has no line box of its own unless something follows it,

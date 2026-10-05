@@ -51,3 +51,10 @@ describe("marks per language", () => {
     expect(projected({ fontFamily: "Noto Sans", detached: ["fontFamily"] }).marks).toEqual([{ start: 6, end: 12, fontWeight: 800 }]);
   });
 });
+
+describe("text case", () => {
+  it("is drawn with text-transform, leaving the content alone", () => {
+    expect(html({ textTransform: "uppercase" })).toContain("text-transform:uppercase");
+    expect(html({ textTransform: "uppercase" })).toContain(">Track habits</div>");
+  });
+});

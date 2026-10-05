@@ -199,6 +199,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             ))}
             <button type="button" className={a.fontStyle === "italic" ? "btn px-3" : "btn-ghost px-3"} onClick={() => set({ fontStyle: a.fontStyle === "italic" ? "normal" : "italic" })}><em>I</em></button>
           </div>
+          <SelectField id="i-case" label="Case" value={a.textTransform ?? "none"} options={[["none", "As typed"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"]] as const}
+            onChange={(v) => set({ textTransform: v === "none" ? undefined : v })} />
           {uploadingFont && <FontUploadDialog onClose={() => setUploadingFont(false)}
             onUploaded={async (family) => { await refreshFonts(); if (family) setLocalizable("fontFamily", family); }} />}
         </>

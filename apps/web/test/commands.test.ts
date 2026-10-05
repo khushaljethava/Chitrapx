@@ -387,3 +387,13 @@ describe("rich text commands", () => {
     expect(marksOf(store.getState().doc)).toEqual([{ start: 6, end: 12, fontWeight: 800 }]);
   });
 });
+
+describe("applyStyle command", () => {
+  it("applies a style and the measured text boxes as one step; nothing to apply returns the same doc", () => {
+    const d = doc();
+    const out = applyCommand(d, { type: "applyStyle", groupId: "g", styleId: "quiet-japandi", fits: { "b1:a": { size: { width: 100, height: 400 }, position: { x: 0, y: 0 } } } });
+    expect(out.groups[0]!.styleId).toBe("quiet-japandi");
+    expect(findElement(out, r("a"))!.size).toEqual({ width: 100, height: 400 });
+    expect(applyCommand(d, { type: "applyStyle", groupId: "g", styleId: "nope" })).toBe(d);
+  });
+});

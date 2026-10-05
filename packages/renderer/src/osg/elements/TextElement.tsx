@@ -227,6 +227,7 @@ export function TextElement({ element, onUpdate, isSelected, artboardZoom }: Tex
         fontSize: `${element.fontSize / displayScaleFactor}px`,
         color: element.color,
         ...(element.gradient ? fillCss(undefined, element.gradient) : {}),
+        textTransform: element.textTransform,
         lineHeight: lineHeightValue,
         letterSpacing: trackedSpacing,
         fontWeight: element.fontWeight || 'normal',

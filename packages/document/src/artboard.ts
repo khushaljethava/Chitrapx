@@ -124,6 +124,8 @@ export interface TextElementProps extends BaseElement {
   marks?: TextMark[];
   // SP10 whole-box gradient fill (drawn with background-clip: text).
   gradient?: Gradient;
+  // SP10: drawn with CSS text-transform, so content and mark offsets are untouched.
+  textTransform?: 'uppercase' | 'lowercase';
 }
 
 export type ShapeType =
