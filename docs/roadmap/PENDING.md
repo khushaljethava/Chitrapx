@@ -4,14 +4,14 @@ As of 2026-10-05.
 
 ## Status at a glance
 
-Four sub-projects remain: SP11 is next, then SP12 and SP15; SP16 can go in any time. SP10 is built, reviewed and merged into `main`.
+Three sub-projects remain: SP12 is next, then SP15; SP16 can go in any time. SP10 and SP11 are built, reviewed and merged into `main`.
 
 | # | Sub-project | Status | Where |
 | --- | --- | --- | --- |
 | SP8 | Sizes and export | Done | `main` |
 | SP9 | Editor essentials | Done | `main` |
 | SP10 | Typography and style (plus S3 storage) | Done, merged 2026-10-05 | `main` (`db97254`) |
-| SP11 | Localization and AI copy | Spec and plan written; implementation started in another session (uncommitted) | branch `sp11-localization-ai-copy` |
+| SP11 | Localization and AI copy | Done, merged 2026-10-05 (migrations 0010, 0011 applied to the dev database) | `main` (`ed2004a`) |
 | SP12 | Launch assets | Not started | roadmap only |
 | SP15 | Collaboration | Not started | roadmap only |
 | SP16 | Polish | Not started | roadmap only |
@@ -22,11 +22,10 @@ Build order: SP10 → SP11 → SP12 → SP15.
 
 ## Pending sub-projects
 
-Each group has a roadmap file under `docs/roadmap/` with acceptance criteria; only SP11 has a spec and plan so far.
+Each group has a roadmap file under `docs/roadmap/` with acceptance criteria; none of the remaining three has a spec or plan yet.
 
 | # | Goal | Features |
 | --- | --- | --- |
-| SP11 Localization and AI copy | Manage every language in one table, ship correct right-to-left layouts, and steer AI copy | 11.1 Translations table (edit, import, export, AI-translate) · 11.2 Right-to-left languages · 11.3 AI feature chips (Play feature graphic, key features) · 11.4 Quick-start presets by app type · 11.5 Free-text AI brief (audience, tone, keywords) · 11.6 Competitor reference board |
 | SP12 Launch assets | Turn one 1024×1024 image into every store icon file, and screenshots into a collage or framed-device PNG | 12.1 App icon generator · 12.2 Logo starter · 12.3 Collage · 12.4 Device mockup export |
 | SP15 Collaboration | Share by link, invite teammates with roles and seat limits, co-edit live, comment on boards | 15.1 Share a copy by link · 15.2 Team invites and roles (owner, admin, editor, viewer) · 15.3 Live co-editing (presence, cursors, sync) · 15.4 Comments on boards |
 | SP16 Polish | Release notices, changelog, opt-in analytics, shared templates, and leftovers | 16.1 "New version available" banner · 16.2 Changelog page · 16.3 Privacy-friendly analytics with cookie consent · 16.4 Community template feed · 16.5 Small leftovers (export dialog Escape and focus trap, unused web deps, named-version cap, e2e log cleanup) · deferred SP9 review items |
@@ -75,10 +74,18 @@ All ten minor issues from the final SP10 review are now fixed on `main` (2026-10
 
 ## Open decisions
 
-Three choices are waiting on you; the first blocks SP11.
+Two choices are waiting on you.
 
 | Decision | Options | Recommendation |
 | --- | --- | --- |
-| Who builds SP11 | Let the session already working on branch `sp11-localization-ai-copy` finish; take it over in one session after committing its work; or build in a separate worktree | Let the existing session finish, so two sessions never edit the same files |
 | Old local Supabase volumes (`supabase_db_Chitrapx` and two others) | Delete them (cannot be undone) or keep them | Delete; the app now runs on the live dev project |
 | Google sign-in | Enable the Google provider in Supabase or hide the button | Enable it if Google login is wanted; the login page already shows the button |
+
+## SP11 follow-ups
+
+Built and merged; these were left for later.
+
+- [ ] Manual browser checks from the end of the SP11 plan (brief and presets, translations table, AI translation, RTL, chips, competitor board). The AI checks need `ANTHROPIC_API_KEY` in `.env` and the worker running.
+- [ ] Twelve minor review findings, listed as `Final: minor (deferred)` in the SP11 ledger (`.superpowers/sdd/2026-10-05-sp11-localization-ai-copy/progress.md`). The most user-visible: arrow keys still nudge elements in a mirrored view; paid competitor analyses count toward the free hourly limit; a Play AI design fails if fewer than 4 chips come back.
+- [ ] Remote-database test flakiness: two `bundle.test.ts` "under 1000 ms" checks and the billing "daily grant" test (scans every workspace) time out against the shared dev database.
+

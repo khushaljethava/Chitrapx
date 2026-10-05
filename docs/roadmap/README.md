@@ -7,7 +7,7 @@ Features Chitrapx is missing compared with the six reference tools in this works
 | SP8 | Sizes and export | Done (on `main`) | [sp08-sizes-export.md](sp08-sizes-export.md) |
 | SP9 | Editor essentials | Done (on `main`) | [sp09-editor-essentials.md](sp09-editor-essentials.md) |
 | SP10 | Typography and style | Done (on `main`) | [sp10-typography-style.md](sp10-typography-style.md) |
-| SP11 | Localization and AI copy | Not started | [sp11-localization-ai-copy.md](sp11-localization-ai-copy.md) |
+| SP11 | Localization and AI copy | Done (on `main`) | [sp11-localization-ai-copy.md](sp11-localization-ai-copy.md) |
 | SP12 | Launch assets | Not started | [sp12-launch-assets.md](sp12-launch-assets.md) |
 | SP13 | Developer automation | Dropped (2026-10-05): no public API, CLI or MCP server | — |
 | SP14 | Store publishing and sync | Dropped (2026-10-05): not building store upload or Drive/GitHub sync | — |
