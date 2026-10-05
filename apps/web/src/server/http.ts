@@ -33,8 +33,8 @@ export async function readJson(req: Request): Promise<unknown> {
 }
 
 /** Reads at most `maxBytes` of the body (whatever Content-Length claims), then parses it as JSON. */
-export async function readJsonLimited(req: Request, maxBytes: number): Promise<unknown> {
-  const text = await readTextLimited(req, maxBytes, "This project is too large to save");
+export async function readJsonLimited(req: Request, maxBytes: number, tooLarge = "This project is too large to save"): Promise<unknown> {
+  const text = await readTextLimited(req, maxBytes, tooLarge);
   try { return JSON.parse(text); } catch { throw badRequest("invalid_json"); }
 }
 

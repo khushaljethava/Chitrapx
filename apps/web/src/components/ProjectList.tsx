@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { track } from "@/lib/track.ts";
 import { api } from "@/server/api.ts";
 
 type Row = { id: string; name: string; kind: string; updatedAt: string };
@@ -57,7 +58,7 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
       {projects.length < maxProjects ? (
         <form className="flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={(e) => {
           e.preventDefault();
-          run(() => api(`/api/apps/${appId}/projects`, "POST", { name, kind })).then(() => setName(""));
+          run(() => api(`/api/apps/${appId}/projects`, "POST", { name, kind }).then(() => { track("project_created", { source: "blank" }); })).then(() => setName(""));
         }}>
           <div className="flex-1">
             <label className="label" htmlFor="project-name">Or a blank project</label>

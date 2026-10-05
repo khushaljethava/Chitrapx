@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { closestCenter, DndContext, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -108,18 +108,28 @@ function LayerList({ title, groupId, boardId, elements }: { title?: string; grou
 
 function InlineName({ value, onCommit, onSelect }: { value: string; onCommit: (v: string) => void; onSelect?: (shift: boolean) => void }) {
   const [draft, setDraft] = useState<string | null>(null);
+  /** Set once Enter, Escape or blur ended this edit, so a blur fired while the field unmounts cannot commit again. */
+  const ended = useRef(false);
+  const start = () => { ended.current = false; setDraft(value); };
+  /** Escape cancels; Enter or leaving the field (blur) commits. */
+  const finish = (commit: boolean) => {
+    if (ended.current) return;
+    ended.current = true;
+    if (draft !== null && commit && draft.trim() !== value) onCommit(draft.trim());
+    setDraft(null);
+  };
   if (draft === null) {
     return (
       <button type="button" className="flex-1 truncate text-left" title="Double-click or press F2 to rename"
-        onClick={(e) => onSelect?.(e.shiftKey)} onDoubleClick={() => setDraft(value)}
-        onKeyDown={(e) => { if (e.key === "F2") { e.preventDefault(); setDraft(value); } }}>{value}</button>
+        onClick={(e) => onSelect?.(e.shiftKey)} onDoubleClick={start}
+        onKeyDown={(e) => { if (e.key === "F2") { e.preventDefault(); start(); } }}>{value}</button>
     );
   }
   return (
     <input autoFocus aria-label="Layer name" className="input flex-1 py-0 text-sm" value={draft} onChange={(e) => setDraft(e.target.value)}
       onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}
-      onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") { onCommit(draft.trim()); setDraft(null); } if (e.key === "Escape") setDraft(null); }}
-      onBlur={() => setDraft(null)} />
+      onKeyDown={(e) => { e.stopPropagation(); if (e.key === "Enter") finish(true); if (e.key === "Escape") finish(false); }}
+      onBlur={() => finish(true)} />
   );
 }
 

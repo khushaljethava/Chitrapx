@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import type { AppBriefFields, BrandToken } from "@chitrapx/document";
 import {
-  index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid,
+  bigserial, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid,
 } from "drizzle-orm/pg-core";
 // Supabase-owned auth.users, referenced for FKs only; drizzle-kit skips it with entities.roles.provider = supabase.
 import { authUsers } from "drizzle-orm/supabase";
@@ -16,6 +16,8 @@ export const ledgerReasonEnum = pgEnum("ledger_reason", ["plan_grant", "purchase
 export const paymentStatusEnum = pgEnum("payment_status", ["created", "paid", "failed"]);
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["created", "active", "cancelling", "ended"]);
 export const templateSourceEnum = pgEnum("template_source", ["osg", "ass", "pixeldeck", "chitrapx"]);
+/** SP16: published (visible to all), hidden (reported or held: author and staff only), removed (staff: nobody). */
+export const communityStatusEnum = pgEnum("community_status", ["published", "hidden", "removed"]);
 
 const id = () => uuid("id").primaryKey().defaultRandom();
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
@@ -226,3 +228,71 @@ export const templates = pgTable("templates", {
   licenseNote: text("license_note").notNull().default(""),
   createdAt: createdAt(),
 });
+
+/** SP16: one image a community post carries, copied to `community/<postId>/<sha256>` at publish time. */
+export type CommunityAsset = { id: string; sha256: string; mime: string; kind: "screenshot" | "image"; width: number | null; height: number | null; bytes: number };
+
+/**
+ * SP16: a project snapshot shared to the community feed. `doc` is a copy taken at publish time with
+ * workspace-private data removed; `assets` lists the images it references by their original asset ids.
+ */
+export const communityPosts = pgTable("community_posts", {
+  id: id(),
+  authorId: uuid("author_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  workspaceId: workspaceRef(),
+  sourceProjectId: uuid("source_project_id"),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  category: text("category").notNull(),
+  platforms: text("platforms").array().notNull().default(sql`'{}'::text[]`),
+  kind: projectKindEnum("kind").notNull(),
+  doc: jsonb("doc").notNull(),
+  assets: jsonb("assets").$type<CommunityAsset[]>().notNull().default([]),
+  status: communityStatusEnum("status").notNull().default("published"),
+  importCount: integer("import_count").notNull().default(0),
+  /** When the author confirmed they own or may share everything in the post. */
+  licenseAcceptedAt: timestamp("license_accepted_at", { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("community_posts_feed_idx").on(t.status, t.createdAt.desc()),
+  index("community_posts_author_idx").on(t.authorId, t.createdAt),
+]);
+
+/** SP16: one report per user per post; enough of them hide the post for staff review. */
+export const communityReports = pgTable("community_reports", {
+  id: id(),
+  postId: uuid("post_id").notNull().references(() => communityPosts.id, { onDelete: "cascade" }),
+  reporterId: uuid("reporter_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  createdAt: createdAt(),
+}, (t) => [unique("community_reports_post_reporter_uq").on(t.postId, t.reporterId), index("community_reports_reporter_idx").on(t.reporterId, t.createdAt)]);
+
+/** SP16: who imported which post; the primary key makes the import counter count each user once. */
+export const communityImports = pgTable("community_imports", {
+  postId: uuid("post_id").notNull().references(() => communityPosts.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+}, (t) => [primaryKey({ columns: [t.postId, t.userId] })]);
+
+/** SP16: audit log of staff moderation (restore, remove). Kept when the post goes. */
+export const communityActions = pgTable("community_actions", {
+  id: id(),
+  postId: uuid("post_id"),
+  staffId: uuid("staff_id").references(() => authUsers.id, { onDelete: "set null" }),
+  action: text("action").$type<"restore" | "remove">().notNull(),
+  note: text("note").notNull().default(""),
+  createdAt: createdAt(),
+}, (t) => [index("community_actions_post_idx").on(t.postId)]);
+
+/**
+ * SP16: first-party, consent-gated usage counts. Deliberately anonymous: no user, session, IP,
+ * user agent or referrer; `path` has ids replaced and `props` holds only allow-listed values.
+ */
+export const analyticsEvents = pgTable("analytics_events", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  name: text("name").notNull(),
+  path: text("path").notNull().default(""),
+  props: jsonb("props").$type<Record<string, string>>().notNull().default({}),
+  createdAt: createdAt(),
+}, (t) => [index("analytics_events_name_created_idx").on(t.name, t.createdAt)]);

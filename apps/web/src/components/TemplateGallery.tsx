@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { passthroughSrc } from "@chitrapx/renderer";
+import { track } from "@/lib/track.ts";
 import { api } from "@/server/api.ts";
 import type { TemplateSummary } from "@/server/templates.ts";
 import { BoardThumb } from "./BoardThumb.tsx";
@@ -21,6 +22,7 @@ export function TemplateGallery({ appId, templates, categories, screenshotCount 
     setError("");
     try {
       const p = await api<{ id: string }>(`/api/apps/${appId}/projects`, "POST", { name: t.name, templateSlug: t.slug });
+      track("project_created", { source: "template" });
       router.push(`/dashboard/projects/${p.id}`);
     } catch (err) { setError((err as Error).message); setBusy(null); }
   }

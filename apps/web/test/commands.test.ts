@@ -32,6 +32,18 @@ describe("commands", () => {
     expect(findElement(d, r("span", null))!.position).toEqual({ x: 1210, y: 5 });
   });
 
+  it("addElements adds several elements in one command, so one undo step; an empty list changes nothing", () => {
+    const start = doc();
+    const d = applyCommand(start, { type: "addElements", groupId: "g", boardId: "b2", elements: [el("n1"), el("n2"), el("n3")] });
+    expect(ids(d, 1)).toEqual(["d", "n1", "n2", "n3"]);
+    expect(applyCommand(start, { type: "addElements", groupId: "g", boardId: "b2", elements: [] })).toBe(start);
+    const store = createEditorStore({ projectId: "p", doc: start, revision: 0 });
+    store.getState().apply({ type: "addElements", groupId: "g", boardId: "b2", elements: [el("n1"), el("n2")] });
+    expect(store.getState().past).toHaveLength(1);
+    store.getState().undo();
+    expect(ids(store.getState().doc, 1)).toEqual(["d"]);
+  });
+
   it("add, delete, duplicate", () => {
     let d = applyCommand(doc(), { type: "addElement", groupId: "g", boardId: "b2", element: el("new") });
     expect(ids(d, 1)).toEqual(["d", "new"]);

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ChitrapxDoc } from "@chitrapx/document";
 import type { RenderExtras } from "@chitrapx/renderer";
+import { setRefreshGuard } from "@/lib/refreshGuard.ts";
 import type { FontFamilyRow } from "@/server/fonts.ts";
 import { EditorAssetsProvider } from "./assets.tsx";
 import { EditorContext } from "./context.tsx";
@@ -30,6 +31,8 @@ export function Editor({ appId, project, assets, assetUrls, fonts, extras, openT
   const [store] = useState(() => createEditorStore({ projectId: project.id, doc: project.doc, revision: project.revision }));
   const { status, error, conflict, loadTheirs, keepMine, flush, adoptServerDoc, reportConflict } = useAutosave(store);
   useShortcuts(store);
+  // "Refresh" on the new-version banner saves first, so a reload never drops edits it could still send.
+  useEffect(() => setRefreshGuard(flush), [flush]);
 
   return (
     <EditorContext.Provider value={store}>

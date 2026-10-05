@@ -13,6 +13,7 @@ export type Command =
   | { type: "updateElement"; ref: Ref; props: Partial<ArtboardElement> }
   | { type: "moveElements"; refs: Ref[]; dx: number; dy: number }
   | { type: "addElement"; groupId: string; boardId: string | null; element: ArtboardElement }
+  | { type: "addElements"; groupId: string; boardId: string | null; elements: ArtboardElement[] }
   | { type: "deleteElements"; refs: Ref[] }
   | { type: "duplicateElements"; refs: Ref[]; newIds: string[]; offset: number }
   | { type: "reorderElement"; ref: Ref; to: "front" | "back" | "forward" | "backward" }
@@ -132,6 +133,9 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         return;
       case "addElement":
         list(d, cmd.groupId, cmd.boardId)?.push(cmd.element as Draft<ArtboardElement>);
+        return;
+      case "addElements":
+        if (cmd.elements.length) list(d, cmd.groupId, cmd.boardId)?.push(...(cmd.elements as Draft<ArtboardElement>[]));
         return;
       case "deleteElements":
         for (const ref of cmd.refs) {

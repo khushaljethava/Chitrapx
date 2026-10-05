@@ -327,9 +327,9 @@ describe("sizes and export (SP8)", () => {
         if (d) differing++;
         maxChannel = Math.max(maxChannel, d);
       }
-      if (differing) console.log(`round-trip diff ${name}: ${differing} px, max channel diff ${maxChannel}`);
-      expect(maxChannel, name).toBeLessThanOrEqual(1);
-      expect(differing / (pa.width * pa.height), name).toBeLessThanOrEqual(0.0001);
+      const diff = `${name}: round-trip diff ${differing} px, max channel diff ${maxChannel}`;
+      expect(maxChannel, diff).toBeLessThanOrEqual(1);
+      expect(differing / (pa.width * pa.height), diff).toBeLessThanOrEqual(0.0001);
     }
   }, 300_000);
 });
