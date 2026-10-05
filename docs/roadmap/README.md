@@ -12,7 +12,7 @@ Features Chitrapx is missing compared with the six reference tools in this works
 | SP13 | Developer automation | Dropped (2026-10-05): no public API, CLI or MCP server | — |
 | SP14 | Store publishing and sync | Dropped (2026-10-05): not building store upload or Drive/GitHub sync | — |
 | SP15 | Collaboration | Not started | [sp15-collaboration.md](sp15-collaboration.md) |
-| SP16 | Polish | Not started | [sp16-polish.md](sp16-polish.md) |
+| SP16 | Polish | Built on its branch; migration 0013 not yet applied | [sp16-polish.md](sp16-polish.md) |
 
 Build order: SP10 → SP11 → SP12 → SP15. SP16 can go in any time.
 

@@ -1,6 +1,6 @@
 # SP16: Polish
 
-**Status:** Not started
+**Status:** Built (spec `docs/superpowers/specs/2026-10-06-sp16-polish-design.md`, plan `docs/superpowers/plans/2026-10-06-sp16-polish.md`). Migration `0013_sp16_community_analytics` must be applied before the community feed and analytics work.
 **Goal:** Users get told when a new deploy is live, can read what changed, can opt in to privacy-friendly analytics, and can share templates with each other; plus a batch of small cleanups from earlier sub-projects.
 **Depends on:** SP8 sizes/export (ExportDialog, export jobs and the `project_versions` rows they pin); the existing `templates` table and template seed for the community feed. No other hard dependency, so this can be built any time.
 **Gap source:** storeshots (update banner, changelog page, consent-gated Umami, CSP) and open-screenshot-generator (community "Discover" feed). All paths below were checked with `ls`/`grep` on 2026-10-04.

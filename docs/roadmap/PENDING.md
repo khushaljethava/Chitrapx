@@ -14,7 +14,7 @@ Three sub-projects remain: SP12 is next, then SP15; SP16 can go in any time. SP1
 | SP11 | Localization and AI copy | Done, merged 2026-10-05 (migrations 0010, 0011 applied to the dev database) | `main` (`ed2004a`) |
 | SP12 | Launch assets | Not started | roadmap only |
 | SP15 | Collaboration | Not started | roadmap only |
-| SP16 | Polish | Not started | roadmap only |
+| SP16 | Polish | Built; needs migration 0013 applied after merge | SP16 branch |
 | SP13 | Developer automation (API, CLI, MCP) | Dropped | — |
 | SP14 | Store publishing and sync | Dropped | — |
 
@@ -89,3 +89,11 @@ Built and merged; these were left for later.
 - [ ] Twelve minor review findings, listed as `Final: minor (deferred)` in the SP11 ledger (`.superpowers/sdd/2026-10-05-sp11-localization-ai-copy/progress.md`). The most user-visible: arrow keys still nudge elements in a mirrored view; paid competitor analyses count toward the free hourly limit; a Play AI design fails if fewer than 4 chips come back.
 - [ ] Remote-database test flakiness: two `bundle.test.ts` "under 1000 ms" checks and the billing "daily grant" test (scans every workspace) time out against the shared dev database.
 
+
+## SP16 follow-ups
+
+- [ ] Apply migration `0013_sp16_community_analytics` (community tables, `analytics_events`, RLS) after merging; renumber its journal entry if another branch also took that slot.
+- [ ] Set `STAFF_EMAILS` for community moderators, `NEXT_PUBLIC_ANALYTICS=on` to start counting, and `BUILD_ID` (the commit hash) on the deploy platform.
+- [ ] Run `apps/worker/test-e2e/polish.test.ts` with the web app up.
+- [ ] Watch the report-only CSP in the browser console, then switch `proxy.ts` to the enforcing header.
+- [ ] Deferred SP9 items: the ⌘G no-op notice (`editor/shortcuts.ts`), status-bar goldens for other platforms, a real-browser keyboard-drag test in the layers panel.
