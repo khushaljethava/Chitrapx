@@ -32,7 +32,7 @@ const exportBody = z.preprocess((v) => (v && typeof v === "object" && !Array.isA
 ]));
 
 export const FREE_JOBS_PER_HOUR = 30;
-export const FREE_JOBS = ["export_single", "project_bundle", "project_import", "ai_reference"];
+export const FREE_JOBS = ["export_single", "project_bundle", "project_import", "ai_reference", "logo_starter", "mockup"];
 
 /** Free downloads and imports share an hourly allowance per workspace. Call inside the enqueue transaction. */
 export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void> {
@@ -139,7 +139,7 @@ export async function enqueueVideo(ctx: Ctx, boss: PgBoss, projectId: string, ra
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type: "video", input }));
 }
 
-export const DOWNLOAD_EXT = { export: "zip", export_single: "png", video: "mp4", project_bundle: "chitrapx" } as const;
+export const DOWNLOAD_EXT = { export: "zip", export_single: "png", video: "mp4", project_bundle: "chitrapx", app_icons: "zip", collage: "png", mockup: "png" } as const;
 
 /** A short-lived download link for a finished export, single PNG, video or project file in this workspace. */
 export async function exportDownloadUrl(ctx: Ctx, storage: Pick<ObjectStorage, "signedDownload">, jobId: string): Promise<string> {

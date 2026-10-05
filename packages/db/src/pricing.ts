@@ -25,6 +25,14 @@ export const PRICES = {
   project_bundle: 0,
   /** Create a project from a .chitrapx file. Free. */
   project_import: 0,
+  /** SP12: every store icon file from one square image, as one ZIP. */
+  app_icons: 1,
+  /** SP12: a seeded 1024 starter logo. Free, limited per hour. */
+  logo_starter: 0,
+  /** SP12: 2 to 12 screenshots in one grid PNG, optionally framed. */
+  collage: 1,
+  /** SP12: one screenshot inside a device frame as a PNG. Free, limited per hour. */
+  mockup: 0,
 } as const;
 
 export type JobType = keyof typeof PRICES;

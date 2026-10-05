@@ -75,6 +75,10 @@ export const handlers: Record<JobType, JobHandler> = {
   ai_copy: (input, job) => runAiCopy(input, job, aiDeps()),
   ai_chips: (input, job) => runAiChips(input, job, aiDeps()),
   ai_reference: (input, job) => runAiReference(input, job, aiDeps()),
+  app_icons: async () => { throw new FatalJobError("not_implemented"); },
+  logo_starter: async () => { throw new FatalJobError("not_implemented"); },
+  collage: async () => { throw new FatalJobError("not_implemented"); },
+  mockup: async () => { throw new FatalJobError("not_implemented"); },
 };
 
 /** What to undo when a job fails for good. */

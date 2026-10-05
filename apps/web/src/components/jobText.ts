@@ -28,4 +28,4 @@ export function jobError(error: string | null | undefined): string {
   const code = error.split(/[:\s]/)[0]!;
   return MESSAGES[code] ?? (code.startsWith("asset_missing") ? "A screenshot this design uses was removed." : "Something went wrong. Your credits were refunded.");
 }
-export const JOB_LABEL: Record<string, string> = { ai_design: "AI design", ai_translate: "Translation", ai_copy: "Copy ideas", ai_chips: "Feature chips", ai_reference: "Competitor analysis", export: "Export", export_single: "PNG", project_bundle: "Project file", project_import: "Import" };
+export const JOB_LABEL: Record<string, string> = { ai_design: "AI design", ai_translate: "Translation", ai_copy: "Copy ideas", ai_chips: "Feature chips", ai_reference: "Competitor analysis", export: "Export", export_single: "PNG", project_bundle: "Project file", project_import: "Import", app_icons: "App icons", logo_starter: "Starter logo", collage: "Collage", mockup: "Device mockup" };
