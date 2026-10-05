@@ -1,11 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { STAGING_PREFIX } from "@chitrapx/storage";
 import { ACCEPTED, checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx } from "@chitrapx/db";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
-import { assertFontQuota, findWorkspaceFont } from "./fonts.ts";
+import { assertFontQuota, bytesInUse, faceExists, faceTaken, findWorkspaceFont } from "./fonts.ts";
 import { badRequest, HttpError } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 
@@ -33,9 +33,10 @@ const finalPath = (ctx: Ctx, hash: string) => `${ctx.workspaceId}/${hash}`;
 /** Clients only ever get a URL for a fresh staging key, so they can never touch validated bytes. The prefix carries the 1-day lifecycle rule. */
 export const stagingPath = (ctx: Ctx, uploadId: string) => `${STAGING_PREFIX}${ctx.workspaceId}/${uploadId}`;
 
+/** An app asset with these bytes. Workspace fonts never count, so a font row is never linked into an app. */
 async function findAsset(ctx: Ctx, hash: string, appId?: string) {
   const [asset] = await db.select().from(schema.assets).where(and(
-    eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.sha256, hash),
+    eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.sha256, hash), ne(schema.assets.kind, "font"),
     appId ? eq(schema.assets.appId, appId) : undefined,
   )).limit(1);
   return asset;
@@ -147,23 +148,23 @@ async function completeFont(ctx: Ctx, storage: ObjectStorage, input: z.infer<typ
     await discard();
     throw err instanceof FontRejected ? new HttpError(400, err.code, FONT_ERRORS[err.code]) : err;
   });
-  const family = fontFamilyFor(parsed.family);
-  const [clash] = await db.select({ id: schema.assets.id }).from(schema.assets).where(and(
-    eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.kind, "font"),
-    sql`${schema.assets.meta}->>'family' = ${family}`, sql`(${schema.assets.meta}->>'weight')::int = ${parsed.weight}`,
-    sql`(${schema.assets.meta}->>'italic')::boolean = ${parsed.italic}`,
-  )).limit(1);
-  if (clash) { await discard(); throw new HttpError(409, "font_face_exists", `${family} already has a ${parsed.weight}${parsed.italic ? " italic" : ""} face. Delete it first to replace it.`); }
+  const face = { family: fontFamilyFor(parsed.family), weight: parsed.weight, italic: parsed.italic };
+  if (await faceTaken(db, ctx.workspaceId, face)) { await discard(); throw faceExists(face); }
 
   const path = finalPath(ctx, input.sha256);
   await storage.remove(path).catch(() => {});
   await storage.move(staging, path, { contentType: type.mime });
   return withTx(async ({ db: tx }) => {
+    // Re-checked under the lock: two uploads of the same file, or of two files with the same face, may have raced past the checks above.
     await lockWorkspace(tx, ctx.workspaceId);
-    await assertFontQuota(tx, ctx, size).catch(async (err) => { await storage.remove(path).catch(() => {}); throw err; });
+    const [same] = await tx.select().from(schema.assets).where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.kind, "font"), eq(schema.assets.sha256, input.sha256))).limit(1);
+    if (same) return same; // its bytes are the ones just moved into place
+    const dropBytes = async () => { if (!(await bytesInUse(tx, ctx.workspaceId, input.sha256))) await storage.remove(path).catch(() => {}); };
+    if (await faceTaken(tx, ctx.workspaceId, face)) { await dropBytes(); throw faceExists(face); }
+    await assertFontQuota(tx, ctx, size).catch(async (err) => { await dropBytes(); throw err; });
     const [inserted] = await tx.insert(schema.assets).values({
       workspaceId: ctx.workspaceId, appId: null, kind: "font", storagePath: path, mime: type.mime, bytes: size, sha256: input.sha256,
-      meta: { family, weight: parsed.weight, italic: parsed.italic, format: type.format },
+      meta: { ...face, format: type.format },
     }).onConflictDoNothing().returning();
     return inserted ?? (await findWorkspaceFont(ctx, input.sha256))!;
   });
