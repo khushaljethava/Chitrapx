@@ -63,7 +63,7 @@ export function AnalyticsConsent() {
             <button type="button" className="btn-ghost" onClick={() => setOpen(false)}>Close</button>
           ) : (
             <>
-              <button type="button" className="btn-ghost min-w-24 border border-neutral-300 dark:border-neutral-700" onClick={() => choose("denied")}>Reject</button>
+              <button type="button" className="btn-ghost min-w-24" onClick={() => choose("denied")}>Reject</button>
               <button type="button" className="btn min-w-24" onClick={() => choose("granted")}>Accept</button>
             </>
           )}

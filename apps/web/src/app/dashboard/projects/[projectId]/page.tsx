@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { BundleButton } from "@/components/BundleButton.tsx";
+import { ShareToCommunity } from "@/components/Community.tsx";
 import { ExportPanel } from "@/components/ExportPanel.tsx";
 import { ProjectAi } from "@/components/ProjectAi.tsx";
 import { SocialButton } from "@/components/SocialButton.tsx";
@@ -27,6 +28,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
           <div className="flex gap-2">
             <BundleButton projectId={project.id} />
             <SocialButton projectId={project.id} />
+            <ShareToCommunity projectId={project.id} defaultTitle={project.name} />
             <Link href={`/dashboard/projects/${project.id}/preview`} className="btn-ghost">Store preview</Link>
             <Link href={`/editor/${project.id}`} className="btn">Open editor</Link>
           </div>

@@ -13,6 +13,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
           <Link href="/dashboard" className="font-semibold">Chitrapx</Link>
           <div className="flex items-center gap-3">
+            <Link href="/dashboard/community" className="text-sm hover:underline">Community</Link>
             <Link href="/dashboard/billing" title="Plan and credits"><CreditsBadge balance={credits} /></Link>
             <form action="/auth/signout" method="post"><button className="btn-ghost">Sign out</button></form>
           </div>
