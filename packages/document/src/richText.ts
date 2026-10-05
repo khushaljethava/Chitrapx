@@ -111,6 +111,9 @@ export function segments(content: string, marks: readonly TextMark[] = []): Arra
   return segmentRanges(marks, content.length).map((sg) => ({ start: sg.start, end: sg.end, text: content.slice(sg.start, sg.end), style: sg.style }));
 }
 
+/** True when index `i` falls between a high and a low surrogate. */
+const splitsPair = (s: string, i: number) => /[\uD800-\uDBFF]/.test(s[i - 1] ?? "") && /[\uDC00-\uDFFF]/.test(s[i] ?? "");
+
 /** Marks carried across an edit of `oldContent` into `newContent` (see the plan's remap rules). */
 export function remapMarks(oldContent: string, newContent: string, marks: readonly TextMark[] = []): TextMark[] {
   if (!marks.length) return [];
@@ -118,8 +121,11 @@ export function remapMarks(oldContent: string, newContent: string, marks: readon
   const max = Math.min(oldContent.length, newContent.length);
   let p = 0;
   while (p < max && oldContent[p] === newContent[p]) p++;
+  // Never cut between the two halves of an emoji (or any surrogate pair): that splits a mark mid-character.
+  while (p > 0 && (splitsPair(oldContent, p) || splitsPair(newContent, p))) p--;
   let q = 0;
   while (q < max - p && oldContent[oldContent.length - 1 - q] === newContent[newContent.length - 1 - q]) q++;
+  while (q > 0 && (splitsPair(oldContent, oldContent.length - q) || splitsPair(newContent, newContent.length - q))) q--;
   const oldEnd = oldContent.length - q, newEnd = newContent.length - q, delta = newContent.length - oldContent.length;
   const out: TextMark[] = [];
   for (const m of marks) {
