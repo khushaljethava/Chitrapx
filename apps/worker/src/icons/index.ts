@@ -1,6 +1,9 @@
 import { strToU8, zipSync, type Zippable } from "fflate";
-import sharp from "sharp";
-import { FatalJobError } from "../runJob.ts";
+import sharp, { type Metadata } from "sharp";
+import { PRICES } from "@chitrapx/db";
+import { appIconsInput, MIN_ICON_SOURCE, RECOMMENDED_ICON_SOURCE } from "@chitrapx/document";
+import type { BundleDeps } from "../bundle.ts";
+import { FatalJobError, type JobContext } from "../runJob.ts";
 import { androidExtras, cornerColour } from "./android.ts";
 import { contentsJson } from "./contentsJson.ts";
 import { iconResizer } from "./resize.ts";
@@ -15,12 +18,9 @@ export type IconOptions = {
   adaptiveBackground?: string;
 };
 
-export const MIN_ICON_SOURCE = 64;
-export const RECOMMENDED_ICON_SOURCE = 1024;
-
 /** Width and height of a square icon source, or a FatalJobError naming why it cannot be one. */
 export async function checkIconSource(src: Buffer): Promise<{ size: number; warnings: string[] }> {
-  let meta: sharp.Metadata;
+  let meta: Metadata;
   try { meta = await sharp(src).metadata(); } catch { throw new FatalJobError("icon_unreadable"); }
   const { width, height } = meta;
   if (!width || !height) throw new FatalJobError("icon_unreadable");
@@ -57,4 +57,19 @@ export function iconZip(files: Record<string, Uint8Array>): Uint8Array {
   const zippable: Zippable = {};
   for (const [path, data] of Object.entries(files)) zippable[path] = [data, { level: path.endsWith(".png") ? 0 : 6, mtime: ZIP_TIME }];
   return zipSync(zippable);
+}
+
+/** Storage the launch jobs use: the source from uploads, the result into exports. */
+export type LaunchDeps = Pick<BundleDeps, "download" | "upload">;
+
+/** app_icons: one square image into every store icon file, as one ZIP in the exports bucket (1 credit). */
+export async function runAppIcons(raw: unknown, job: JobContext, deps: LaunchDeps): Promise<{ actual: number; output: unknown }> {
+  const input = appIconsInput.parse(raw);
+  // The path is built from the job's own workspace and a validated hash, never taken from the input.
+  const src = await deps.download(`${job.workspaceId}/${input.sha256}`);
+  const { files, warnings, background } = await buildIconFiles(src, input);
+  const zip = iconZip(files);
+  const path = `${job.workspaceId}/${job.id}.zip`;
+  await deps.upload(path, zip, "application/zip", "exports");
+  return { actual: PRICES.app_icons, output: { path, files: Object.keys(files).length, bytes: zip.byteLength, warnings, ...(background ? { background } : {}) } };
 }

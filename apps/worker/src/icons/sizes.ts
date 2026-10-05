@@ -1,7 +1,8 @@
 // Size tables ported from launch (MIT, Copyright (c) 2025 applogo contributors), src/config.rs:25-171.
 
-export const ICON_PLATFORMS = ["iphone", "ipad", "watch", "mac", "android"] as const;
-export type IconPlatform = (typeof ICON_PLATFORMS)[number];
+import type { IconPlatform } from "@chitrapx/document";
+
+export { ICON_PLATFORMS, type IconPlatform } from "@chitrapx/document";
 
 export const APPICONSET = "Assets.xcassets/AppIcon.appiconset/";
 

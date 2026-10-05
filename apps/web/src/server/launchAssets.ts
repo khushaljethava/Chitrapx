@@ -1,0 +1,29 @@
+import { and, eq } from "drizzle-orm";
+import { z } from "zod";
+import type { PgBoss } from "pg-boss";
+import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
+import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, MIN_ICON_SOURCE } from "@chitrapx/document";
+import type { Ctx } from "./context.ts";
+import { HttpError, notFound } from "./http.ts";
+
+type Asset = typeof schema.assets.$inferSelect;
+
+/** A screenshot or image upload of this workspace, at most 10 MB. Recordings, fonts and competitor images are refused. */
+export async function launchImage(ctx: Ctx, assetId: string): Promise<Asset & { width: number; height: number }> {
+  if (!z.uuid().safeParse(assetId).success) throw notFound();
+  const [a] = await db.select().from(schema.assets).where(and(eq(schema.assets.id, assetId), eq(schema.assets.workspaceId, ctx.workspaceId)));
+  if (!a) throw notFound();
+  if (a.kind !== "screenshot" && a.kind !== "image") throw new HttpError(400, "not_an_image", "Pick an image (PNG, JPEG or WebP), not a recording");
+  if (a.bytes > LAUNCH_SOURCE_MAX_BYTES) throw new HttpError(413, "too_large", "Images can be up to 10 MB here");
+  if (!a.width || !a.height) throw new HttpError(400, "not_an_image", "This image's size could not be read");
+  return { ...a, width: a.width, height: a.height };
+}
+
+/** app_icons (1 credit): every store icon file from one square image. Checked here so nothing is reserved for a bad source. */
+export async function enqueueAppIcons(ctx: Ctx, boss: PgBoss, raw: unknown): Promise<{ jobId: string }> {
+  const body = appIconsRequest.parse(raw ?? {});
+  const a = await launchImage(ctx, body.assetId);
+  if (a.width !== a.height) throw new HttpError(400, "icon_not_square", `The icon image must be square; this one is ${a.width}×${a.height}`);
+  if (a.width < MIN_ICON_SOURCE) throw new HttpError(400, "icon_too_small", `The icon image must be at least ${MIN_ICON_SOURCE}×${MIN_ICON_SOURCE}`);
+  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "app_icons", input: { ...body, sha256: a.sha256 } }));
+}
