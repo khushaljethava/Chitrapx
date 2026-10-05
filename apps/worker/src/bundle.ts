@@ -151,6 +151,8 @@ async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets
   return { doc, assets };
 }
 
+const faceKey = (f: { family?: string; weight?: number; italic?: boolean } | null | undefined) => JSON.stringify([f?.family, f?.weight, f?.italic]);
+
 /** A .chitrapx file in this workspace's upload staging becomes a new project in `appId`. */
 export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps, queue: QueueRecording = queueRecording) {
   const input = importInput.parse(raw);
@@ -164,7 +166,12 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
     // import can leave an unreferenced object; the next upload of the same file replaces it.
     const have = new Set((await db.select({ sha: schema.assets.sha256 }).from(schema.assets)
       .where(and(eq(schema.assets.workspaceId, job.workspaceId), inArray(schema.assets.sha256, ["", ...assets.map((a) => a.sha256)])))).map((r) => r.sha));
-    for (const a of assets) if (!have.has(a.sha256)) await deps.upload(`${job.workspaceId}/${a.sha256}`, a.bytes, a.mime, "uploads");
+    // A face the workspace already has (under other bytes) is not inserted below, so its bytes are not uploaded either.
+    const faces = new Set((await db.select({ meta: schema.assets.meta }).from(schema.assets)
+      .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)))).map((r) => faceKey(r.meta)));
+    for (const a of assets) {
+      if (!have.has(a.sha256) && !(a.font && faces.has(faceKey(a.font)))) await deps.upload(`${job.workspaceId}/${a.sha256}`, a.bytes, a.mime, "uploads");
+    }
 
     const projectId = await withTx(async (tx) => {
       await lockWorkspace(tx.db, job.workspaceId);
@@ -181,7 +188,7 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
           .from(schema.assets).where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)));
         const existing = await tx.db.select({ sha: schema.assets.sha256, meta: schema.assets.meta }).from(schema.assets)
           .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)));
-        const sameFace = (f: NonNullable<CheckedAsset["font"]>) => existing.some((e) => e.meta?.family === f.family && e.meta?.weight === f.weight && e.meta?.italic === f.italic);
+        const sameFace = (f: NonNullable<CheckedAsset["font"]>) => existing.some((e) => faceKey(e.meta) === faceKey(f));
         const toAdd = newFonts.filter((a) => !existing.some((e) => e.sha === a.sha256) && !sameFace(a.font!));
         if (Number(u!.faces) + toAdd.length > FONT_QUOTA.faces || Number(u!.bytes) + toAdd.reduce((n, a) => n + a.bytes.byteLength, 0) > FONT_QUOTA.bytes) fail("font_quota");
         for (const a of toAdd) {
