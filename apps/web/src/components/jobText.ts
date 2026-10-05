@@ -19,6 +19,7 @@ const MESSAGES: Record<string, string> = {
   bundle_invalid: "This is not a Chitrapx project file, or it is damaged.",
   bundle_asset_mismatch: "A screenshot or recording in this project file is damaged.",
   bundle_version_unsupported: "This project file was made by a newer version of Chitrapx.",
+  asset_kind_conflict: "An image in this project file is on this app's competitor board. Remove it from the board, or import into another app.",
   plan_limit: "Your plan's project limit is reached.",
   project_missing: "This project was deleted.",
   abandoned: "The job stopped unexpectedly.",
