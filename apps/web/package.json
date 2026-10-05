@@ -21,6 +21,7 @@
     "@supabase/supabase-js": "^2.117.2",
     "drizzle-orm": "^0.45.3",
     "file-type": "^22.1.1",
+    "fontkit": "^2.0.4",
     "image-size": "^2.0.4",
     "immer": "^11.1.18",
     "next": "^16.3.8",

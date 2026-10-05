@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 try { process.loadEnvFile("../../.env"); } catch { /* env provided by the platform */ }
 
 const config: NextConfig = {
-  serverExternalPackages: ["pg-boss"],
+  serverExternalPackages: ["pg-boss", "fontkit"],
 };
 
 export default config;

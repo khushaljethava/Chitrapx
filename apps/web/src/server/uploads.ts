@@ -1,20 +1,29 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { STAGING_PREFIX } from "@chitrapx/storage";
-import { ACCEPTED, db, HEAD_BYTES, schema, sniffAsset, UPLOAD_LIMITS } from "@chitrapx/db";
+import { ACCEPTED, checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx } from "@chitrapx/db";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
+import { assertFontQuota, findWorkspaceFont } from "./fonts.ts";
 import { badRequest, HttpError } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 
 export { UPLOAD_LIMITS };
 
-const uploadKind = z.enum(["screenshot", "image", "recording"]);
+const uploadKind = z.enum(["screenshot", "image", "recording", "font"]);
 type UploadKind = z.infer<typeof uploadKind>;
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
-const signInput = z.object({ appId: z.uuid(), kind: uploadKind, size: z.number().int().positive(), mime: z.string(), sha256 });
-const completeInput = z.object({ appId: z.uuid(), kind: uploadKind, sha256, uploadId: z.uuid() });
+// Fonts belong to the workspace (no appId); everything else to an app. The client's mime is ignored for fonts.
+const signInput = z.object({
+  appId: z.uuid().optional(), kind: uploadKind, size: z.number().int().positive(), mime: z.string().max(200).default(""), sha256,
+  embedRights: z.boolean().optional(),
+});
+const completeInput = z.object({ appId: z.uuid().optional(), kind: uploadKind, sha256, uploadId: z.uuid() });
+const FONT_ERRORS = {
+  font_restricted: "This font's licence does not allow embedding.",
+  font_unreadable: "This file could not be read as a font.",
+} as const;
 
 export type Asset = typeof schema.assets.$inferSelect;
 
@@ -42,14 +51,17 @@ async function linkExisting(ctx: Ctx, appId: string, from: Asset): Promise<Asset
 export async function signUpload(ctx: Ctx, storage: ObjectStorage, raw: unknown):
   Promise<{ existing: Asset } | { uploadId: string; url: string; headers: Record<string, string> }> {
   const input = signInput.parse(raw);
-  await getApp(ctx, input.appId);
+  if (input.kind === "font") return signFont(ctx, storage, input);
+  if (!input.appId) throw badRequest("app_required");
+  const appId = input.appId;
+  await getApp(ctx, appId);
   if (input.size > UPLOAD_LIMITS[input.kind]) throw tooLarge(input.kind);
   if (!ACCEPTED[input.kind].includes(input.mime)) throw badRequest("unsupported_type");
 
-  const mine = await findAsset(ctx, input.sha256, input.appId);
+  const mine = await findAsset(ctx, input.sha256, appId);
   if (mine) return { existing: mine };
   const sibling = await findAsset(ctx, input.sha256);
-  if (sibling) return { existing: await linkExisting(ctx, input.appId, sibling) };
+  if (sibling) return { existing: await linkExisting(ctx, appId, sibling) };
 
   const uploadId = randomUUID();
   return { uploadId, ...(await storage.presignPut(stagingPath(ctx, uploadId), { contentType: input.mime, contentLength: input.size })) };
@@ -83,11 +95,14 @@ async function readStaged(storage: ObjectStorage, staging: string, kind: UploadK
 /** Validates the uploaded bytes themselves (the client's size, type and checksum are never trusted), then publishes them. */
 export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unknown): Promise<Asset> {
   const input = completeInput.parse(raw);
-  await getApp(ctx, input.appId);
+  if (input.kind === "font") return completeFont(ctx, storage, input);
+  if (!input.appId) throw badRequest("app_required");
+  const appId = input.appId;
+  await getApp(ctx, appId);
   const staging = stagingPath(ctx, input.uploadId);
   const discard = () => storage.remove(staging).catch(() => {});
 
-  const mine = await findAsset(ctx, input.sha256, input.appId);
+  const mine = await findAsset(ctx, input.sha256, appId);
   if (mine) { await discard(); return mine; }
 
   const { head: headBytes, size } = await readStaged(storage, staging, input.kind, input.sha256);
@@ -95,17 +110,63 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   if (!sniffed.ok) { await discard(); throw badRequest(sniffed.code); }
 
   const sibling = await findAsset(ctx, input.sha256);
-  if (sibling) { await discard(); return linkExisting(ctx, input.appId, sibling); }
+  if (sibling) { await discard(); return linkExisting(ctx, appId, sibling); }
 
   const path = finalPath(ctx, input.sha256);
   await storage.remove(path).catch(() => {}); // an unreferenced leftover, e.g. from a deleted app
   await storage.move(staging, path, { contentType: sniffed.mime });
   const [inserted] = await db.insert(schema.assets).values({
-    workspaceId: ctx.workspaceId, appId: input.appId, kind: input.kind, storagePath: path, mime: sniffed.mime,
+    workspaceId: ctx.workspaceId, appId, kind: input.kind, storagePath: path, mime: sniffed.mime,
     width: sniffed.width ?? null, height: sniffed.height ?? null, bytes: size, sha256: input.sha256,
     meta: input.kind === "recording" ? { ready: false } : null,
   }).onConflictDoNothing().returning();
-  return inserted ?? (await findAsset(ctx, input.sha256, input.appId))!;
+  return inserted ?? (await findAsset(ctx, input.sha256, appId))!;
+}
+
+async function signFont(ctx: Ctx, storage: ObjectStorage, input: z.infer<typeof signInput>) {
+  if (input.embedRights !== true) throw new HttpError(400, "embed_rights_required", "Confirm you have the right to embed this font");
+  if (input.size > UPLOAD_LIMITS.font) throw tooLarge("font");
+  const mine = await findWorkspaceFont(ctx, input.sha256);
+  if (mine) return { existing: mine };
+  await assertFontQuota(db, ctx, input.size);
+  const uploadId = randomUUID();
+  return { uploadId, ...(await storage.presignPut(stagingPath(ctx, uploadId), { contentType: "application/octet-stream", contentLength: input.size })) };
+}
+
+/** Sniffs and parses the whole font in a sandbox; nothing is stored unless it passes. */
+async function completeFont(ctx: Ctx, storage: ObjectStorage, input: z.infer<typeof completeInput>): Promise<Asset> {
+  const staging = stagingPath(ctx, input.uploadId);
+  const discard = () => storage.remove(staging).catch(() => {});
+  const mine = await findWorkspaceFont(ctx, input.sha256);
+  if (mine) { await discard(); return mine; }
+
+  const { head: bytes, size } = await readStaged(storage, staging, "font", input.sha256); // HEAD_BYTES.font = the whole file
+  const type = sniffFontType(bytes);
+  if (!type) { await discard(); throw badRequest("unsupported_type"); }
+  const parsed = await checkFont(bytes, type.format).catch(async (err) => {
+    await discard();
+    throw err instanceof FontRejected ? new HttpError(400, err.code, FONT_ERRORS[err.code]) : err;
+  });
+  const family = fontFamilyFor(parsed.family);
+  const [clash] = await db.select({ id: schema.assets.id }).from(schema.assets).where(and(
+    eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.kind, "font"),
+    sql`${schema.assets.meta}->>'family' = ${family}`, sql`(${schema.assets.meta}->>'weight')::int = ${parsed.weight}`,
+    sql`(${schema.assets.meta}->>'italic')::boolean = ${parsed.italic}`,
+  )).limit(1);
+  if (clash) { await discard(); throw new HttpError(409, "font_face_exists", `${family} already has a ${parsed.weight}${parsed.italic ? " italic" : ""} face. Delete it first to replace it.`); }
+
+  const path = finalPath(ctx, input.sha256);
+  await storage.remove(path).catch(() => {});
+  await storage.move(staging, path, { contentType: type.mime });
+  return withTx(async ({ db: tx }) => {
+    await lockWorkspace(tx, ctx.workspaceId);
+    await assertFontQuota(tx, ctx, size).catch(async (err) => { await storage.remove(path).catch(() => {}); throw err; });
+    const [inserted] = await tx.insert(schema.assets).values({
+      workspaceId: ctx.workspaceId, appId: null, kind: "font", storagePath: path, mime: type.mime, bytes: size, sha256: input.sha256,
+      meta: { family, weight: parsed.weight, italic: parsed.italic, format: type.format },
+    }).onConflictDoNothing().returning();
+    return inserted ?? (await findWorkspaceFont(ctx, input.sha256))!;
+  });
 }
 
 /**

@@ -20,15 +20,22 @@ const id = () => uuid("id").primaryKey().defaultRandom();
 const createdAt = () => timestamp("created_at", { withTimezone: true }).notNull().defaultNow();
 const workspaceRef = () => uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "cascade" });
 
+/** An uploaded font face (assets.kind = 'font', appId null: owned by the workspace). */
+export type FontMeta = { family: string; weight: number; italic: boolean; format: "ttf" | "otf" | "woff" | "woff2" };
+
+/**
+ * Recordings: { ready, webm, poster, duration, width, height } once processed, or { ready: false, error }.
+ * Fonts: FontMeta.
+ */
 export type AssetMeta = {
-  ready: boolean;
+  ready?: boolean;
   webm?: string;
   poster?: string;
   duration?: number;
   width?: number;
   height?: number;
   error?: string;
-};
+} & Partial<FontMeta>;
 
 export type Brand = {
   primaryColor?: string;
