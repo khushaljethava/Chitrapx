@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ExportDialog } from "@/components/ExportDialog.tsx";
-import type { ChitrapxDoc } from "@chitrapx/document";
+import { contentChecks, type ChitrapxDoc } from "@chitrapx/document";
 import { LOCALES } from "@chitrapx/renderer";
 import { useEditorAssets } from "../assets.tsx";
 import { useEditor, useEditorStore } from "../context.tsx";
@@ -19,11 +19,13 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
   adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void;
 }) {
-  const { resolveSrc } = useEditorAssets();
+  const { resolveSrc, fonts } = useEditorAssets();
   const store = useEditorStore();
   const [exporting, setExporting] = useState(false);
   const [history, setHistory] = useState(false);
   const doc = useEditor((s) => s.doc);
+  // The export covers every size, so every group's checks apply.
+  const checks = useMemo(() => exporting ? contentChecks(doc, { customFamilies: fonts.map((f) => f.family) }) : [], [exporting, doc, fonts]);
   const zoom = useEditor((s) => s.zoom);
   const canUndo = useEditor((s) => s.past.length > 0);
   const canRedo = useEditor((s) => s.future.length > 0);
@@ -67,7 +69,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} />}
       <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>
       {exporting && (
-        <ExportDialog projectId={projectId} doc={doc} onClose={() => setExporting(false)} beforeExport={flush}
+        <ExportDialog projectId={projectId} doc={doc} onClose={() => setExporting(false)} beforeExport={flush} checks={checks}
           onAddSize={(target, fromGroupId) => store.getState().apply({ type: "addGroupFromTarget", fromGroupId, target, newGroupId: crypto.randomUUID() })}
           onJump={(groupId, boardIndex) => {
             const s = store.getState();

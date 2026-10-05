@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getTarget, VIDEO_FORMATS, videoTimeline, type ChitrapxDoc, type VideoFormat } from "@chitrapx/document";
-import { VideoFrame } from "@chitrapx/renderer";
+import { VideoFrame, type RenderExtras } from "@chitrapx/renderer";
 import { api } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
 
@@ -11,7 +11,7 @@ type Job = { id: string; type: string; status: string; error: string | null; cre
 const PREVIEW_WIDTH = 240;
 
 /** Live preview (same timeline and renderer as the export) and the video export action. */
-export function VideoPanel({ projectId, doc, assetUrls }: { projectId: string; doc: ChitrapxDoc; assetUrls: Record<string, string> }) {
+export function VideoPanel({ projectId, doc, assetUrls, extras }: { projectId: string; doc: ChitrapxDoc; assetUrls: Record<string, string>; extras?: RenderExtras }) {
   const router = useRouter();
   const locales = [doc.localization.baseLocale, ...doc.localization.locales.map((l) => l.code)];
   const [groupId, setGroupId] = useState(doc.groups[0]?.id ?? "");
@@ -64,7 +64,7 @@ export function VideoPanel({ projectId, doc, assetUrls }: { projectId: string; d
         <div className="shrink-0 space-y-2">
           <div className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800" style={{ width: PREVIEW_WIDTH, height: height * scale }}>
             <div style={{ transform: `scale(${scale})`, transformOrigin: "top left", width, height }}>
-              <VideoFrame doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={time} width={width} height={height} resolveSrc={resolveSrc} />
+              <VideoFrame doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={time} width={width} height={height} resolveSrc={resolveSrc} extras={extras} />
             </div>
           </div>
           <div className="flex items-center gap-2" style={{ width: PREVIEW_WIDTH }}>

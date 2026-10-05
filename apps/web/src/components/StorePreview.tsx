@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { foldCount, getTarget, type BoardGroup, type ChitrapxDoc } from "@chitrapx/document";
+import type { RenderExtras } from "@chitrapx/renderer";
 import { BoardThumb } from "./BoardThumb.tsx";
 
 type Store = "appstore-search" | "appstore-page" | "play";
@@ -15,7 +16,7 @@ function pickGroup(doc: ChitrapxDoc, store: Store): BoardGroup | undefined {
 }
 
 /** HTML/CSS mockups of store listings, filled with the project's own boards. No store artwork is used. */
-export function StorePreview({ doc, assetUrls, app }: { doc: ChitrapxDoc; assetUrls: Record<string, string>; app: { name: string; subtitle: string } }) {
+export function StorePreview({ doc, assetUrls, app, extras }: { doc: ChitrapxDoc; assetUrls: Record<string, string>; app: { name: string; subtitle: string }; extras?: RenderExtras }) {
   const locales = [doc.localization.baseLocale, ...doc.localization.locales.map((l) => l.code)];
   const [store, setStore] = useState<Store>("appstore-search");
   const [dark, setDark] = useState(false);
@@ -26,7 +27,7 @@ export function StorePreview({ doc, assetUrls, app }: { doc: ChitrapxDoc; assetU
 
   if (!group || !group.boards.length) return <p className="text-neutral-500">Add boards to this project to preview it in the stores.</p>;
   const portrait = group.boards[0]!.size.height >= group.boards[0]!.size.width;
-  const thumb = (g: BoardGroup, i: number, height: number) => <BoardThumb key={`${g.id}-${i}`} doc={doc} groupId={g.id} boardIndex={i} locale={locale} height={height} resolveSrc={resolveSrc} />;
+  const thumb = (g: BoardGroup, i: number, height: number) => <BoardThumb key={`${g.id}-${i}`} doc={doc} groupId={g.id} boardIndex={i} locale={locale} height={height} resolveSrc={resolveSrc} extras={extras} />;
   const fg = dark ? "text-white" : "text-neutral-900";
   const muted = dark ? "text-neutral-400" : "text-neutral-500";
   const icon = (

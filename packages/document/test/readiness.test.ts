@@ -98,3 +98,19 @@ describe("storeReadiness: both stores", () => {
     expect(codes(d, { targets: ["x-post"], locales: en })).toEqual([]);
   });
 });
+
+import { contentChecks } from "../src/index.ts";
+
+describe("contentChecks: fonts", () => {
+  it("warns once per family that is neither built in nor uploaded", () => {
+    const b1 = board("b1", [{ ...text("t", 0, 0), fontFamily: "Gone Sans" } as never, { ...text("u", 0, 300), fontFamily: "Mine (custom)" } as never]);
+    const b2 = board("b2", [{ ...text("t2", 0, 0), fontFamily: "Gone Sans" } as never]);
+    b2.localized = { "de-DE": { t2: { fontFamily: "Also Gone" } } };
+    const issues = contentChecks(doc([group([b1, b2])]), { customFamilies: ["Mine (custom)"] });
+    expect(issues).toEqual([
+      { severity: "warning", code: "font_missing", message: "Font Gone Sans is missing", groupId: "g1", boardIndex: 0 },
+      { severity: "warning", code: "font_missing", message: "Font Also Gone is missing", groupId: "g1", boardIndex: 1 },
+    ]);
+    expect(contentChecks(doc([group([board("b", [text("t", 0, 0)])])]), { customFamilies: [] })).toEqual([]); // Inter is in the catalogue
+  });
+});

@@ -2,15 +2,15 @@
 
 import { useEffect, useMemo } from "react";
 import { resolveGroup, type ChitrapxDoc, type ExportItem } from "@chitrapx/document";
-import { BoardFonts, boardFor, StaticArtboard, waitForRender } from "@chitrapx/renderer";
+import { BoardFonts, boardFor, StaticArtboard, waitForRender, type RenderExtras } from "@chitrapx/renderer";
 
 declare global {
   interface Window { __chitrapxReady?: { ok: boolean; errors: string[] } }
 }
 
 /** Every requested board at 1:1, one after another, each wrapped in [data-item] for the worker. */
-export function RenderSheet({ doc, plan, indices, assetUrls }: {
-  doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>;
+export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
+  doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>; extras?: RenderExtras;
 }) {
   const boards = useMemo(() => {
     const cache = new Map();
@@ -39,7 +39,7 @@ export function RenderSheet({ doc, plan, indices, assetUrls }: {
     <main style={{ background: "#fff", padding: 0, margin: 0 }}>
       {/* The Next.js dev indicator would otherwise be captured into exported PNGs. */}
       <style>{"nextjs-portal{display:none!important}"}</style>
-      <BoardFonts boards={boards.map((b) => b.board)} />
+      <BoardFonts boards={boards.map((b) => b.board)} faces={extras?.faces} />
       {boards.map(({ i, board }) => (
         <div key={i} data-item={i} style={{ width: board.size.width, height: board.size.height, overflow: "hidden" }}>
           <StaticArtboard artboard={board} scale={1} />

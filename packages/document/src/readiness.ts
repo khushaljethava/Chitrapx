@@ -1,4 +1,6 @@
 import { lintBoard } from "./aso.ts";
+import { docFontFamilies } from "./docFonts.ts";
+import { isReservedFamily } from "./fontCatalog.ts";
 import type { BoardGroup, ChitrapxDoc } from "./doc.ts";
 import { resolveGroup, type ExportItem } from "./exportPlan.ts";
 import { getTarget, type Platform, type TargetId } from "./targets.ts";
@@ -101,6 +103,29 @@ export function storeReadiness(plan: ExportItem[], doc: ChitrapxDoc): ReadinessI
     if (at) {
       out.push({ store, severity: "warning", code: "design_issues", targetId: id, groupId: at.sourceGroupId, boardIndex: at.boardIndex, locale: at.locale,
         message: `${t.label}: ${n} design check${n === 1 ? "" : "s"} (headline length, contrast or text size).` });
+    }
+  }
+  return out;
+}
+
+/** Pre-export checks on the document's content (not store rules): shown in the editor's Checks and the export dialog. */
+export type ContentIssue = {
+  severity: "warning"; code: "font_missing" | "brand_token_unset" | "placeholder"; message: string; groupId: string; boardIndex: number;
+};
+export type ContentContext = { customFamilies: readonly string[] };
+
+export function contentChecks(doc: ChitrapxDoc, ctx: ContentContext): ContentIssue[] {
+  const out: ContentIssue[] = [];
+  const uploaded = new Set(ctx.customFamilies);
+  const reported = new Set<string>();
+  for (const g of doc.groups) {
+    const perBoard: Array<[number, unknown]> = [[0, g.spanElements], ...g.boards.map((b, i) => [i, b] as [number, unknown])];
+    for (const [boardIndex, part] of perBoard) {
+      for (const family of docFontFamilies(part)) {
+        if (reported.has(family) || isReservedFamily(family) || uploaded.has(family)) continue;
+        reported.add(family);
+        out.push({ severity: "warning", code: "font_missing", message: `Font ${family} is missing`, groupId: g.id, boardIndex });
+      }
     }
   }
   return out;

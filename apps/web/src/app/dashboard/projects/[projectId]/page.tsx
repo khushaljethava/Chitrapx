@@ -9,12 +9,13 @@ import { ProjectBoards } from "@/components/ProjectBoards.tsx";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { assetUrlMap, getProject } from "@/server/projects.ts";
+import { renderExtras } from "@/server/renderExtras.ts";
 import { appStorage } from "@/server/storage.ts";
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const assetUrls = await assetUrlMap(ctx, appStorage(), project.doc);
+  const [assetUrls, extras] = await Promise.all([assetUrlMap(ctx, appStorage(), project.doc), renderExtras(ctx, appStorage(), { doc: project.doc })]);
   return (
     <>
       <div>
@@ -31,8 +32,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ projec
       </div>
       <ProjectAi projectId={project.id} codes={[project.doc.localization.baseLocale, ...project.doc.localization.locales.map((l) => l.code)]} />
       <ExportPanel projectId={project.id} doc={project.doc} />
-      <ProjectBoards doc={project.doc} assetUrls={assetUrls} />
-      {project.doc.groups.length > 0 && <VideoPanel projectId={project.id} doc={project.doc} assetUrls={assetUrls} />}
+      <ProjectBoards doc={project.doc} assetUrls={assetUrls} extras={extras} />
+      {project.doc.groups.length > 0 && <VideoPanel projectId={project.id} doc={project.doc} assetUrls={assetUrls} extras={extras} />}
     </>
   );
 }

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   allLocales, exportPlan, getTarget, MAX_EXPORT_ITEMS, presetSelection, sourcesFor, storeOf, storeReadiness, suggestedSelection, TARGETS,
-  type ChitrapxDoc, type ExportPreset, type ExportSelection, type Target, type TargetId,
+  type ChitrapxDoc, type ContentIssue, type ExportPreset, type ExportSelection, type Target, type TargetId,
 } from "@chitrapx/document";
 import { api, ApiError } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
@@ -18,7 +18,7 @@ const PLATFORM_NAME: Record<string, string> = {
 const PRESETS: Array<[ExportPreset, string]> = [["app-store", "App Store required"], ["play", "Play required"], ["everything", "Everything"]];
 const BY_PLATFORM = TARGETS.reduce<Record<string, Target[]>>((acc, t) => ({ ...acc, [t.platform]: [...(acc[t.platform] ?? []), t] }), {});
 
-export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize, onJump }: {
+export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize, onJump, checks }: {
   projectId: string; doc: ChitrapxDoc; onClose: () => void;
   /** Editor: save before the server renders the saved document. */
   beforeExport?: () => Promise<boolean>;
@@ -26,6 +26,8 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   onAddSize?: (target: TargetId, fromGroupId: string) => void;
   /** Editor: open the board an issue points at. */
   onJump?: (groupId: string, boardIndex: number) => void;
+  /** Content checks (missing fonts, unset brand colours, placeholders) shown before exporting. */
+  checks?: ContentIssue[];
 }) {
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   const [selection, setSelection] = useState<ExportSelection | null>(null);
@@ -120,6 +122,13 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
             </label>
           ))}
         </fieldset>
+
+        {checks && checks.length > 0 && (
+          <section className="space-y-1 text-xs">
+            <h3 className="label">Before you export</h3>
+            <ul>{checks.map((c, k) => <li key={k}><span className="text-amber-600">Check</span> {c.message}</li>)}</ul>
+          </section>
+        )}
 
         <section className="space-y-1">
           {stores.map((s) => {

@@ -1,10 +1,10 @@
 import { createHash } from "node:crypto";
-import { and, count, eq, inArray } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, sql } from "drizzle-orm";
 import { strFromU8, strToU8, zipSync } from "fflate";
 import { z } from "zod";
-import { db, HEAD_BYTES, lockWorkspace, PLANS, PRICES, reserveAndEnqueue, schema, sniffAsset, UPLOAD_LIMITS, withTx, type Db, type Tx } from "@chitrapx/db";
+import { checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, PLANS, PRICES, reserveAndEnqueue, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx, type Db, type Tx } from "@chitrapx/db";
 import {
-  BUNDLE_FORMAT, BUNDLE_VERSION, bundleManifestSchema, CURRENT_SCHEMA_VERSION, docAssetRefs, docBundleRefs, extFor, fromBundleDoc,
+  BUNDLE_FORMAT, BUNDLE_VERSION, bundleManifestSchema, CURRENT_SCHEMA_VERSION, docAssetRefs, docBundleRefs, docFontFamilies, extFor, fromBundleDoc,
   MAX_BUNDLE_BYTES, MAX_BUNDLE_ENTRIES, MAX_DOC_BYTES, migrate, toBundleDoc,
   type BundleManifest, type ChitrapxDoc,
 } from "@chitrapx/document";
@@ -22,7 +22,8 @@ export type BundleDeps = {
 };
 
 type BundleAssetKind = BundleManifest["assets"][number]["kind"];
-const BUNDLE_KINDS: readonly string[] = ["screenshot", "image", "recording"];
+const BUNDLE_KINDS: readonly string[] = ["screenshot", "image", "recording", "font"];
+const FONT_QUOTA = { faces: 20, bytes: 50 * 1024 * 1024 }; // same as apps/web/src/server/fonts.ts
 
 export function packBundle(manifest: BundleManifest, doc: ChitrapxDoc, files: Record<string, Uint8Array>): Uint8Array {
   return zipSync({
@@ -46,12 +47,16 @@ export async function runBundle(_input: unknown, job: JobContext, deps: BundleDe
   const assets = ids.length ? await db.select().from(schema.assets)
     .where(and(eq(schema.assets.workspaceId, job.workspaceId), inArray(schema.assets.id, ids))) : [];
   const byId = new Map(assets.map((a) => [a.id, a]));
+  const families = docFontFamilies(doc);
+  const fonts = families.length ? await db.select().from(schema.assets).where(and(
+    eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId),
+    inArray(sql<string>`${schema.assets.meta}->>'family'`, families))) : [];
 
   let bundled: ChitrapxDoc;
   try { bundled = toBundleDoc(doc, (id) => byId.get(id)?.sha256); }
   catch (err) { throw new FatalJobError((err as Error).message); }
 
-  const unique = [...new Map(assets.map((a) => [a.sha256, a])).values()];
+  const unique = [...new Map([...assets, ...fonts].map((a) => [a.sha256, a])).values()];
   if (unique.some((a) => !BUNDLE_KINDS.includes(a.kind))) throw new FatalJobError("bundle_invalid");
   if (unique.reduce((n, a) => n + a.bytes, 0) > MAX_BUNDLE_BYTES) throw new FatalJobError("bundle_too_large");
 
@@ -60,7 +65,9 @@ export async function runBundle(_input: unknown, job: JobContext, deps: BundleDe
   const manifest: BundleManifest = {
     format: BUNDLE_FORMAT, version: BUNDLE_VERSION, docSchema: CURRENT_SCHEMA_VERSION, appName: row.appName,
     exportedAt: new Date().toISOString(),
-    assets: unique.map((a) => ({ sha256: a.sha256, kind: a.kind as BundleAssetKind, mime: a.mime })),
+    assets: unique.map((a) => a.kind === "font"
+      ? { sha256: a.sha256, kind: "font" as const, mime: a.mime, family: a.meta!.family!, weight: a.meta!.weight!, italic: a.meta!.italic! }
+      : { sha256: a.sha256, kind: a.kind as BundleAssetKind, mime: a.mime }),
   };
   const zip = packBundle(manifest, bundled, files);
   if (zip.byteLength > MAX_BUNDLE_BYTES || unique.length + 2 > MAX_BUNDLE_ENTRIES) throw new FatalJobError("bundle_too_large");
@@ -77,7 +84,8 @@ export type QueueRecording = (tx: Tx, workspaceId: string, assetId: string) => P
 const queueRecording: QueueRecording = (tx, workspaceId, assetId) =>
   reserveAndEnqueue(tx, boss, { workspaceId, type: "process_recording", input: { assetId } });
 
-type CheckedAsset = { sha256: string; kind: BundleAssetKind; mime: string; bytes: Uint8Array; width?: number; height?: number };
+type CheckedAsset = { sha256: string; kind: BundleAssetKind; mime: string; bytes: Uint8Array; width?: number; height?: number;
+  font?: { family: string; weight: number; italic: boolean; format: "ttf" | "otf" | "woff" | "woff2" } };
 
 /** Opens and checks an untrusted .chitrapx file. Every failure is a named FatalJobError. */
 async function readBundle(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets: CheckedAsset[] }> {
@@ -128,6 +136,14 @@ async function readBundleUnsafe(buf: Buffer): Promise<{ doc: ChitrapxDoc; assets
   for (const a of manifest.assets) {
     const bytes = take(`assets/${a.sha256}.${extFor(a.mime)}`, UPLOAD_LIMITS[a.kind], "bundle_too_large");
     if (createHash("sha256").update(bytes).digest("hex") !== a.sha256) fail("bundle_asset_mismatch");
+    if (a.kind === "font") {
+      const type = sniffFontType(bytes);
+      if (!type || type.mime !== a.mime) return fail("bundle_asset_mismatch");
+      const parsed = await checkFont(bytes, type.format).catch((err) => fail(err instanceof FontRejected ? err.code : "bundle_asset_mismatch"));
+      if (a.family !== fontFamilyFor(parsed.family)) return fail("bundle_asset_mismatch");
+      assets.push({ ...a, bytes, font: { family: a.family, weight: parsed.weight, italic: parsed.italic, format: type.format } });
+      continue;
+    }
     const sniffed = await sniffAsset(a.kind, bytes.subarray(0, HEAD_BYTES[a.kind]));
     if (!sniffed.ok || sniffed.mime !== a.mime) return fail("bundle_asset_mismatch");
     assets.push({ ...a, bytes, width: sniffed.width, height: sniffed.height });
@@ -159,8 +175,22 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
       const [{ n }] = (await tx.db.select({ n: count() }).from(schema.projects).where(eq(schema.projects.workspaceId, job.workspaceId))) as [{ n: number }];
       if (n >= PLANS[ws!.plan].maxProjects) fail("plan_limit");
 
+      const newFonts = assets.filter((a) => a.font);
+      if (newFonts.length) {
+        const [u] = await tx.db.select({ faces: sql<number>`count(*)::int`, bytes: sql<number>`coalesce(sum(${schema.assets.bytes}), 0)::bigint` })
+          .from(schema.assets).where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)));
+        const existing = await tx.db.select({ sha: schema.assets.sha256, meta: schema.assets.meta }).from(schema.assets)
+          .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)));
+        const sameFace = (f: NonNullable<CheckedAsset["font"]>) => existing.some((e) => e.meta?.family === f.family && e.meta?.weight === f.weight && e.meta?.italic === f.italic);
+        const toAdd = newFonts.filter((a) => !existing.some((e) => e.sha === a.sha256) && !sameFace(a.font!));
+        if (Number(u!.faces) + toAdd.length > FONT_QUOTA.faces || Number(u!.bytes) + toAdd.reduce((n, a) => n + a.bytes.byteLength, 0) > FONT_QUOTA.bytes) fail("font_quota");
+        for (const a of toAdd) {
+          await tx.db.insert(schema.assets).values({ workspaceId: job.workspaceId, appId: null, kind: "font", storagePath: `${job.workspaceId}/${a.sha256}`,
+            mime: a.mime, bytes: a.bytes.byteLength, sha256: a.sha256, meta: a.font! }).onConflictDoNothing();
+        }
+      }
       const idOf = new Map<string, string>();
-      for (const a of assets) {
+      for (const a of assets.filter((x) => !x.font)) {
         const [inserted] = await tx.db.insert(schema.assets).values({
           workspaceId: job.workspaceId, appId: input.appId, kind: a.kind, storagePath: `${job.workspaceId}/${a.sha256}`, mime: a.mime,
           width: a.width ?? null, height: a.height ?? null, bytes: a.bytes.byteLength, sha256: a.sha256,

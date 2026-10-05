@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { flushSync } from "react-dom";
 import { VIDEO_FORMATS, videoTimeline, type ChitrapxDoc, type VideoFormat } from "@chitrapx/document";
-import { boardFor, VideoFrame, waitForRender } from "@chitrapx/renderer";
+import { boardFor, VideoFrame, waitForRender, type RenderExtras } from "@chitrapx/renderer";
 
 declare global {
   interface Window {
@@ -13,8 +13,8 @@ declare global {
 }
 
 /** Headless-only: one video frame at a time; the worker seeks, waits, and captures each frame. */
-export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, assetUrls }: {
-  doc: ChitrapxDoc; groupId: string; locale: string; format: VideoFormat; secondsPerBoard: number; assetUrls: Record<string, string>;
+export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, assetUrls, extras }: {
+  doc: ChitrapxDoc; groupId: string; locale: string; format: VideoFormat; secondsPerBoard: number; assetUrls: Record<string, string>; extras?: RenderExtras;
 }) {
   const [time, setTime] = useState(0);
   const { width, height } = VIDEO_FORMATS[format];
@@ -48,11 +48,11 @@ export function VideoSheet({ doc, groupId, locale, format, secondsPerBoard, asse
   return (
     <main style={{ margin: 0, padding: 0, width, height, overflow: "hidden" }}>
       <style>{"nextjs-portal{display:none!important} body{margin:0}"}</style>
-      <VideoFrame doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={time} width={width} height={height} resolveSrc={resolveSrc} />
+      <VideoFrame doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={time} width={width} height={height} resolveSrc={resolveSrc} extras={extras} />
       {/* Warm every board's images and devices off-screen so later frames never wait on loading. */}
       <div aria-hidden style={{ position: "absolute", left: -100000, top: 0 }}>
         {timeline.slides.map((s) => (
-          <VideoFrame key={s.boardIndex} doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={s.start + 5} width={40} height={80} resolveSrc={resolveSrc} />
+          <VideoFrame key={s.boardIndex} doc={doc} groupId={groupId} locale={locale} timeline={timeline} time={s.start + 5} width={40} height={80} resolveSrc={resolveSrc} extras={extras} />
         ))}
       </div>
     </main>

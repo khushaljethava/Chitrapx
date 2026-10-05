@@ -211,3 +211,58 @@ describe("zip reader", () => {
     expect(() => extractZipEntry(zip, readZipDirectory(zip, limits).get("a")!)).toThrow(ZipError);
   });
 });
+
+import { and, isNull } from "drizzle-orm";
+import { fixtureFont } from "../../../packages/db/test/fontFixtures.ts";
+
+async function projectWithFont() {
+  const p = await projectWithAsset();
+  const bytes = fixtureFont("pacifico.woff2");
+  const hash = sha(bytes);
+  await db.insert(schema.assets).values({ workspaceId: p.ws, appId: null, kind: "font", storagePath: `${p.ws}/${hash}`, mime: "font/woff2", bytes: bytes.length, sha256: hash,
+    meta: { family: "Pacifico (custom)", weight: 400, italic: false, format: "woff2" } });
+  p.deps.files.set(`${p.ws}/${hash}`, bytes);
+  const [row] = await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, p.ws));
+  const doc = row!.doc as { groups: Array<{ boards: Array<{ elements: unknown[] }> }> };
+  doc.groups[0]!.boards[0]!.elements.push({ id: "t", type: "text", content: "Hello", fontSize: 40, color: "#000", fontFamily: "Pacifico (custom)", position: { x: 0, y: 0 }, size: { width: 100, height: 50 }, rotation: 0, scale: 1 });
+  await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, row!.id));
+  return { ...p, fontSha: hash, fontBytes: bytes };
+}
+
+describe("fonts in project files", () => {
+  it("packs the faces of every uploaded family the document uses", async () => {
+    const p = await projectWithFont();
+    await runJob(p.jobId, (input, job) => runBundle(input, job, p.deps));
+    const zip = unzipSync(new Uint8Array(p.deps.files.get(`exports:${p.ws}/${p.jobId}.chitrapx`)!));
+    const manifest = JSON.parse(strFromU8(zip["manifest.json"]!));
+    expect(manifest.assets).toContainEqual({ sha256: p.fontSha, kind: "font", mime: "font/woff2", family: "Pacifico (custom)", weight: 400, italic: false });
+    expect(zip[`assets/${p.fontSha}.woff2`]).toBeDefined();
+  });
+
+  it("restores them into another workspace as workspace fonts, once", async () => {
+    const p = await projectWithFont();
+    await runJob(p.jobId, (input, job) => runBundle(input, job, p.deps));
+    const file = p.deps.files.get(`exports:${p.ws}/${p.jobId}.chitrapx`)!;
+    const target = await makeWorkspace((await createUser()).id, "pro");
+    const [app] = await db.insert(schema.apps).values({ workspaceId: target, name: "T" }).returning();
+    for (let i = 0; i < 2; i++) {
+      const uploadId = crypto.randomUUID();
+      p.deps.files.set(`staging/${target}/${uploadId}`, file);
+      const [job] = await db.insert(schema.jobs).values({ workspaceId: target, type: "project_import", creditsReserved: 0, input: { appId: app!.id, uploadId, name: `Copy ${i}` } }).returning();
+      await runJob(job!.id, (input, ctx) => runImport(input, ctx, p.deps, async () => {}));
+      expect((await jobRow(job!.id)).status).toBe("done");
+    }
+    const fonts = await db.select().from(schema.assets).where(and(eq(schema.assets.workspaceId, target), eq(schema.assets.kind, "font"), isNull(schema.assets.appId)));
+    expect(fonts.map((f) => f.meta)).toEqual([{ family: "Pacifico (custom)", weight: 400, italic: false, format: "woff2" }]);
+    expect(p.deps.files.has(`uploads:${target}/${p.fontSha}`)).toBe(true);
+  });
+
+  it("refuses a font whose bytes are not the family the manifest claims", async () => {
+    const bytes = fixtureFont("inter-400.woff2"); // really "Inter (custom)"
+    const zip = packBundle(manifest({ assets: [{ sha256: sha(bytes), kind: "font", mime: "font/woff2", family: "Pacifico (custom)", weight: 400, italic: false }] }) as never,
+      docWith("") as never, { [`assets/${sha(bytes)}.woff2`]: bytes });
+    const r = await importInto(zip);
+    expect(r.job.status).toBe("failed");
+    expect(r.job.error).toBe("bundle_asset_mismatch");
+  });
+});

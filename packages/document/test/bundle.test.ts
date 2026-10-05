@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { docAssetRefs, docBundleRefs, fromBundleDoc, toBundleDoc } from "../src/index.ts";
+import { bundleManifestSchema, docAssetRefs, docBundleRefs, extFor, fromBundleDoc, toBundleDoc } from "../src/index.ts";
 import { board, device, doc, group } from "./fixtures.ts";
 
 const A = "11111111-1111-4111-8111-111111111111";
@@ -22,5 +22,17 @@ describe("bundle doc rewrite", () => {
   it("refuses a reference with no file", () => {
     expect(() => toBundleDoc(d, () => undefined)).toThrow(`asset_missing:${A}`);
     expect(() => fromBundleDoc(toBundleDoc(d, () => SHA), () => undefined)).toThrow("bundle_invalid");
+  });
+});
+
+describe("font entries", () => {
+  const base = { format: "chitrapx-project", version: 1, docSchema: 1, appName: "A", exportedAt: "2026-10-05T00:00:00Z" };
+  it("accepts a font with family, weight and italic and maps its extension", () => {
+    const m = bundleManifestSchema.parse({ ...base, assets: [{ sha256: "a".repeat(64), kind: "font", mime: "font/woff2", family: "Acme (custom)", weight: 700, italic: false }] });
+    expect(m.assets[0]).toMatchObject({ kind: "font", family: "Acme (custom)" });
+    expect(["font/ttf", "font/otf", "font/woff", "font/woff2"].map(extFor)).toEqual(["ttf", "otf", "woff", "woff2"]);
+  });
+  it("rejects a font entry without its face description", () => {
+    expect(bundleManifestSchema.safeParse({ ...base, assets: [{ sha256: "a".repeat(64), kind: "font", mime: "font/woff2" }] }).success).toBe(false);
   });
 });

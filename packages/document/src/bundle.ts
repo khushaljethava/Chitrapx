@@ -17,9 +17,14 @@ export const bundleManifestSchema = z.object({
   exportedAt: z.string().max(40),
   assets: z.array(z.object({
     sha256: z.string().regex(/^[a-f0-9]{64}$/),
-    kind: z.enum(["screenshot", "image", "recording"]),
+    kind: z.enum(["screenshot", "image", "recording", "font"]),
     mime: z.string().max(100),
-  })).max(MAX_BUNDLE_ENTRIES),
+    // Fonts are referenced by family name in the document, so the manifest carries the face they provide.
+    family: z.string().min(1).max(100).optional(),
+    weight: z.number().int().min(1).max(1000).optional(),
+    italic: z.boolean().optional(),
+  }).refine((a) => a.kind !== "font" || (a.family !== undefined && a.weight !== undefined && a.italic !== undefined), { message: "A font needs family, weight and italic" }))
+    .max(MAX_BUNDLE_ENTRIES),
 });
 export type BundleManifest = z.infer<typeof bundleManifestSchema>;
 
@@ -62,5 +67,5 @@ export function fromBundleDoc(doc: ChitrapxDoc, idOf: (sha: string) => string | 
   });
 }
 
-const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "video/mp4": "mp4", "video/quicktime": "mov", "video/x-m4v": "m4v" };
+const EXT: Record<string, string> = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "video/mp4": "mp4", "video/quicktime": "mov", "video/x-m4v": "m4v", "font/ttf": "ttf", "font/otf": "otf", "font/woff": "woff", "font/woff2": "woff2" };
 export const extFor = (mime: string) => EXT[mime] ?? "bin";

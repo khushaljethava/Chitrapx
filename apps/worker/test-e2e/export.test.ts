@@ -363,3 +363,66 @@ describe("editor essentials (SP9)", () => {
     compareGolden("status-bar-ios.png", await singlePng(ws, appId, doc));
   }, 120_000);
 });
+
+import { fixtureFont } from "../../../packages/db/test/fontFixtures.ts";
+
+/** Exports board 0 of `doc` as a single PNG in `ws` and returns it. */
+async function singleBoardPng(ws: string, appId: string, doc: ChitrapxDoc) {
+  const g = doc.groups[0]!;
+  const id = await newProject(ws, appId, doc);
+  const j = await pinnedExport(ws, id, { targets: [g.target], locales: [doc.localization.baseLocale], board: { groupId: g.id, boardIndex: 0 } }, "export_single");
+  await runJob(j, (input, job) => runExport(input, job, "single"));
+  expect((await jobRow(j)).status).toBe("done");
+  return storage().download(`${ws}/${j}.png`, EXPORTS_BUCKET);
+}
+
+/** Uploads pacifico.woff2 as the workspace font "Pacifico (custom)". */
+async function installPacifico(ws: string) {
+  const bytes = fixtureFont("pacifico.woff2");
+  const hash = createHash("sha256").update(bytes).digest("hex");
+  await storage().put(`${ws}/${hash}`, bytes, "font/woff2");
+  await db.insert(schema.assets).values({ workspaceId: ws, appId: null, kind: "font", storagePath: `${ws}/${hash}`, mime: "font/woff2", bytes: bytes.length, sha256: hash,
+    meta: { family: "Pacifico (custom)", weight: 400, italic: false, format: "woff2" } });
+}
+
+/** amoura's first headline set to "Hello Chitrapx" (letters the fixture subset covers) in `family`. */
+async function headlineIn(family: string): Promise<ChitrapxDoc> {
+  const doc = await templateDoc("amoura-dating");
+  const t = doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "text") as Record<string, unknown>;
+  Object.assign(t, { content: "Hello Chitrapx", fontFamily: family, fontWeight: "400", fontStyle: "normal" });
+  return doc;
+}
+
+describe("uploaded fonts (SP10)", () => {
+  it("a headline in an uploaded woff2 matches its golden and is not the fallback face", async () => {
+    const { ws, appId } = await workspaceWithApp();
+    await installPacifico(ws);
+    const png = await singleBoardPng(ws, appId, await headlineIn("Pacifico (custom)"));
+    compareGolden("custom-font-woff2.png", png);
+    const fallback = PNG.sync.read(await singleBoardPng(ws, appId, await headlineIn("Not Uploaded (custom)")));
+    const actual = PNG.sync.read(png);
+    expect(pixelmatch(actual.data, fallback.data, null, actual.width, actual.height, { threshold: 0.1 })).toBeGreaterThan(500);
+  }, 240_000);
+
+  it("a project file carries its font into another workspace and renders the same", async () => {
+    const source = await workspaceWithApp();
+    await installPacifico(source.ws);
+    const doc = await headlineIn("Pacifico (custom)");
+    const sourceId = await newProject(source.ws, source.appId, doc);
+    const [bundleJob] = await db.insert(schema.jobs).values({ workspaceId: source.ws, projectId: sourceId, type: "project_bundle", creditsReserved: 0 }).returning();
+    await runJob(bundleJob!.id, (input, job) => runBundle(input, job, bundleDeps));
+    const file = await storage().download(`${source.ws}/${bundleJob!.id}.chitrapx`, EXPORTS_BUCKET);
+
+    const target = await workspaceWithApp();
+    const uploadId = crypto.randomUUID();
+    await storage().put(`staging/${target.ws}/${uploadId}`, file, "application/zip");
+    const [importJob] = await db.insert(schema.jobs).values({ workspaceId: target.ws, type: "project_import", creditsReserved: 0, input: { appId: target.appId, uploadId, name: "Copy" } }).returning();
+    await runJob(importJob!.id, (input, job) => runImport(input, job, bundleDeps, async () => {}));
+    expect((await jobRow(importJob!.id)).status).toBe("done");
+    const [copy] = await db.select().from(schema.projects).where(eq(schema.projects.id, ((await jobRow(importJob!.id)).output as { projectId: string }).projectId));
+
+    const a = PNG.sync.read(await singleBoardPng(source.ws, source.appId, doc));
+    const b = PNG.sync.read(await singleBoardPng(target.ws, target.appId, migrate(copy!.doc)));
+    expect(pixelmatch(a.data, b.data, null, a.width, a.height, { threshold: 0.1 }) / (a.width * a.height)).toBeLessThan(0.0005);
+  }, 300_000);
+});
