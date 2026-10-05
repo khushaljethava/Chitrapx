@@ -1,13 +1,16 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, count, desc, eq, ne, sql } from "drizzle-orm";
 import { authUsers } from "drizzle-orm/supabase";
 import { z } from "zod";
 import { db, schema, withTx, type Db } from "@chitrapx/db";
 import { migrate, type ChitrapxDoc } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
-import { ConflictError, notFound } from "./http.ts";
+import { ConflictError, HttpError, notFound } from "./http.ts";
 
 /** Automatic versions (autosave, export, before-restore) kept per project; named versions are never pruned. */
 export const VERSIONS_KEPT = 50;
+/** Named versions a project may keep; they are never pruned, so they are capped instead. */
+export const NAMED_VERSIONS_MAX = 50;
+/** Automatic versions listed; named ones are always listed in full. */
 const LIST_LIMIT = 100;
 
 export type VersionKind = "auto" | "export" | "restore" | "named";
@@ -42,12 +45,17 @@ export async function pruneVersions(tx: Db, workspaceId: string, projectId: stri
         where j.project_id = ${projectId} and j.status in ('queued', 'running') and j.input->>'versionId' = pv.id::text)`);
 }
 
+/** Every named version plus the newest LIST_LIMIT others, newest first, so a named version never drops off the list. */
 export async function listVersions(ctx: Ctx, projectId: string): Promise<VersionSummary[]> {
   await ownProject(ctx, projectId);
-  const rows = await db.select(summary).from(v).leftJoin(authUsers, eq(authUsers.id, v.createdBy))
-    .where(and(eq(v.projectId, projectId), eq(v.workspaceId, ctx.workspaceId)))
-    .orderBy(desc(v.createdAt), desc(v.id)).limit(LIST_LIMIT);
-  return rows as VersionSummary[];
+  const mine = and(eq(v.projectId, projectId), eq(v.workspaceId, ctx.workspaceId));
+  const query = () => db.select(summary).from(v).leftJoin(authUsers, eq(authUsers.id, v.createdBy));
+  const [named, others] = await Promise.all([
+    query().where(and(mine, eq(v.kind, "named"))).orderBy(desc(v.createdAt), desc(v.id)).limit(NAMED_VERSIONS_MAX),
+    query().where(and(mine, ne(v.kind, "named"))).orderBy(desc(v.createdAt), desc(v.id)).limit(LIST_LIMIT),
+  ]);
+  return ([...named, ...others] as VersionSummary[])
+    .sort((a, b) => +b.createdAt - +a.createdAt || (b.id < a.id ? -1 : b.id > a.id ? 1 : 0));
 }
 
 export async function getVersion(ctx: Ctx, projectId: string, versionId: string): Promise<VersionSummary & { doc: ChitrapxDoc }> {
@@ -62,13 +70,23 @@ export async function getVersion(ctx: Ctx, projectId: string, versionId: string)
 
 const namedInput = z.object({ label: z.string().trim().min(1).max(80) });
 
-/** Saves the project's current saved document as a named version (never pruned). */
+/** Saves the project's current saved document as a named version (never pruned, at most NAMED_VERSIONS_MAX per project). */
 export async function saveNamedVersion(ctx: Ctx, projectId: string, raw: unknown): Promise<VersionSummary> {
   const { label } = namedInput.parse(raw);
-  const p = await ownProject(ctx, projectId);
-  const [row] = await db.insert(v).values({ workspaceId: ctx.workspaceId, projectId, revision: p.revision, doc: p.doc, kind: "named", label, createdBy: ctx.userId })
-    .returning({ id: v.id, revision: v.revision, kind: v.kind, label: v.label, createdAt: v.createdAt });
-  return { ...(row as Omit<VersionSummary, "author">), author: null };
+  uuid(projectId);
+  return withTx(async ({ db: tx }) => {
+    // The row lock serialises concurrent saves, so the cap holds.
+    const [p] = await tx.select({ revision: schema.projects.revision, doc: schema.projects.doc }).from(schema.projects)
+      .where(and(eq(schema.projects.id, projectId), eq(schema.projects.workspaceId, ctx.workspaceId))).for("update");
+    if (!p) throw notFound();
+    const [{ n }] = (await tx.select({ n: count() }).from(v).where(and(eq(v.projectId, projectId), eq(v.kind, "named")))) as [{ n: number }];
+    if (n >= NAMED_VERSIONS_MAX) {
+      throw new HttpError(409, "named_limit", `You can keep ${NAMED_VERSIONS_MAX} named versions per project. Automatic versions are still kept for you.`);
+    }
+    const [row] = await tx.insert(v).values({ workspaceId: ctx.workspaceId, projectId, revision: p.revision, doc: p.doc, kind: "named", label, createdBy: ctx.userId })
+      .returning({ id: v.id, revision: v.revision, kind: v.kind, label: v.label, createdAt: v.createdAt });
+    return { ...(row as Omit<VersionSummary, "author">), author: null };
+  });
 }
 
 const restoreInput = z.object({ revision: z.number().int().min(0) });
