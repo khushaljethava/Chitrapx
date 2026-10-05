@@ -24,3 +24,4 @@ export * from "./brief.ts";
 export * from "./presets.ts";
 export * from "./hash.ts";
 export * from "./translations.ts";
+export * from "./translationFiles.ts";
