@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MAX_BOARD_EDGE, statusBarSpec } from "@chitrapx/document";
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
 import { ALL_FONTS } from "@chitrapx/renderer";
@@ -23,6 +23,22 @@ const POSES = (["classic", "front", "upright", "side", "tilted", "reclined", "la
 /** Every element type's fields, optional: the inspector shows only the ones that apply. */
 type AnyFields = Partial<Omit<TextElementProps, "type"> & Omit<ShapeElementProps, "type" | "borderRadius"> & Omit<DeviceFrameElementProps, "type"> & Omit<ImageElementProps, "type" | "opacity" | "borderRadius">>
   & { borderRadius?: number | string; showStatusBar?: boolean; statusBarPlatform?: "ios" | "android"; statusBarTheme?: "light" | "dark"; statusBarBg?: "transparent" | "solid"; statusBarColor?: string; statusBarTime?: string; styleType?: string; deviceType?: string };
+
+/** Free text is applied only once it is a time the document accepts, so a half-typed value never breaks saving; an invalid one reverts on blur. */
+function TimeField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const g = useGesture();
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const valid = /^\d{1,2}:\d{2}$/.test(text);
+  return (
+    <Row label="Time" htmlFor="i-sb-time">
+      <input id="i-sb-time" className={`input ${valid ? "" : "border-red-500"}`} aria-invalid={!valid} value={text} maxLength={5}
+        onChange={(e) => { setText(e.target.value); if (/^\d{1,2}:\d{2}$/.test(e.target.value)) onChange(e.target.value); }}
+        onFocus={g.onFocus} onBlur={() => { if (!valid) setText(value); g.onBlur(); }} />
+      {!valid && <p className="text-xs text-neutral-500">Use H:MM, for example 9:41.</p>}
+    </Row>
+  );
+}
 
 /** Sizes the document accepts: at least 8 px, at most the largest board edge. */
 const clampEdge = (v: number) => Math.min(MAX_BOARD_EDGE, Math.max(8, v));
@@ -184,10 +200,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
                     <SelectField id="i-sb-platform" label="Style" value={a.statusBarPlatform ?? spec.platform} options={[["ios", "iOS"], ["android", "Android"]] as const} onChange={(v) => set({ statusBarPlatform: v })} />
                     <SelectField id="i-sb-theme" label="Icons" value={a.statusBarTheme ?? "dark"} options={[["dark", "Dark"], ["light", "Light"]] as const} onChange={(v) => set({ statusBarTheme: v })} />
                     <SelectField id="i-sb-bg" label="Background" value={a.statusBarBg ?? "transparent"} options={[["transparent", "Transparent"], ["solid", "Solid"]] as const} onChange={(v) => set({ statusBarBg: v })} />
-                    <Row label="Time" htmlFor="i-sb-time">
-                      <input id="i-sb-time" className="input" value={a.statusBarTime ?? "9:41"} maxLength={5} {...g}
-                        onChange={(e) => { if (/^\d{0,2}:?\d{0,2}$/.test(e.target.value)) set({ statusBarTime: e.target.value }); }} />
-                    </Row>
+                    <TimeField value={a.statusBarTime ?? "9:41"} onChange={(v) => set({ statusBarTime: v })} />
                     {a.statusBarBg === "solid" && <ColorField id="i-sb-color" label="Bar colour" value={a.statusBarColor ?? "#ffffff"} onChange={(v) => set({ statusBarColor: v })} />}
                   </div>
                 )}

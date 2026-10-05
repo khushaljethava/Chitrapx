@@ -399,7 +399,7 @@ export function DeviceFrameElement({ element, onUpdate, isSelected, videoSrc, vi
                   top: `${element.screenshotRect.top + solidShift}%`,
                   left: `${element.screenshotRect.left}%`,
                   width: `${element.screenshotRect.width}%`,
-                  height: `${element.screenshotRect.height}%`,
+                  height: `${element.screenshotRect.height - solidShift}%`,
                   overflow: 'hidden',
                   display: 'flex',
                   justifyContent: 'center',
