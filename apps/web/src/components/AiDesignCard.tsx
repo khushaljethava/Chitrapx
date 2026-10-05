@@ -75,6 +75,7 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
           <input id="ai-keywords" className="input" placeholder="comma, separated" value={form.keywords} onChange={(e) => set({ keywords: e.target.value })} />
         </div>
       </div>
+      {saved.competitor && <p className="text-xs text-neutral-500">Competitor notes from your reference board are included.</p>}
       <div className="flex items-center gap-3">
         <button className="btn" onClick={start} disabled={busy || screenshotCount === 0}>{busy ? "Starting" : "Design with AI (10 credits)"}</button>
         {screenshotCount === 0 && <span className="text-sm text-neutral-500">Upload screenshots below first.</span>}

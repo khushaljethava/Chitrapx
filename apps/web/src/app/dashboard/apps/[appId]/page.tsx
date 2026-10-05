@@ -10,16 +10,17 @@ import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { listProjects } from "@/server/projects.ts";
 import { appStorage } from "@/server/storage.ts";
-import { listAssets } from "@/server/uploads.ts";
+import { listAssets, listReferences } from "@/server/uploads.ts";
 import { listFonts } from "@/server/fonts.ts";
 import { UploadGrid } from "@/components/UploadGrid.tsx";
 import { AiDesignCard } from "@/components/AiDesignCard.tsx";
+import { ReferenceBoard } from "@/components/ReferenceBoard.tsx";
 
 export default async function AppPage({ params }: { params: Promise<{ appId: string }> }) {
   const ctx = await requireContext();
   const { appId } = await params;
   const app = await getApp(ctx, appId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const [projects, assets, fonts] = await Promise.all([listProjects(ctx, app.id), listAssets(ctx, appStorage(), app.id), listFonts(ctx, appStorage())]);
+  const [projects, assets, fonts, references] = await Promise.all([listProjects(ctx, app.id), listAssets(ctx, appStorage(), app.id), listFonts(ctx, appStorage()), listReferences(ctx, appStorage(), app.id)]);
   return (
     <>
       <div className="flex items-center justify-between">
@@ -33,6 +34,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
         </div>
       </div>
       <AiDesignCard appId={app.id} screenshotCount={assets.filter((a) => a.kind === "screenshot").length} brief={app.brief} />
+      <ReferenceBoard appId={app.id} rows={references.map(({ id, url, insight }) => ({ id, url, insight }))} summary={app.brief.competitor ?? ""} />
       <ProjectList appId={app.id} projects={projects.map(({ id, name, kind, updatedAt }) => ({ id, name, kind, updatedAt: updatedAt.toISOString() }))} maxProjects={PLANS[ctx.plan].maxProjects} />
       <UploadGrid appId={app.id} logoAssetId={app.brand.logoAssetId} assets={assets.filter((a) => a.kind !== "recording").map(({ id, url, width, height }) => ({ id, url, width, height }))} />
       <UploadGrid appId={app.id} kind="recording" assets={assets.filter((a) => a.kind === "recording").map(({ id, url, width, height, meta }) => ({ id, url, width, height, pending: !meta?.ready && !meta?.error, error: meta?.error }))} />
