@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { startAiDesign, startChips, startCopyVariants, startTranslate } from "@/server/ai.ts";
+import { startAiDesign, startChips, startCopyVariants, startReferenceAnalysis, startTranslate } from "@/server/ai.ts";
 import { createApp, getApp } from "@/server/apps.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createProject, listProjects } from "@/server/projects.ts";
@@ -131,5 +131,37 @@ describe("chips (SP11)", () => {
     const fg = await createProject(s.ctx, s.app.id, { name: "F", templateSlug: "fg-habit-tracker" });
     await startChips(s.ctx, boss, fg.id);
     expect(await balance(db, s.ctx.workspaceId)).toBe(4);
+  });
+});
+
+describe("competitor analysis (SP11)", () => {
+  async function references(s: Awaited<ReturnType<typeof setup>>, n: number, analysed: number) {
+    const ids: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const hash = crypto.randomUUID().replace(/-/g, "").padEnd(64, "r");
+      const [a] = await db.insert(schema.assets).values({ workspaceId: s.ctx.workspaceId, appId: s.app.id, kind: "reference", storagePath: "p", mime: "image/png", bytes: 1, sha256: hash }).returning();
+      ids.push(a!.id);
+      if (i < analysed) await db.insert(schema.referenceInsights).values({ workspaceId: s.ctx.workspaceId, assetId: a!.id, insight: {}, model: "m" });
+    }
+    return ids;
+  }
+  const inputOf = async (jobId: string) => (await db.select().from(schema.jobs).where(eq(schema.jobs.id, jobId)))[0]!.input;
+
+  it("charges one credit per image not yet analysed; nothing on the board is refused", async () => {
+    const s = await setup(5, 0);
+    await expect(startReferenceAnalysis(s.ctx, boss, s.app.id)).rejects.toMatchObject({ code: "no_references" });
+    const ids = await references(s, 3, 1);
+    const { jobId } = await startReferenceAnalysis(s.ctx, boss, s.app.id);
+    expect(await inputOf(jobId)).toEqual({ appId: s.app.id, uncached: [ids[1], ids[2]] });
+    expect(await balance(db, s.ctx.workspaceId)).toBe(3);
+  });
+
+  it("a run with everything analysed is free but counts toward the hourly free allowance", async () => {
+    const s = await setup(0, 0);
+    await references(s, 1, 1);
+    await startReferenceAnalysis(s.ctx, boss, s.app.id);
+    expect(await balance(db, s.ctx.workspaceId)).toBe(0);
+    for (let i = 0; i < 29; i++) await db.insert(schema.jobs).values({ workspaceId: s.ctx.workspaceId, type: "export_single", creditsReserved: 0 });
+    await expect(startReferenceAnalysis(s.ctx, boss, s.app.id)).rejects.toMatchObject({ status: 429, code: "rate_limited" });
   });
 });

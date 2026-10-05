@@ -5,7 +5,7 @@ import { balance, db, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { allTexts, migrate, textSlots, type ChitrapxDoc } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { runAiChips, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
+import { runAiChips, runAiCopy, runAiDesign, runAiReference, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
 import type { StructuredModel, StructuredRequest } from "../src/ai/model.ts";
 import { runJob } from "../src/runJob.ts";
 
@@ -356,5 +356,84 @@ describe("AI design for Google Play (SP11)", () => {
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
     expect(await balance(db, s.ws)).toBe(30);
+  });
+});
+
+describe("ai_reference (SP11)", () => {
+  const competitor = { headline: "Track every habit you have", benefit: "Never miss a day", layout: "Phone centred under a big headline", colourMood: "Bright teal", differentiate: "Nobody shows weekly reviews" };
+  async function references(s: Awaited<ReturnType<typeof setup>>, n: number) {
+    const ids: string[] = [];
+    for (let i = 0; i < n; i++) {
+      const hash = crypto.randomUUID().replace(/-/g, "").padEnd(64, "r");
+      const [a] = await db.insert(schema.assets).values({ workspaceId: s.ws, appId: s.app.id, kind: "reference", storagePath: `${s.ws}/${hash}`, mime: "image/png", bytes: png.length, sha256: hash }).returning();
+      ids.push(a!.id);
+    }
+    return ids;
+  }
+  const answer = (req: StructuredRequest<unknown>) => (req.model === "claude-haiku-4-5" ? competitor : { summary: "Rivals lead with streaks; stand apart with weekly reviews." });
+
+  it("charges once per new image, caches it, writes the summary into the brief, and re-runs free", async () => {
+    const s = await setup(0);
+    const ids = await references(s, 3);
+    const first = fakeModel(answer);
+    const jobId = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: ids }, 3);
+    await runJob(jobId, (input, job) => runAiReference(input, job, deps(first.model)));
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { analysed: 3, cached: 0 } });
+    expect(await balance(db, s.ws)).toBe(27);
+    expect(await db.select().from(schema.referenceInsights).where(eq(schema.referenceInsights.workspaceId, s.ws))).toHaveLength(3);
+    const [app] = await db.select().from(schema.apps).where(eq(schema.apps.id, s.app.id));
+    expect(app!.brief.competitor).toBe("Rivals lead with streaks; stand apart with weekly reviews.");
+    const summaryCall = first.calls.find((c) => c.model !== "claude-haiku-4-5")!;
+    expect((summaryCall.content[0] as { text: string }).text).not.toContain(competitor.headline);
+    expect((summaryCall.content[0] as { text: string }).text).toContain("Nobody shows weekly reviews");
+
+    const again = fakeModel(answer);
+    const job2 = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: [] }, 0);
+    await runJob(job2, (input, job) => runAiReference(input, job, deps(again.model)));
+    expect(await jobRow(job2)).toMatchObject({ status: "done", output: { analysed: 0, cached: 3 } });
+    expect(again.calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(0);
+    expect(await balance(db, s.ws)).toBe(27);
+  });
+
+  it("an AI design reads the competitor notes, never sees their headlines, and drops copy that repeats one", async () => {
+    const s = await setup(3);
+    const [ref] = await references(s, 1);
+    await db.insert(schema.referenceInsights).values({ workspaceId: s.ws, assetId: ref!, insight: competitor, model: "m" });
+    await db.update(schema.apps).set({ brief: { competitor: "Rivals lead with streaks." } }).where(eq(schema.apps.id, s.app.id));
+    const slots = await amouraSlots();
+    const { model, calls } = fakeModel((req) => {
+      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "" };
+      return { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x, k) => ({ id: x.id, text: i === 0 && k === 0 ? "Track every habit you have" : `Copy ${i}` })) })) };
+    });
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect((await jobRow(jobId)).status).toBe("done");
+    const copyText = (calls.find((c) => c.model !== "claude-haiku-4-5" && !c.cachedContext)!.content[0] as { text: string }).text;
+    expect(copyText).toContain("Competitor notes");
+    expect(copyText).toContain("Rivals lead with streaks.");
+    expect(copyText).not.toContain(competitor.headline);
+    const first = ((await projectRow(s.project.id)).doc as ChitrapxDoc).groups[0]!.boards[0]!.elements.find((e) => e.id === slots[0]![0]!.id) as unknown as { content: string };
+    expect(first.content).not.toBe("Track every habit you have");
+  });
+  it("feature graphic copy that repeats a competitor headline is dropped too (F4)", async () => {
+    const s = await setup(3, 30, "android");
+    const [ref] = await references(s, 1);
+    await db.insert(schema.referenceInsights).values({ workspaceId: s.ws, assetId: ref!, insight: competitor, model: "m" });
+    const slots = await amouraSlots();
+    const { model } = fakeModel((req) => {
+      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "", featureGraphicSlug: "fg-habit-tracker" };
+      return {
+        boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })),
+        featureGraphic: [{ id: "t108", text: "Track every habit you have" }],
+        features: ["Brew timer", "Recipes", "Bean log", "Grind guide"],
+      };
+    });
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect((await jobRow(jobId)).status).toBe("done");
+    const fg = ((await projectRow(s.project.id)).doc as ChitrapxDoc).groups[1]!;
+    expect((fg.boards[0]!.elements.find((e) => e.id === "fg-t108") as unknown as { content: string }).content).not.toBe("Track every habit you have");
   });
 });

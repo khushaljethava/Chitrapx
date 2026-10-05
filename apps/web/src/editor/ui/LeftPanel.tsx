@@ -147,7 +147,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
         </ol>
         {intake.progress && <p className="text-xs text-neutral-500">{intake.progress}</p>}
         {intake.errors.length > 0 && <ul className="error list-disc pl-4 text-xs" role="alert">{intake.errors.map((m, i) => <li key={i}>{m}</li>)}</ul>}
-        {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free downloads") ? " Use Export ZIP for full sets." : ""}</p>}
+        {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free jobs") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
 
       <LayersPanel />

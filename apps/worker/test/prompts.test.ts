@@ -56,4 +56,11 @@ describe("prompt builders (SP11)", () => {
     expect(p).toContain('Also answer "features": 4 to 6 feature chips');
     expect(copyPrompt(app, [], [], [], [])).not.toContain('"features"');
   });
+  it("competitor notes reach pick, copy, variants and chips as a labelled section, and are absent without them", () => {
+    const withNotes = { ...app, competitor: "Rivals lead with streaks." };
+    for (const p of [pickPrompt(withNotes, []), copyPrompt(withNotes, [], [], [], []), variantsPrompt(withNotes, []), chipsPrompt(withNotes, [], [])]) {
+      expect(p).toContain("Competitor notes (from screenshots the team uploaded; stand apart, never reuse their wording):\nRivals lead with streaks.");
+    }
+    expect(pickPrompt(app, [])).not.toContain("Competitor notes");
+  });
 });

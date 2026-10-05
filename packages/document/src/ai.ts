@@ -23,6 +23,23 @@ export const screenInsightSchema = z.object({
 
 /** SP11: competitor images per app's reference board; also the most `ai_reference` charges for at once. */
 export const MAX_REFERENCES_PER_APP = 10;
+
+export const competitorInsightSchema = z.object({
+  headline: z.string().describe("The screenshot's headline, verbatim"),
+  benefit: z.string().describe("The benefit it claims, in a few words"),
+  layout: z.string().describe("The layout pattern: device placement, text position, decoration"),
+  colourMood: z.string().describe("Colour mood in a few words"),
+  differentiate: z.string().describe("What a rival app could say or show differently or better"),
+});
+export type CompetitorInsight = z.infer<typeof competitorInsightSchema>;
+export const competitorSummarySchema = z.object({ summary: z.string().describe("3 to 6 plain sentences: the competitive angle") });
+
+const words = (s: string) => s.toLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+/** True when `text` repeats a competitor headline of three or more words, case, spacing and punctuation aside. */
+export function competitorEchoes(text: string, headlines: string[]): boolean {
+  const t = ` ${words(text)} `;
+  return headlines.some((h) => { const n = words(h); return n.split(" ").length >= 3 && t.includes(` ${n} `); });
+}
 export type ScreenInsight = z.infer<typeof screenInsightSchema>;
 
 export const templateChoiceSchema = z.object({

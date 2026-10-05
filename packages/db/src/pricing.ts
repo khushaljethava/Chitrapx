@@ -1,3 +1,5 @@
+import { MAX_REFERENCES_PER_APP } from "@chitrapx/document";
+
 /** Credits charged per job type. The only place prices are defined. */
 export const PRICES = {
   noop: 1,
@@ -11,6 +13,8 @@ export const PRICES = {
   ai_copy: 3,
   /** SP11: new feature chips for a project (free when AI design writes them). */
   ai_chips: 1,
+  /** SP11: per competitor image not yet analysed (at most MAX_REFERENCES_PER_APP per run). Cached images are free. */
+  ai_reference: 1,
   /** One App Preview or social video. */
   video: 3,
   /** Converting an uploaded screen recording for playback. Free. */
@@ -30,6 +34,10 @@ export function priceFor(type: JobType, input: unknown): number {
   if (type === "ai_translate") {
     const locales = (input as { locales?: unknown[] } | null)?.locales;
     return PRICES.ai_translate * Math.max(1, Array.isArray(locales) ? locales.length : 1);
+  }
+  if (type === "ai_reference") {
+    const uncached = (input as { uncached?: unknown[] } | null)?.uncached;
+    return PRICES.ai_reference * Math.min(MAX_REFERENCES_PER_APP, Array.isArray(uncached) ? uncached.length : 0);
   }
   return PRICES[type];
 }

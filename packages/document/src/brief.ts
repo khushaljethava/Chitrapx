@@ -33,6 +33,7 @@ export const briefSchema = z.object({
   audience: briefFields.audience.optional(),
   tone: briefFields.tone.optional(),
   keywords: briefFields.keywords.optional(),
+  competitor: z.string().trim().max(3000, "Keep the competitor notes under 3000 characters").optional(),
   preset: z.enum(PRESET_KEYS).or(z.literal("")).optional(),
 }).strict();
 

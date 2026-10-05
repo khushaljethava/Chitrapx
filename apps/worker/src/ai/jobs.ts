@@ -1,19 +1,19 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  aiChips, allTexts, applyChips, applyDesign, applyTranslations, CHIP_MIN, chipsPlanSchema, hasChips, withFeatureGraphic, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
+  aiChips, allTexts, applyChips, competitorEchoes, competitorInsightSchema, competitorSummarySchema, MAX_REFERENCES_PER_APP, applyDesign, applyTranslations, CHIP_MIN, chipsPlanSchema, hasChips, withFeatureGraphic, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
-  type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
+  type CatalogEntry, type ChitrapxDoc, type CompetitorInsight, type ScreenInsight,
 } from "@chitrapx/document";
 import { FatalJobError, type FailureCleanup, type JobContext } from "../runJob.ts";
 import { imageBlock } from "./images.ts";
 import { MODELS, sumUsage, type StructuredModel, type Usage } from "./model.ts";
 import {
   ANALYZE_SYSTEM, catalogContext, COPY_SYSTEM, copyPrompt, PICK_SYSTEM, pickPrompt, translatePrompt, translateSystem,
-  VARIANTS_SYSTEM, variantsPrompt, appBrief, CHIPS_SYSTEM, chipsPrompt,
+  VARIANTS_SYSTEM, variantsPrompt, appBrief, CHIPS_SYSTEM, chipsPrompt, COMPETITOR_SUMMARY_SYSTEM, COMPETITOR_SYSTEM, competitorSummaryPrompt,
 } from "./prompts.ts";
 
 export type AiDeps = { model: StructuredModel; loadAsset: (workspaceId: string, sha256: string) => Promise<Buffer> };
@@ -126,14 +126,18 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   });
   usage.push(copy.usage);
   // Charging for a template full of sample copy would be wrong: most slots must be written.
+  // Copy that repeats a competitor's headline is dropped; it then counts as unwritten.
+  const headlines = await competitorHeadlines(job, app.id);
+  const boards = copy.data.boards.map((b) => ({ ...b, texts: b.texts.filter((t) => !competitorEchoes(t.text, headlines)) }));
   const slotIds = new Set(textSlots(templateDoc).flat().map((x) => x.id));
-  const written = new Set(copy.data.boards.flatMap((b) => b.texts.map((x) => x.id)).filter((id) => slotIds.has(id)));
+  const written = new Set(boards.flatMap((b) => b.texts.map((x) => x.id)).filter((id) => slotIds.has(id)));
   if (slotIds.size && written.size < slotIds.size * MIN_COVERAGE) throw new FatalJobError("ai_incomplete");
   const chips = aiChips(copy.data.features ?? []);
   if (wantChips && chips.length < CHIP_MIN) throw new FatalJobError("ai_incomplete");
 
-  let designed = applyDesign(templateDoc, { screenshotOrder: order, boards: copy.data.boards }, assets.map((a) => a.id));
-  if (fgDoc) designed = withFeatureGraphic(designed, fgDoc, copy.data.featureGraphic ?? []);
+  let designed = applyDesign(templateDoc, { screenshotOrder: order, boards }, assets.map((a) => a.id));
+  // The feature graphic's copy is held to the same rule (F4).
+  if (fgDoc) designed = withFeatureGraphic(designed, fgDoc, (copy.data.featureGraphic ?? []).filter((t) => !competitorEchoes(t.text, headlines)));
   if (wantChips) designed = applyChips(designed, chips);
   await updateProjectDoc(job, () => ({ ...designed, brand: { appId: app.id } }));
   return { actual: PRICES.ai_design, output: { templateSlug: template.slug, featureGraphicSlug: fgSlug, reasoning: pick.data.reasoning, usage: sumUsage(usage) } };
@@ -219,4 +223,55 @@ export async function runAiChips(_raw: unknown, job: JobContext, deps: AiDeps) {
   if (chips.length < CHIP_MIN) throw new FatalJobError("ai_incomplete");
   await updateProjectDoc(job, (current) => applyChips(current, chips));
   return { actual: PRICES.ai_chips, output: { chips, usage: sumUsage([usage]) } };
+}
+
+/** Headlines of the app's analysed competitor images, which design copy must never repeat. */
+async function competitorHeadlines(job: JobContext, appId: string): Promise<string[]> {
+  const rows = await db.select({ insight: schema.referenceInsights.insight }).from(schema.referenceInsights)
+    .innerJoin(schema.assets, eq(schema.assets.id, schema.referenceInsights.assetId))
+    .where(and(eq(schema.referenceInsights.workspaceId, job.workspaceId), eq(schema.assets.appId, appId)));
+  return rows.flatMap((r) => { const p = competitorInsightSchema.safeParse(r.insight); return p.success ? [p.data.headline] : []; });
+}
+
+const referenceInput = z.object({ appId: z.uuid(), uncached: z.array(z.uuid()).max(MAX_REFERENCES_PER_APP).default([]) });
+
+/** Analyses each competitor image once (cached per image), then writes one competitive angle into the app's brief. */
+export async function runAiReference(raw: unknown, job: JobContext, deps: AiDeps) {
+  const input = referenceInput.safeParse(raw);
+  if (!input.success) throw new FatalJobError("invalid_input");
+  const app = await loadApp(job, input.data.appId);
+  const refs = await db.select({ asset: schema.assets, insight: schema.referenceInsights.insight }).from(schema.assets)
+    .leftJoin(schema.referenceInsights, eq(schema.referenceInsights.assetId, schema.assets.id))
+    .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.appId, app.id), eq(schema.assets.kind, "reference")))
+    .orderBy(asc(schema.assets.createdAt)).limit(MAX_REFERENCES_PER_APP);
+  if (!refs.length) throw new FatalJobError("no_references");
+  // Only images this job was paid for are analysed; one uploaded after it was queued waits for the next run.
+  const paid = new Set(input.data.uncached);
+  const usage: Usage[] = [];
+  const insights: CompetitorInsight[] = [];
+  let analysed = 0;
+  for (const r of refs) {
+    const cached = competitorInsightSchema.safeParse(r.insight);
+    if (cached.success) { insights.push(cached.data); continue; }
+    if (!paid.has(r.asset.id)) continue;
+    const image = await imageBlock(await deps.loadAsset(job.workspaceId, r.asset.sha256));
+    const { data, usage: u } = await deps.model.generate({
+      model: MODELS.fast, system: COMPETITOR_SYSTEM, schema: competitorInsightSchema, maxTokens: 2000,
+      content: [image, { type: "text", text: "Describe this competitor screenshot." }],
+    });
+    usage.push(u);
+    analysed++;
+    await db.insert(schema.referenceInsights).values({ workspaceId: job.workspaceId, assetId: r.asset.id, insight: data, model: u.model })
+      .onConflictDoUpdate({ target: schema.referenceInsights.assetId, set: { insight: data, model: u.model } });
+    insights.push(data);
+  }
+  if (!insights.length) throw new FatalJobError("ai_incomplete");
+  const { data: sum, usage: su } = await deps.model.generate({
+    model: MODELS.writer, system: COMPETITOR_SUMMARY_SYSTEM, schema: competitorSummarySchema, effort: "low",
+    content: [{ type: "text", text: competitorSummaryPrompt(app.name, insights) }],
+  });
+  usage.push(su);
+  const summary = sum.summary.trim().slice(0, 3000);
+  await db.execute(sql`update apps set brief = brief || jsonb_build_object('competitor', ${summary}::text) where id = ${app.id} and workspace_id = ${job.workspaceId}`);
+  return { actual: PRICES.ai_reference * analysed, output: { analysed, cached: insights.length - analysed, summary, usage: sumUsage(usage) } };
 }

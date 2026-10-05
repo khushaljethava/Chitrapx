@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyChips, applyDesign, applyTexts, applyTranslations, hash32, textSlots, withFeatureGraphic, type ChitrapxDoc } from "../src/index.ts";
+import { applyChips, applyDesign, competitorEchoes, applyTexts, applyTranslations, hash32, textSlots, withFeatureGraphic, type ChitrapxDoc } from "../src/index.ts";
 import { board, device, doc, group, text } from "./fixtures.ts";
 
 const tpl = () => doc([group([
@@ -132,4 +132,10 @@ describe("feature graphic for Play (SP11)", () => {
     expect(withFeatureGraphic(out, fg(), [])).toBe(out);
     expect(applyChips(out, ["Timer", "Recipes", "Log", "Guide"]).groups.at(-1)!.boards[0]!.elements[1]).toMatchObject({ chips: ["Timer", "Recipes", "Log", "Guide"] });
   });
+});
+
+it("competitorEchoes catches a repeated headline of three or more words, case and punctuation aside", () => {
+  expect(competitorEchoes("Track every habit you have!", ["track every habit you have"])).toBe(true);
+  expect(competitorEchoes("Build habits that stick", ["Track every habit you have"])).toBe(false);
+  expect(competitorEchoes("Fast. Private.", ["Fast"])).toBe(false);
 });

@@ -1,9 +1,10 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, asc, count, eq } from "drizzle-orm";
 import type { PgBoss } from "pg-boss";
 import { z } from "zod";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { allTexts, briefFields, briefText, hasChips, LOCALE_CODE, PRESET_KEYS, type AppBriefFields, type ChitrapxDoc } from "@chitrapx/document";
+import { allTexts, briefFields, briefText, hasChips, LOCALE_CODE, MAX_REFERENCES_PER_APP, PRESET_KEYS, type AppBriefFields, type ChitrapxDoc } from "@chitrapx/document";
 import { getApp, updateApp } from "./apps.ts";
+import { assertFreeQuota } from "./jobs.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest } from "./http.ts";
 import { createProject, deleteProject, getProject } from "./projects.ts";
@@ -84,4 +85,19 @@ export async function startChips(ctx: Ctx, boss: PgBoss, projectId: string) {
   const project = await getProject(ctx, projectId);
   if (!hasChips(project.doc)) throw badRequest("no_chips");
   return enqueue(ctx, boss, project.id, "ai_chips", {});
+}
+
+/** Analyses the app's competitor board: 1 credit per image not yet analysed; a run with nothing new is free but rate-limited. */
+export async function startReferenceAnalysis(ctx: Ctx, boss: PgBoss, appId: string) {
+  const app = await getApp(ctx, appId);
+  const refs = await db.select({ id: schema.assets.id, insight: schema.referenceInsights.id }).from(schema.assets)
+    .leftJoin(schema.referenceInsights, eq(schema.referenceInsights.assetId, schema.assets.id))
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, app.id), eq(schema.assets.kind, "reference")))
+    .orderBy(asc(schema.assets.createdAt)).limit(MAX_REFERENCES_PER_APP);
+  if (!refs.length) throw badRequest("no_references");
+  const uncached = refs.filter((r) => !r.insight).map((r) => r.id);
+  return withTx(async (tx) => {
+    await assertFreeQuota(tx, ctx.workspaceId);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "ai_reference", input: { appId: app.id, uncached } });
+  });
 }

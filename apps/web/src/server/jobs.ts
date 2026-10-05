@@ -32,7 +32,7 @@ const exportBody = z.preprocess((v) => (v && typeof v === "object" && !Array.isA
 ]));
 
 export const FREE_JOBS_PER_HOUR = 30;
-export const FREE_JOBS = ["export_single", "project_bundle", "project_import"];
+export const FREE_JOBS = ["export_single", "project_bundle", "project_import", "ai_reference"];
 
 /** Free downloads and imports share an hourly allowance per workspace. Call inside the enqueue transaction. */
 export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void> {
@@ -41,7 +41,7 @@ export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void
     eq(schema.jobs.workspaceId, workspaceId), inArray(schema.jobs.type, FREE_JOBS),
     gt(schema.jobs.createdAt, sql`now() - interval '1 hour'`),
   ))) as [{ n: number }];
-  if (n >= FREE_JOBS_PER_HOUR) throw new HttpError(429, "rate_limited", `Free downloads are limited to ${FREE_JOBS_PER_HOUR} per hour.`);
+  if (n >= FREE_JOBS_PER_HOUR) throw new HttpError(429, "rate_limited", `Free jobs are limited to ${FREE_JOBS_PER_HOUR} per hour.`);
 }
 
 /** The version row exports read, so later edits never change a queued export. One per revision. */

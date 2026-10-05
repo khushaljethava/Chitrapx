@@ -1,4 +1,4 @@
-import { briefText, CATEGORY_BANKS, presetFor, type AppBriefFields, type CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
+import { briefText, CATEGORY_BANKS, presetFor, type AppBriefFields, type CompetitorInsight, type CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
 
 export type AppBrief = {
   name: string;
@@ -8,6 +8,8 @@ export type AppBrief = {
   brand: { primaryColor?: string; secondaryColor?: string; palette?: ReadonlyArray<{ token: string; color: string }> };
   /** SP11: a preset key; the vertical steers voice and examples. */
   preset?: string;
+  /** SP11: the editable summary of the competitor board; never their headlines. */
+  competitor?: string;
 };
 
 /** The parts of an apps row every prompt reads. */
@@ -18,6 +20,7 @@ export function appBrief(app: AppRow, submitted: { brief?: string; preset?: stri
   return {
     name: app.name, description: app.description, platform: app.platformHint, brief: submitted.brief ?? briefText(app.brief), brand: app.brand,
     preset: submitted.preset ?? (app.brief.preset || undefined),
+    competitor: app.brief.competitor?.trim() || undefined,
   };
 }
 
@@ -54,7 +57,7 @@ export function pickPrompt(app: AppBrief, insights: ScreenInsight[], featureGrap
     : "";
   return `App: ${app.name} (${app.platform})
 Description: ${app.description || "(none)"}
-Brief from the team: ${app.brief || "(none)"}${verticalLines(app)}
+Brief from the team: ${app.brief || "(none)"}${verticalLines(app)}${competitorLines(app)}
 Brand colours: ${colours || "(none)"}${suggested}
 
 Screenshots, by index:
@@ -76,7 +79,7 @@ export function copyPrompt(app: AppBrief, insights: ScreenInsight[], order: numb
     : "";
   return `App: ${app.name}
 Description: ${app.description || "(none)"}
-Brief: ${app.brief || "(none)"}${verticalLines(app)}
+Brief: ${app.brief || "(none)"}${verticalLines(app)}${competitorLines(app)}
 
 Boards in order, with the screenshots each one shows.
 ${slots.map((board, i) => {
@@ -96,8 +99,8 @@ export const VARIANTS_SYSTEM = `You rewrite App Store screenshot copy in three t
 ${STYLE}
 Keep each slot's role and roughly its length. Return all three tones, each with text for every id.`;
 
-export const variantsPrompt = (app: Pick<AppBrief, "name" | "brief">, texts: SlotText[]) =>
-  `App: ${app.name}\nBrief: ${app.brief || "(none)"}\nCurrent copy (id and text):\n${JSON.stringify(texts)}`;
+export const variantsPrompt = (app: Pick<AppBrief, "name" | "brief" | "competitor">, texts: SlotText[]) =>
+  `App: ${app.name}\nBrief: ${app.brief || "(none)"}${competitorLines(app)}\nCurrent copy (id and text):\n${JSON.stringify(texts)}`;
 
 export const CHIPS_SYSTEM = `You write the feature chips for a Google Play feature graphic: 4 to 6 short pills naming concrete features a shopper looks for, most important first. Each chip is one or two words and at most 16 characters. No duplicates, no end punctuation, no emoji, no claims such as "best" or "#1". Use the app's own vocabulary.`;
 
@@ -110,11 +113,27 @@ export function chipExamples(app: Pick<AppBrief, "preset">): string {
 export function chipsPrompt(app: AppBrief, insights: ScreenInsight[], texts: SlotText[]): string {
   return `App: ${app.name}
 Description: ${app.description || "(none)"}
-Brief: ${app.brief || "(none)"}${verticalLines(app)}${chipExamples(app)}
+Brief: ${app.brief || "(none)"}${verticalLines(app)}${competitorLines(app)}${chipExamples(app)}
 
 What the screenshots show:
 ${insights.length ? insights.map((s) => `- ${s.feature}: ${s.summary}`).join("\n") : "(no screenshot notes)"}
 
 Current screenshot copy:
 ${JSON.stringify(texts)}`;
+}
+
+/** The competitor board's summary as a labelled section. Empty without one. */
+export const competitorLines = (app: Pick<AppBrief, "competitor">) => app.competitor?.trim()
+  ? `\nCompetitor notes (from screenshots the team uploaded; stand apart, never reuse their wording):\n${app.competitor.trim()}`
+  : "";
+
+export const COMPETITOR_SYSTEM = `You look at one screenshot from a competing app's store listing and describe it for a team positioning their own app. Quote the headline exactly as printed. Be specific and factual; do not guess at features that are not visible.`;
+
+export const COMPETITOR_SUMMARY_SYSTEM = `You turn notes on competitors' store screenshots into one competitive angle for a team writing their own screenshots: the messaging angles competitors lean on, the layouts that repeat, and two or three specific ways to stand apart. Write 3 to 6 plain sentences. Never quote a competitor or reuse their phrases.`;
+
+/** Everything but the headlines, so the summary cannot quote one. */
+export function competitorSummaryPrompt(appName: string, insights: CompetitorInsight[]): string {
+  return `Our app: ${appName}
+Competitor screenshots:
+${insights.map((c, i) => `${i + 1}. Claims: ${c.benefit}. Layout: ${c.layout}. Mood: ${c.colourMood}. Gap: ${c.differentiate}.`).join("\n")}`;
 }

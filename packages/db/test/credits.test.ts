@@ -81,6 +81,9 @@ describe("priceFor", () => {
     const { priceFor } = await import("../src/pricing.ts");
     expect(priceFor("ai_translate", { locales: ["de-DE", "fr-FR"] })).toBe(4);
     expect(priceFor("ai_chips", {})).toBe(1);
+    expect(priceFor("ai_reference", { uncached: ["a", "b", "c"] })).toBe(3);
+    expect(priceFor("ai_reference", { uncached: Array.from({ length: 14 }, (_, i) => `${i}`) })).toBe(10);
+    expect(priceFor("ai_reference", { uncached: [] })).toBe(0);
     expect(priceFor("ai_translate", {})).toBe(2);
     expect(priceFor("ai_design", { anything: 1 })).toBe(10);
   });
