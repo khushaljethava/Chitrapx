@@ -40,8 +40,31 @@ try {
 
 type Raw = { ok: false } | { ok: true; family: string; subfamily: string; weight: number; italicFlag: boolean; restricted: boolean };
 
-/** Family, weight and style of an uploaded font. Throws FontRejected("font_unreadable") on any failure or after `timeoutMs`. */
-export async function parseFont(bytes: Uint8Array, format: FontFormat, opts: { timeoutMs?: number } = {}): Promise<ParsedFont> {
+/** Runs at most `max` calls of `fn` at once; the rest wait their turn in order. */
+export function limiter(max: number) {
+  let active = 0;
+  const waiting: Array<() => void> = [];
+  return async <T>(fn: () => Promise<T>): Promise<T> => {
+    if (active < max) active++;
+    else await new Promise<void>((r) => waiting.push(r)); // the releasing call hands its slot straight over
+    try { return await fn(); }
+    finally { const next = waiting.shift(); if (next) next(); else active--; }
+  };
+}
+
+// Each parse may take a 256 MB thread; two at a time bounds that per process.
+// ponytail: per-process cap, a shared queue if uploads move to many processes behind a heavy load
+const parseSlot = limiter(2);
+
+/**
+ * Family, weight and style of an uploaded font. Throws FontRejected("font_unreadable") on any failure or after
+ * `timeoutMs` (counted from when the parse starts, not while it waits for a slot).
+ */
+export function parseFont(bytes: Uint8Array, format: FontFormat, opts: { timeoutMs?: number } = {}): Promise<ParsedFont> {
+  return parseSlot(() => parseNow(bytes, format, opts));
+}
+
+async function parseNow(bytes: Uint8Array, format: FontFormat, opts: { timeoutMs?: number }): Promise<ParsedFont> {
   const worker = new Worker(WORKER_SOURCE, { eval: true, workerData: { fontkit: fontkitPath(), bytes }, resourceLimits: { maxOldGenerationSizeMb: 256 } });
   try {
     const raw = await new Promise<Raw>((resolve, reject) => {
