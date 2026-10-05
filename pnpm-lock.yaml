@@ -62,13 +62,7 @@ importers:
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@types/pg@8.23.1)(pg@8.23.1)
-      file-type:
-        specifier: ^22.1.1
-        version: 22.1.1
       fontkit:
-        specifier: ^2.0.4
-        version: 2.0.4
-      image-size:
         specifier: ^2.0.4
         version: 2.0.4
       immer:
