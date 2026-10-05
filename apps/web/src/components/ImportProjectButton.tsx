@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabase/browser.ts";
+import { putSigned } from "@/lib/uploadAsset.ts";
 import { api } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
 
@@ -19,9 +19,8 @@ export function ImportProjectButton({ appId }: { appId: string }) {
     setError("");
     setBusy(true);
     try {
-      const signed = await api<{ uploadId: string; path: string; token: string }>(`/api/apps/${appId}/imports/sign`, "POST", { size: file.size });
-      const { error: upErr } = await createClient().storage.from("uploads").uploadToSignedUrl(signed.path, signed.token, file, { contentType: "application/zip" });
-      if (upErr) throw new Error(upErr.message);
+      const signed = await api<{ uploadId: string; url: string; headers: Record<string, string> }>(`/api/apps/${appId}/imports/sign`, "POST", { size: file.size });
+      await putSigned(signed, file);
       const name = file.name.replace(/\.chitrapx$/i, "").slice(0, 120) || "Imported project";
       const { jobId } = await api<{ jobId: string }>(`/api/apps/${appId}/imports`, "POST", { uploadId: signed.uploadId, name });
       for (let i = 0; i < 900; i++) {

@@ -41,13 +41,15 @@ UPDATE_GOLDEN=1 pnpm --filter @chitrapx/worker test:e2e   # after an intended vi
 
 Three pieces, all reading the same environment variables (see `.env.example`).
 
+0. **Object storage** (AWS S3, Cloudflare R2 or any S3-compatible service)
+   - Set `S3_*` (see `.env.example`) on web and worker, then run `WEB_ORIGIN=<web origin> pnpm storage:setup` once.
+   - It creates both buckets, CORS for the web origin, a 1-day rule for `staging/` uploads and a 30-day rule for exports.
 1. **Supabase** (cloud project)
    - Run migrations: `DATABASE_URL=<session pooler URL> pnpm db:migrate`.
-   - Storage: private buckets `uploads` (25 MB file limit) and `exports` (500 MB).
    - Templates: `DATABASE_URL=... pnpm db:seed` after each release that changes `packages/assets/templates`.
    - Auth: set Site URL to the web origin, add `<origin>/auth/callback` to redirect URLs, enable the Google and GitHub providers.
-2. **Web** (Vercel): project root `apps/web`, install command `pnpm install`, env `DATABASE_URL` (transaction pooler URL), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET`. Leave `ENABLE_DEV_TOOLS` unset.
-3. **Worker** (Fly.io, Railway or any container host): `docker build -f apps/worker/Dockerfile .`, env `DATABASE_URL` (session pooler or direct URL, since pg-boss uses LISTEN/NOTIFY), `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET` (same value as the web app) and `WEB_ORIGIN`. It must run continuously; one instance processes 4 jobs per type at a time, add instances to scale.
+2. **Web** (Vercel): project root `apps/web`, install command `pnpm install`, env `DATABASE_URL` (transaction pooler URL), `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET`, `S3_*`. Leave `ENABLE_DEV_TOOLS` unset.
+3. **Worker** (Fly.io, Railway or any container host): `docker build -f apps/worker/Dockerfile .`, env `DATABASE_URL` (session pooler or direct URL, since pg-boss uses LISTEN/NOTIFY), `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RENDER_SECRET` (same value as the web app), `WEB_ORIGIN` and `S3_*`. It must run continuously; one instance processes 4 jobs per type at a time, add instances to scale.
 
 **SP8 (sizes and export)** needs no migration. Deploy the worker first, then web; export jobs already queued by the old worker or old browser tabs still run (web also creates the queues it sends to, idempotently).
 

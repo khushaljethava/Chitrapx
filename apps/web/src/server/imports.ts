@@ -24,7 +24,7 @@ export async function signImport(ctx: Ctx, storage: ObjectStorage, appId: string
   if (size > MAX_BUNDLE_BYTES) throw new HttpError(413, "too_large", "Project files can be up to 500 MB");
   await assertProjectRoom(ctx);
   const uploadId = randomUUID();
-  return { uploadId, ...(await storage.signUpload(stagingPath(ctx, uploadId))) };
+  return { uploadId, ...(await storage.presignPut(stagingPath(ctx, uploadId), { contentType: "application/zip", contentLength: size })) };
 }
 
 /** Free: the worker checks and imports the uploaded file. */

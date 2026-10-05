@@ -9,12 +9,12 @@ import { ProjectBoards } from "@/components/ProjectBoards.tsx";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { assetUrlMap, getProject } from "@/server/projects.ts";
-import { supabaseStorage } from "@/server/storage.ts";
+import { appStorage } from "@/server/storage.ts";
 
 export default async function ProjectPage({ params }: { params: Promise<{ projectId: string }> }) {
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const assetUrls = await assetUrlMap(ctx, supabaseStorage(), project.doc);
+  const assetUrls = await assetUrlMap(ctx, appStorage(), project.doc);
   return (
     <>
       <div>

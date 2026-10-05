@@ -5,8 +5,8 @@ import { db, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { createApp } from "@/server/apps.ts";
 import type { Ctx } from "@/server/context.ts";
-import type { ObjectStorage } from "@/server/storage.ts";
-import { completeUpload, listAssets, signUpload } from "@/server/uploads.ts";
+import { memoryStorage } from "@chitrapx/storage";
+import { completeUpload, listAssets, signUpload, stagingPath } from "@/server/uploads.ts";
 
 /** A valid w x h RGB PNG built from stdlib only. */
 function png(w: number, h: number): Buffer {
@@ -23,39 +23,15 @@ function png(w: number, h: number): Buffer {
 }
 const sha = (b: Buffer) => createHash("sha256").update(b).digest("hex");
 
-class MemoryStorage implements ObjectStorage {
-  files = new Map<string, Buffer>();
-  signed: string[] = [];
-  async signUpload(path: string) { this.signed.push(path); return { path, token: "t" }; }
-  async download(path: string) { const f = this.files.get(path); if (!f) throw new Error("missing"); return f; }
-  async remove(path: string) { this.files.delete(path); }
-  async move(from: string, to: string) {
-    const f = this.files.get(from);
-    if (!f || this.files.has(to)) throw new Error("move failed");
-    this.files.set(to, f); this.files.delete(from);
-  }
-  async signedUrls(paths: string[]) { return paths.map((p) => `mem://${p}`); }
-  async signedDownload(path: string) { return `mem://${path}`; }
-  /** Serves the file in 64 KB chunks and records how far the reader got. */
-  readBytes = 0;
-  async downloadStream(path: string) {
-    const f = this.files.get(path);
-    if (!f) throw new Error("missing");
-    let at = 0;
-    return new ReadableStream<Uint8Array>({
-      pull: (c) => {
-        if (at >= f.length) { c.close(); return; }
-        const chunk = f.subarray(at, at + 65536); at += chunk.length; this.readBytes = at; c.enqueue(chunk);
-      },
-    });
-  }
-}
-
 async function setup(plan: Ctx["plan"] = "free") {
   const user = await createUser();
   const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, plan), plan };
   const app = await createApp(ctx, { name: "A" });
-  return { ctx, app, storage: new MemoryStorage() };
+  return { ctx, app, storage: memoryStorage() };
+}
+/** What the browser does with the signed URL: put the bytes at the staging path. */
+async function stage(s: Awaited<ReturnType<typeof setup>>, signed: { uploadId: string }, bytes: Buffer) {
+  await s.storage.put(stagingPath(s.ctx, signed.uploadId), bytes, "application/octet-stream");
 }
 const status = (p: Promise<unknown>) => p.then(() => 200, (e: { status?: number }) => e.status ?? 500);
 
@@ -63,7 +39,7 @@ const status = (p: Promise<unknown>) => p.then(() => 200, (e: { status?: number 
 async function upload(s: Awaited<ReturnType<typeof setup>>, file: Buffer, appId = s.app.id) {
   const signed = await signUpload(s.ctx, s.storage, { appId, kind: "screenshot", size: file.length, mime: "image/png", sha256: sha(file) });
   if ("existing" in signed) return { signed, asset: signed.existing };
-  s.storage.files.set(signed.path, file);
+  await stage(s, signed, file);
   return { signed, asset: await completeUpload(s.ctx, s.storage, { appId, kind: "screenshot", sha256: sha(file), uploadId: signed.uploadId }) };
 }
 
@@ -72,11 +48,12 @@ describe("uploads", () => {
     const s = await setup();
     const file = png(3, 2);
     const { signed, asset } = await upload(s, file);
-    expect("uploadId" in signed && signed.path).toBe(`${s.ctx.workspaceId}/staging/${"uploadId" in signed ? signed.uploadId : ""}`);
+    expect("uploadId" in signed && signed.url).toBe(`memory://uploads/staging/${s.ctx.workspaceId}/${"uploadId" in signed ? signed.uploadId : ""}?put`);
     expect(asset).toMatchObject({ width: 3, height: 2, mime: "image/png", bytes: file.length, storagePath: `${s.ctx.workspaceId}/${sha(file)}` });
-    expect(s.storage.files.get(`${s.ctx.workspaceId}/${sha(file)}`)).toEqual(file);
-    expect(s.storage.signed.every((p) => p.includes("/staging/"))).toBe(true);
-    expect([...s.storage.files.keys()].some((k) => k.includes("/staging/"))).toBe(false);
+    expect(await s.storage.download(`${s.ctx.workspaceId}/${sha(file)}`)).toEqual(file);
+    expect(s.storage.types.get(`uploads/${s.ctx.workspaceId}/${sha(file)}`)).toBe("image/png");
+    expect(s.storage.signed.every((p) => p.startsWith("staging/"))).toBe(true);
+    expect([...s.storage.files.keys()].some((k) => k.includes("staging/"))).toBe(false);
   });
 
   it("re-uploading the same image returns the existing asset without a new upload", async () => {
@@ -113,7 +90,7 @@ describe("uploads", () => {
     const fake = Buffer.from("definitely not a png");
     const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", size: fake.length, mime: "image/png", sha256: sha(fake) });
     if (!("uploadId" in signed)) throw new Error("expected a token");
-    s.storage.files.set(signed.path, fake);
+    await stage(s, signed, fake);
     expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", sha256: sha(fake), uploadId: signed.uploadId }))).toBe(400);
     expect(s.storage.files.size).toBe(0);
   });
@@ -124,7 +101,7 @@ describe("uploads", () => {
     const claimed = "b".repeat(64);
     const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", size: file.length, mime: "image/png", sha256: claimed });
     if (!("uploadId" in signed)) throw new Error("expected a token");
-    s.storage.files.set(signed.path, file);
+    await stage(s, signed, file);
     expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", sha256: claimed, uploadId: signed.uploadId }))).toBe(400);
     expect(s.storage.files.size).toBe(0);
   });
@@ -134,7 +111,7 @@ describe("uploads", () => {
     const victim = randomUUID();
     await db.insert(schema.assets).values({ workspaceId: s.ctx.workspaceId, appId: s.app.id, kind: "image", storagePath: `${victim}/secret`, mime: "image/png", bytes: 1, sha256: "c".repeat(64) });
     const [row] = await listAssets(s.ctx, s.storage, s.app.id);
-    expect(row!.url).toBe(`mem://${s.ctx.workspaceId}/${"c".repeat(64)}`);
+    expect(row!.url).toBe(`memory://uploads/${s.ctx.workspaceId}/${"c".repeat(64)}`);
   });
 
   it("returns 404 for another workspace's app", async () => {
@@ -158,7 +135,7 @@ describe("streamed verification and recordings", () => {
     const file = mp4(3 * 1024 * 1024);
     const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: file.length, mime: "video/mp4", sha256: sha(file) });
     if (!("uploadId" in signed)) throw new Error("expected a token");
-    s.storage.files.set(signed.path, file);
+    await stage(s, signed, file);
     const asset = await completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", sha256: sha(file), uploadId: signed.uploadId });
     expect(asset).toMatchObject({ kind: "recording", mime: "video/mp4", bytes: file.length });
   });
@@ -169,7 +146,7 @@ describe("streamed verification and recordings", () => {
     const huge = Buffer.concat([big, Buffer.alloc(26 * 1024 * 1024)]);
     const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", size: 100, mime: "image/png", sha256: sha(huge) });
     if (!("uploadId" in signed)) throw new Error("expected a token");
-    s.storage.files.set(signed.path, huge);
+    await stage(s, signed, huge);
     expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "screenshot", sha256: sha(huge), uploadId: signed.uploadId }))).toBe(413);
     expect(s.storage.readBytes).toBeLessThan(26 * 1024 * 1024 + 70_000);
     expect(s.storage.files.size).toBe(0);
@@ -180,7 +157,7 @@ describe("streamed verification and recordings", () => {
     const fake = Buffer.from("not a video at all");
     const signed = await signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: fake.length, mime: "video/mp4", sha256: sha(fake) });
     if (!("uploadId" in signed)) throw new Error("expected a token");
-    s.storage.files.set(signed.path, fake);
+    await stage(s, signed, fake);
     expect(await status(completeUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", sha256: sha(fake), uploadId: signed.uploadId }))).toBe(400);
     expect(await status(signUpload(s.ctx, s.storage, { appId: s.app.id, kind: "recording", size: 600 * 1024 * 1024, mime: "video/mp4", sha256: "a".repeat(64) }))).toBe(413);
   });

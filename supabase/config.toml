@@ -118,15 +118,6 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-[storage.buckets.uploads]
-public = false
-# The largest accepted upload (screen recordings, 500 MB); smaller per-kind limits are enforced by the app.
-file_size_limit = "500MiB"
-
-[storage.buckets.exports]
-public = false
-file_size_limit = "500MiB"
-
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]
 # public = false

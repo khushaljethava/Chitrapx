@@ -9,7 +9,7 @@ import { getApp } from "@/server/apps.ts";
 import { requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { listProjects } from "@/server/projects.ts";
-import { supabaseStorage } from "@/server/storage.ts";
+import { appStorage } from "@/server/storage.ts";
 import { listAssets } from "@/server/uploads.ts";
 import { UploadGrid } from "@/components/UploadGrid.tsx";
 import { AiDesignCard } from "@/components/AiDesignCard.tsx";
@@ -18,7 +18,7 @@ export default async function AppPage({ params }: { params: Promise<{ appId: str
   const ctx = await requireContext();
   const { appId } = await params;
   const app = await getApp(ctx, appId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
-  const [projects, assets] = await Promise.all([listProjects(ctx, app.id), listAssets(ctx, supabaseStorage(), app.id)]);
+  const [projects, assets] = await Promise.all([listProjects(ctx, app.id), listAssets(ctx, appStorage(), app.id)]);
   return (
     <>
       <div className="flex items-center justify-between">

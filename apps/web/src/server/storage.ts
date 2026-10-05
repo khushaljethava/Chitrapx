@@ -1,61 +1,9 @@
-import { adminClient } from "@/lib/supabase/admin.ts";
+import { s3Storage, type ObjectStorage } from "@chitrapx/storage";
 
-/** The slice of object storage uploads need; Supabase in production, in-memory in tests. */
-export interface ObjectStorage {
-  signUpload(path: string): Promise<{ path: string; token: string }>;
-  download(path: string): Promise<Buffer>;
-  /** The object as a stream, so large files are never held in memory. */
-  downloadStream(path: string): Promise<ReadableStream<Uint8Array>>;
-  remove(path: string): Promise<void>;
-  /** Fails if `to` already exists. */
-  move(from: string, to: string): Promise<void>;
-  signedUrls(paths: string[]): Promise<string[]>;
-  /** A 5-minute link that downloads an export ZIP under `filename`. */
-  signedDownload(path: string, filename: string): Promise<string>;
-}
+export { EXPORTS_BUCKET, UPLOADS_BUCKET, type ObjectStorage } from "@chitrapx/storage";
 
-export const UPLOADS_BUCKET = "uploads";
-export const EXPORTS_BUCKET = "exports";
-
-export function supabaseStorage(): ObjectStorage {
-  const bucket = () => adminClient().storage.from(UPLOADS_BUCKET);
-  return {
-    async signUpload(path) {
-      // No upsert: a token can create its staging object once and never overwrite anything.
-      const { data, error } = await bucket().createSignedUploadUrl(path, { upsert: false });
-      if (error) throw error;
-      return { path: data.path, token: data.token };
-    },
-    async download(path) {
-      const { data, error } = await bucket().download(path);
-      if (error) throw error;
-      return Buffer.from(await data.arrayBuffer());
-    },
-    async downloadStream(path) {
-      const { data, error } = await bucket().createSignedUrl(path, 120);
-      if (error) throw error;
-      const res = await fetch(data.signedUrl);
-      if (!res.ok || !res.body) throw new Error(`download failed: ${res.status}`);
-      return res.body;
-    },
-    async remove(path) {
-      const { error } = await bucket().remove([path]);
-      if (error) throw error;
-    },
-    async move(from, to) {
-      const { error } = await bucket().move(from, to);
-      if (error) throw error;
-    },
-    async signedDownload(path, filename) {
-      const { data, error } = await adminClient().storage.from(EXPORTS_BUCKET).createSignedUrl(path, 300, { download: filename });
-      if (error) throw error;
-      return data.signedUrl;
-    },
-    async signedUrls(paths) {
-      if (!paths.length) return [];
-      const { data, error } = await bucket().createSignedUrls(paths, 3600);
-      if (error) throw error;
-      return data.map((d) => d.signedUrl ?? "");
-    },
-  };
+let shared: ObjectStorage | null = null;
+/** The app's object storage (S3, R2 or MinIO), built once per server process. */
+export function appStorage(): ObjectStorage {
+  return (shared ??= s3Storage());
 }
