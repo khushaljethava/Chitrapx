@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { foldCount, MAX_BOARD_EDGE, type ArtboardElement } from "@chitrapx/document";
-import { BoardView } from "@chitrapx/renderer";
+import { BoardView, mirrorsLocale } from "@chitrapx/renderer";
 import type { Ref } from "../commands.ts";
 import { useEditorAssets } from "../assets.tsx";
 import { useEditor, useEditorStore } from "../context.tsx";
@@ -91,6 +91,8 @@ export function Canvas() {
   /** Locked elements are drawn but the pointer passes through them. */
   const hittable = items.filter((it) => !it.el.locked);
   const single = selection.length === 1 ? items.find((it) => sameRef(it.ref, selection[0]!)) : undefined;
+  /** The hit boxes are drawn from base positions; in a mirrored view they would sit on the wrong side, so the view is preview-only. */
+  const mirrored = mirrorsLocale(doc.localization, locale);
 
   function startMove(e: React.PointerEvent, ref: Ref) {
     e.stopPropagation();
@@ -195,6 +197,11 @@ export function Canvas() {
         void files.then((list) => intake.dropFiles(list, { groupId, boardId: board.id, x: p.x - i * boardW, y: p.y, device: device?.ref }));
       }}>
       <div className="p-8" style={{ width: boardW * group.boards.length * zoom + 64 }}>
+        {mirrored && (
+          <p role="status" className="mb-2 inline-block rounded bg-amber-100 px-2 py-1 text-xs text-amber-900 dark:bg-amber-900 dark:text-amber-100">
+            Mirrored preview for {locale}. Switch to {doc.localization.baseLocale} to move or resize things; text and properties still edit here.
+          </p>
+        )}
         <div className="relative" style={{ width: boardW * group.boards.length * zoom, height: boardH * zoom }}>
           <div className="flex">
             {group.boards.map((b, i) => (
@@ -211,7 +218,7 @@ export function Canvas() {
             {group.boards.slice(1).map((b, i) => (
               <div key={b.id} className="pointer-events-none absolute top-0 h-full border-l border-dashed border-indigo-400/60" style={{ left: (i + 1) * boardW * zoom }} />
             ))}
-            {hittable.map(({ ref, el, offset }) => {
+            {!mirrored && hittable.map(({ ref, el, offset }) => {
               const b = boxOf(el, offset);
               const selected = selection.some((r) => sameRef(r, ref));
               return (
@@ -222,7 +229,7 @@ export function Canvas() {
                   style={{ left: b.x * zoom, top: b.y * zoom, width: b.w * zoom, height: b.h * zoom, transform: `rotate(${b.rotation}deg)` }} />
               );
             })}
-            {single && (() => {
+            {!mirrored && single && (() => {
               const b = boxOf(single.el, single.offset);
               return (
                 <div className="pointer-events-none absolute" style={{ left: b.x * zoom, top: b.y * zoom, width: b.w * zoom, height: b.h * zoom, transform: `rotate(${b.rotation}deg)` }}>

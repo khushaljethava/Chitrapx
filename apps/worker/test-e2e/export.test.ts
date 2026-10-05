@@ -376,6 +376,16 @@ async function singleBoardPng(ws: string, appId: string, doc: ChitrapxDoc) {
   return storage().download(`${ws}/${j}.png`, EXPORTS_BUCKET);
 }
 
+/** Board 0 of `doc` in `locale` as a single PNG. */
+async function localePng(ws: string, appId: string, doc: ChitrapxDoc, locale: string) {
+  const g = doc.groups[0]!;
+  const id = await newProject(ws, appId, doc);
+  const j = await pinnedExport(ws, id, { targets: [g.target], locales: [locale], board: { groupId: g.id, boardIndex: 0 } }, "export_single");
+  await runJob(j, (input, job) => runExport(input, job, "single"));
+  expect((await jobRow(j)).status).toBe("done");
+  return storage().download(`${ws}/${j}.png`, EXPORTS_BUCKET);
+}
+
 /** Uploads pacifico.woff2 as the workspace font "Pacifico (custom)". */
 async function installPacifico(ws: string) {
   const bytes = fixtureFont("pacifico.woff2");
@@ -451,5 +461,44 @@ describe("CarPlay (SP10)", () => {
     Object.assign(dev, { deviceType: "carplay", styleType: "normal", rotation: 0, position: { x: 64.5, y: 1049.7 }, size: { width: 1161, height: 696.6 }, scale: 1 });
     const { ws, appId } = await workspaceWithApp();
     compareGolden("carplay.png", await singleBoardPng(ws, appId, doc));
+  }, 180_000);
+});
+
+describe("right-to-left (SP11)", () => {
+  /** amoura's first headline written in `locale`. */
+  async function translated(locale: string, content: string, mirrorRtl: boolean, autoFont = true) {
+    const doc = await templateDoc("amoura-dating");
+    doc.localization = { baseLocale: "en-US", locales: [{ code: locale, ...(autoFont ? {} : { autoFont: false }) }], ...(mirrorRtl ? { mirrorRtl } : {}) };
+    const b0 = doc.groups[0]!.boards[0]!;
+    const id = b0.elements.find((e) => e.type === "text")!.id;
+    b0.localized = { [locale]: { [id]: { content } } };
+    return migrate(doc);
+  }
+  // A trailing question mark, digits and a Latin brand name inside Arabic text.
+  const AR = "هل أنت مستعد لـ Bloom؟ 2026";
+
+  it("Arabic renders in the Arabic face, mirrored only when the project asks", async () => {
+    const { ws, appId } = await workspaceWithApp();
+    const plain = await localePng(ws, appId, await translated("ar-SA", AR, false), "ar-SA");
+    const mirrored = await localePng(ws, appId, await translated("ar-SA", AR, true), "ar-SA");
+    compareGolden("rtl-ar.png", plain);
+    compareGolden("rtl-ar-mirrored.png", mirrored);
+    const a = PNG.sync.read(plain), b = PNG.sync.read(mirrored);
+    expect(pixelmatch(a.data, b.data, null, a.width, a.height, { threshold: 0.1 })).toBeGreaterThan(5000);
+    // Without the substituted face the browser falls back to whatever it has, so the glyphs must differ.
+    const fallback = PNG.sync.read(await localePng(ws, appId, await translated("ar-SA", AR, false, false), "ar-SA"));
+    expect(pixelmatch(a.data, fallback.data, null, a.width, a.height, { threshold: 0.1 })).toBeGreaterThan(500);
+  }, 300_000);
+
+  it("the base language of a mirrored project is pixel-identical", async () => {
+    const { ws, appId } = await workspaceWithApp();
+    const on = PNG.sync.read(await localePng(ws, appId, await translated("ar-SA", AR, true), "en-US"));
+    const off = PNG.sync.read(await localePng(ws, appId, await translated("ar-SA", AR, false), "en-US"));
+    expect(pixelmatch(on.data, off.data, null, on.width, on.height, { threshold: 0.1 })).toBe(0);
+  }, 240_000);
+
+  it("Hebrew matches its golden", async () => {
+    const { ws, appId } = await workspaceWithApp();
+    compareGolden("rtl-he.png", await localePng(ws, appId, await translated("he", "מוכנים ל-Bloom? 2026", false), "he"));
   }, 180_000);
 });

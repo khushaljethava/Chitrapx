@@ -24,6 +24,7 @@ export type Command =
   | { type: "updateBoard"; groupId: string; boardId: string; props: Partial<ArtboardState> }
   | { type: "setOverride"; ref: Ref; locale: string; props: Partial<ElementLocaleOverride> }
   | { type: "setTranslations"; writes: TranslationWrite[] }
+  | { type: "setMirrorRtl"; on: boolean }
   | { type: "setTextRich"; ref: Ref; locale?: string; content: string; marks: TextMark[] }
   | { type: "resetOverride"; ref: Ref; locale: string; keys: string[] }
   | { type: "setScreenshot"; ref: Ref; src: string | undefined; locale?: string }
@@ -398,6 +399,10 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         el.screenshotRect ??= FULL_SCREEN;
         return;
       }
+      case "setMirrorRtl":
+        if (cmd.on) d.localization.mirrorRtl = true;
+        else delete d.localization.mirrorRtl;
+        return;
       case "addLocale":
         if (cmd.code !== d.localization.baseLocale && !d.localization.locales.some((l) => l.code === cmd.code)) d.localization.locales.push({ code: cmd.code });
         return;

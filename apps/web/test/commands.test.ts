@@ -423,3 +423,14 @@ describe("translations table (SP11)", () => {
     expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", origin: "manual", sourceHash: hash32("a") });
   });
 });
+
+describe("RTL (SP11)", () => {
+  it("setMirrorRtl turns mirroring on and off, and repeating either is no step", () => {
+    const on = applyCommand(doc(), { type: "setMirrorRtl", on: true });
+    expect(on.localization.mirrorRtl).toBe(true);
+    expect(applyCommand(on, { type: "setMirrorRtl", on: true })).toBe(on);
+    const off = applyCommand(on, { type: "setMirrorRtl", on: false });
+    expect(off.localization).not.toHaveProperty("mirrorRtl");
+    expect(applyCommand(off, { type: "setMirrorRtl", on: false })).toBe(off);
+  });
+});

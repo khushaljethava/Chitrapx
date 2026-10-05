@@ -36,6 +36,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
   const locale = useEditor((s) => s.locale);
   const loc = useEditor((s) => s.doc.localization);
   const codes = [loc.baseLocale, ...loc.locales.map((l) => l.code)];
+  const rtl = (c: string) => !!LOCALES.find((l) => l.code === c)?.rtl;
 
   return (
     <header className="flex flex-wrap items-center gap-3 border-b border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900">
@@ -53,7 +54,9 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       <nav className="flex flex-wrap items-center gap-1" aria-label="Languages">
         {codes.map((c) => (
           <span key={c} className="inline-flex items-center">
-            <button type="button" className={c === locale ? "btn px-2 py-1 text-xs" : "btn-ghost px-2 py-1 text-xs"} onClick={() => store.getState().setLocale(c)}>{c}</button>
+            <button type="button" className={c === locale ? "btn px-2 py-1 text-xs" : "btn-ghost px-2 py-1 text-xs"} onClick={() => store.getState().setLocale(c)}>
+              {c}{rtl(c) && <span className="ml-1 rounded bg-neutral-200 px-1 text-[9px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200" title="Right-to-left">RTL</span>}
+            </button>
             {c !== loc.baseLocale && c === locale && (
               <button type="button" aria-label={`Remove ${c}`} className="px-1 text-xs text-neutral-500 hover:text-red-600" onClick={() => store.getState().apply({ type: "removeLocale", code: c })}>x</button>
             )}
@@ -67,6 +70,12 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
           <option value="">Add language</option>
           {LOCALES.filter((l) => !codes.includes(l.code)).map((l) => <option key={l.code} value={l.code}>{l.nativeName} ({l.code})</option>)}
         </select>
+        {codes.some(rtl) && (
+          <label className="flex items-center gap-1 text-xs" title="Positions mirror in Arabic, Hebrew, Persian and Urdu. Check every board in those languages before exporting.">
+            <input type="checkbox" checked={!!loc.mirrorRtl} onChange={(e) => store.getState().apply({ type: "setMirrorRtl", on: e.target.checked })} />
+            Mirror layout in RTL languages
+          </label>
+        )}
       </nav>
       <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
       <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
