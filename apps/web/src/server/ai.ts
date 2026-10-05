@@ -97,7 +97,8 @@ export async function startReferenceAnalysis(ctx: Ctx, boss: PgBoss, appId: stri
   if (!refs.length) throw badRequest("no_references");
   const uncached = refs.filter((r) => !r.insight).map((r) => r.id);
   return withTx(async (tx) => {
-    await assertFreeQuota(tx, ctx.workspaceId);
+    // Only the free re-run (everything cached) is held to the hourly free allowance; a paid run is limited by credits.
+    if (!uncached.length) await assertFreeQuota(tx, ctx.workspaceId);
     return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "ai_reference", input: { appId: app.id, uncached } });
   });
 }

@@ -38,7 +38,8 @@ export const FREE_JOBS = ["export_single", "project_bundle", "project_import", "
 export async function assertFreeQuota(tx: Tx, workspaceId: string): Promise<void> {
   await lockWorkspace(tx.db, workspaceId);
   const [{ n }] = (await tx.db.select({ n: count() }).from(schema.jobs).where(and(
-    eq(schema.jobs.workspaceId, workspaceId), inArray(schema.jobs.type, FREE_JOBS),
+    // Paid runs of these types (an ai_reference with images to analyse) are not free jobs.
+    eq(schema.jobs.workspaceId, workspaceId), inArray(schema.jobs.type, FREE_JOBS), eq(schema.jobs.creditsReserved, 0),
     gt(schema.jobs.createdAt, sql`now() - interval '1 hour'`),
   ))) as [{ n: number }];
   if (n >= FREE_JOBS_PER_HOUR) throw new HttpError(429, "rate_limited", `Free jobs are limited to ${FREE_JOBS_PER_HOUR} per hour.`);
