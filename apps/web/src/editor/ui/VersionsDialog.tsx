@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChitrapxDoc } from "@chitrapx/document";
 import { BoardView, type RenderExtras, type ResolveSrc } from "@chitrapx/renderer";
+import { useDialog } from "@/components/useDialog.ts";
 import { api, ApiError } from "@/server/api.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 
@@ -29,6 +30,8 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const { onBackdrop } = useDialog(dialogRef, { onClose, canClose: !busy });
 
   const load = () => api<Version[]>(`/api/projects/${projectId}/versions`).then(setVersions).catch(() => setError("Could not load versions."));
   useEffect(() => { void load(); }, []); // eslint-disable-line react-hooks/exhaustive-deps -- once per open
@@ -71,8 +74,8 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
   }
 
   return (
-    <div role="dialog" aria-modal="true" aria-label="Version history" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4"
-      onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
+    <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Version history" onClick={onBackdrop}
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 outline-none">
       <div className="card grid w-full max-w-3xl gap-4 sm:grid-cols-[1fr_16rem]">
         <div className="space-y-3">
           <div className="flex items-center justify-between">

@@ -7,6 +7,7 @@ import {
 } from "@chitrapx/document";
 import { api, ApiError } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
+import { useDialog } from "./useDialog.ts";
 
 type ExportJob = { id: string; type: string; status: string; error: string | null; createdAt: string;
   input: { selection?: ExportSelection } | null; output: { files?: number; bytes?: number; issues?: number } | null };
@@ -33,6 +34,9 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const [selection, setSelection] = useState<ExportSelection | null>(null);
   const [error, setError] = useState("");
   const [open, setOpen] = useState<"app-store" | "play" | null>(null);
+  const [posting, setPosting] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const { onBackdrop } = useDialog(dialogRef, { onClose, canClose: !posting });
   const load = useCallback(async () => (await api<ExportJob[]>(`/api/projects/${projectId}/export`)).filter((j) => j.type === "export"), [projectId]);
   const docRef = useRef(doc);
   docRef.current = doc;
@@ -59,30 +63,39 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const plan = useMemo(() => (selection ? exportPlan(doc, selection) : []), [doc, selection]);
   const issues = useMemo(() => storeReadiness(plan, doc), [plan, doc]);
   const hasSocial = doc.groups.some((g) => getTarget(g.target)?.platform === "social");
-  if (!selection) return null;
 
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
+  const shell = (body: React.ReactNode) => (
+    <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Export" onClick={onBackdrop}
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 outline-none">
+      <div className="card w-full max-w-3xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Export</h2>
+          <button type="button" className="btn-ghost" onClick={onClose} disabled={posting} aria-label="Close">✕</button>
+        </div>
+        {body}
+      </div>
+    </div>
+  );
+  if (!selection) return shell(<p className="text-sm text-neutral-500">Loading</p>);
+
   const tooMany = plan.length > MAX_EXPORT_ITEMS;
   const stores = (["app-store", "play"] as const).filter((s) => issues.some((i) => i.store === s)
     || plan.some((i) => storeOf(getTarget(i.targetId)!.platform) === s));
 
   async function start() {
     setError("");
+    setPosting(true);
     try {
       if (beforeExport && !(await beforeExport())) { setError("Save your changes first."); return; }
       await api(`/api/projects/${projectId}/export`, "POST", { kind: "zip", selection });
       setJobs(await load());
     } catch (err) { setError(err instanceof ApiError ? err.message : "Something went wrong."); }
+    finally { setPosting(false); }
   }
 
-  return (
-    <div role="dialog" aria-modal="true" aria-label="Export" className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="card w-full max-w-3xl space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Export</h2>
-          <button type="button" className="btn-ghost" onClick={onClose} aria-label="Close">✕</button>
-        </div>
-
+  return shell(
+    <>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map(([p, label]) => (
             <button key={p} type="button" className="btn-ghost text-sm" onClick={() => setSelection(presetSelection(doc, p))}>{label}</button>
@@ -160,7 +173,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
           <p className={`text-sm ${tooMany ? "text-red-600" : "text-neutral-500"}`}>
             {plan.length} PNGs{tooMany ? `. One export can hold up to ${MAX_EXPORT_ITEMS}.` : ""}
           </p>
-          <button className="btn" onClick={start} disabled={active || plan.length === 0 || tooMany}>{active ? "Exporting" : "Export ZIP (1 credit)"}</button>
+          <button className="btn" onClick={start} disabled={posting || active || plan.length === 0 || tooMany}>{active ? "Exporting" : "Export ZIP (1 credit)"}</button>
         </div>
         {error && <p role="alert" className="error">{error}</p>}
 
@@ -182,7 +195,6 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
             ))}
           </ul>
         )}
-      </div>
-    </div>
+    </>,
   );
 }
