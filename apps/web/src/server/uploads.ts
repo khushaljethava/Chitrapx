@@ -3,7 +3,7 @@ import { and, asc, count, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { MAX_REFERENCES_PER_APP } from "@chitrapx/document";
 import { STAGING_PREFIX } from "@chitrapx/storage";
-import { ACCEPTED, checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx } from "@chitrapx/db";
+import { ACCEPTED, checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx, type Db } from "@chitrapx/db";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { assertFontQuota, bytesInUse, faceExists, faceTaken, findWorkspaceFont } from "./fonts.ts";
@@ -48,7 +48,8 @@ async function findAsset(ctx: Ctx, hash: string, appId?: string) {
 /** Adds an asset row for `appId` that reuses bytes this workspace already validated. A competitor reference keeps its own role. */
 async function linkExisting(ctx: Ctx, appId: string, from: Asset, kind: UploadKind): Promise<Asset> {
   const { id: _id, createdAt: _c, ...copy } = from;
-  const role = kind === "reference" || from.kind === "reference" ? { kind, meta: null } : {};
+  if (kind === "reference") return insertReference(ctx, appId, copy);
+  const role = from.kind === "reference" ? { kind, meta: null } : {};
   await db.insert(schema.assets).values({ ...copy, appId, ...role }).onConflictDoNothing();
   return (await findAsset(ctx, from.sha256, appId))!;
 }
@@ -61,12 +62,26 @@ function assertSameRole(existing: Asset, kind: UploadKind) {
   throw new HttpError(409, "asset_kind_conflict", existing.kind === "reference" ? "This image is already on the competitor board" : "This image is already one of this app's uploads");
 }
 
-/** SP11: a competitor board holds at most ten images. */
-async function assertReferenceRoom(ctx: Ctx, appId: string) {
-  const [{ n }] = (await db.select({ n: count() }).from(schema.assets).where(and(
+/** SP11: a competitor board holds at most ten images. Checked early to fail fast, and again under the lock before the insert. */
+async function assertReferenceRoom(ctx: Ctx, appId: string, q: Db = db) {
+  const [{ n }] = (await q.select({ n: count() }).from(schema.assets).where(and(
     eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), eq(schema.assets.kind, "reference"),
   ))) as [{ n: number }];
   if (n >= MAX_REFERENCES_PER_APP) throw new HttpError(409, "reference_limit", `A competitor board holds up to ${MAX_REFERENCES_PER_APP} images`);
+}
+
+/** Adds a reference row: count and insert under the workspace lock, so concurrent uploads cannot push a board past ten. */
+function insertReference(ctx: Ctx, appId: string, values: typeof schema.assets.$inferInsert): Promise<Asset> {
+  return withTx(async ({ db: tx }) => {
+    await lockWorkspace(tx, ctx.workspaceId);
+    const [mine] = await tx.select().from(schema.assets).where(and(
+      eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), eq(schema.assets.sha256, values.sha256),
+    )).limit(1);
+    if (mine) { assertSameRole(mine, "reference"); return mine; }
+    await assertReferenceRoom(ctx, appId, tx);
+    const [inserted] = await tx.insert(schema.assets).values({ ...values, workspaceId: ctx.workspaceId, appId, kind: "reference", meta: null }).returning();
+    return inserted!;
+  });
 }
 
 export async function signUpload(ctx: Ctx, storage: ObjectStorage, raw: unknown):
@@ -142,11 +157,19 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   const path = finalPath(ctx, input.sha256);
   await storage.remove(path).catch(() => {}); // an unreferenced leftover, e.g. from a deleted app
   await storage.move(staging, path, { contentType: sniffed.mime });
-  const [inserted] = await db.insert(schema.assets).values({
+  const values = {
     workspaceId: ctx.workspaceId, appId, kind: input.kind, storagePath: path, mime: sniffed.mime,
     width: sniffed.width ?? null, height: sniffed.height ?? null, bytes: size, sha256: input.sha256,
-    meta: input.kind === "recording" ? { ready: false } : null,
-  }).onConflictDoNothing().returning();
+    meta: input.kind === "recording" ? { ready: false as const } : null,
+  };
+  if (input.kind === "reference") {
+    return insertReference(ctx, appId, values).catch(async (err) => {
+      // Refused under the lock (the board filled up meanwhile): the bytes just moved into place go unless a row uses them.
+      if (!(await bytesInUse(db, ctx.workspaceId, input.sha256))) await storage.remove(path).catch(() => {});
+      throw err;
+    });
+  }
+  const [inserted] = await db.insert(schema.assets).values(values).onConflictDoNothing().returning();
   return inserted ?? (await findAsset(ctx, input.sha256, appId))!;
 }
 

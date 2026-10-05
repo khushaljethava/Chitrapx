@@ -51,6 +51,33 @@ describe("competitor reference images (SP11)", () => {
     expect(await upload(s, png(3, 1), "reference", rights)).toMatchObject({ kind: "reference" }); // the same image again is not a new one
   });
 
+  it("concurrent uploads cannot push a board past ten (SP11 final review)", async () => {
+    const s = await setup();
+    const [first] = await db.insert(schema.assets).values(Array.from({ length: 9 }, (_, i) => ({ workspaceId: s.ctx.workspaceId, appId: s.app.id,
+      kind: "reference" as const, storagePath: `${s.ctx.workspaceId}/ref${i}`, mime: "image/png", bytes: 1, sha256: String(i).repeat(64) }))).returning();
+    const race = async (files: Buffer[]) => {
+      const results = await Promise.allSettled(files.map((f) => upload(s, f, "reference", rights)));
+      for (const r of results) if (r.status === "rejected") expect(r.reason).toMatchObject({ status: 409, code: "reference_limit" });
+      return results.filter((r) => r.status === "fulfilled").length;
+    };
+    // Fresh uploads: each waits at the move into place until all five have passed their checks, so they race every time.
+    const move = s.storage.move.bind(s.storage);
+    const waiting: Array<() => void> = [];
+    s.storage.move = async (...args: Parameters<typeof move>) => {
+      await new Promise<void>((go) => { waiting.push(go); if (waiting.length === 5) waiting.forEach((f) => f()); setTimeout(go, 5000); });
+      return move(...args);
+    };
+    expect(await race(Array.from({ length: 5 }, (_, i) => png(20 + i, 2)))).toBe(1);
+    s.storage.move = move;
+    // Bytes another app already has are linked, not uploaded: the other insert path.
+    const other = await createApp(s.ctx, { name: "Other" });
+    const shared = Array.from({ length: 4 }, (_, i) => png(40 + i, 2));
+    for (const f of shared) await upload({ ...s, app: other }, f, "screenshot");
+    await deleteReference(s.ctx, s.storage, s.app.id, first!.id); // room for one more
+    expect(await race(shared)).toBe(1);
+    expect(await listReferences(s.ctx, s.storage, s.app.id)).toHaveLength(10);
+  });
+
   it("never show up as app uploads, editor assets or document sources", async () => {
     const s = await setup();
     const ref = await upload(s, png(3, 3), "reference", rights);
