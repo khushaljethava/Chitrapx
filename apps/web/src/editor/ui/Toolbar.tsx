@@ -66,7 +66,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       </nav>
       <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>
-      {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} />}
+      {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} extras={extras} />}
       <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>
       {exporting && (
         <ExportDialog projectId={projectId} doc={doc} onClose={() => setExporting(false)} beforeExport={flush} checks={checks}
