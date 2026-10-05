@@ -54,5 +54,6 @@ export const FONT_FAMILY_UNSAFE = /["\\;{}<>\u0000-\u001f\u007f]/;
  */
 export function cleanFamilyName(raw: string): string {
   // CSS separators become spaces (they split words); everything else unsafe is dropped.
-  return raw.normalize("NFC").replace(/[{};]/g, " ").replace(/[^\p{L}\p{N} \-_.,'&+!]/gu, "").replace(/\s+/g, " ").trim().slice(0, 80).trim();
+  // Wrapping quotes go too ("'Inter'" must match the face registered as Inter).
+  return raw.normalize("NFC").replace(/[{};]/g, " ").replace(/[^\p{L}\p{N} \-_.,'&+!]/gu, "").replace(/\s+/g, " ").trim().replace(/^'+|'+$/g, "").trim().slice(0, 80).trim();
 }

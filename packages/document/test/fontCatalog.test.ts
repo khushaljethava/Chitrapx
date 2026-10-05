@@ -59,6 +59,9 @@ describe("font catalogue", () => {
     expect(cleanFamilyName("Ünïcode Sans 2")).toBe("Ünïcode Sans 2");
     expect(cleanFamilyName("{}<>;")).toBe("");
     expect(cleanFamilyName("x".repeat(200))).toHaveLength(80);
+    expect(cleanFamilyName(`"Inter"`)).toBe("Inter");
+    expect(cleanFamilyName(" 'Open Sans' ")).toBe("Open Sans");
+    expect(cleanFamilyName("Rock 'n' Roll")).toBe("Rock 'n' Roll");
   });
   it("the generator refuses a misspelt family", () => {
     expect(() => buildCatalog({})).toThrow(/not a Google Fonts family/);
