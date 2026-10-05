@@ -1,7 +1,7 @@
 // RFC 4180 field quoting and the CSV parser are ported from open-screenshot-generator (MIT),
 // src/lib/i18n/translationCsv.ts (csvField, parseCsv). Columns, id matching and the import plan are Chitrapx's own.
 import type { ChitrapxDoc } from "./doc.ts";
-import { cellFor, translationRows, type TranslationWrite } from "./translations.ts";
+import { cellFor, chipCell, translationRows, type TranslationRow, type TranslationWrite } from "./translations.ts";
 
 export type ImportChange = TranslationWrite & { kind: "added" | "changed"; label: string; from: string };
 export type ImportPlan = { changes: ImportChange[]; unchanged: number; unknownIds: string[]; unknownLocales: string[] };
@@ -72,16 +72,22 @@ function plan(doc: ChitrapxDoc, entries: Array<{ id: string; values: Array<{ loc
   const rows = new Map(translationRows(doc).map((r) => [r.id, r]));
   const changes: ImportChange[] = [];
   const unknownIds: string[] = [];
-  let unchanged = 0;
+  // A repeated id: the last non-blank cell per (id, language) wins, and is previewed once.
+  const cells = new Map<string, { row: TranslationRow; id: string; locale: string; text: string }>();
   for (const { id, values } of entries) {
     const row = rows.get(id);
     if (!row) { if (!unknownIds.includes(id)) unknownIds.push(id); continue; }
     for (const { locale, text } of values) {
       if (!text.trim()) continue; // a blank (or spaces-only) cell never clears or blanks a translation
-      const from = cellFor(doc, row, locale).text;
-      if (from === text) { unchanged++; continue; }
-      changes.push({ locale, id, text, from, label: row.label, kind: from ? "changed" : "added" });
+      // A chip is compared in the form writeTranslations stores it, so the preview matches what the write does.
+      cells.set(`${id}\u0000${locale}`, { row, id, locale, text: row.chip === undefined ? text : chipCell(text) });
     }
+  }
+  let unchanged = 0;
+  for (const { row, id, locale, text } of cells.values()) {
+    const from = cellFor(doc, row, locale).text;
+    if (from === text) { unchanged++; continue; }
+    changes.push({ locale, id, text, from, label: row.label, kind: from ? "changed" : "added" });
   }
   return { changes, unchanged, unknownIds, unknownLocales };
 }

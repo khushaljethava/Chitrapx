@@ -86,3 +86,24 @@ it("a whitespace-only cell never clears or blanks a translation (review #1)", ()
   expect(planCsvImport(d, sheet).changes).toEqual([]);
   expect(planJsonImport(d, JSON.stringify({ "fr-FR": { h2: " " } })).changes).toEqual([]);
 });
+
+it("a repeated id previews once with the last row's words (SP11 final review)", () => {
+  const d = project();
+  const sheet = ["id,de-DE", "h2,Rezepte", "h2,Rezepte teilen"].join("\n");
+  const { changes } = planCsvImport(d, sheet);
+  expect(changes.map((c) => [c.id, c.locale, c.text, c.kind])).toEqual([["h2", "de-DE", "Rezepte teilen", "added"]]);
+  // A blank cell in the later row does not undo the earlier row's words.
+  expect(planCsvImport(d, ["id,de-DE", "h2,Rezepte", "h2,"].join("\n")).changes.map((c) => c.text)).toEqual(["Rezepte"]);
+});
+
+it("a chip cell that differs only in spaces is unchanged, as writing it would change nothing (SP11 final review)", () => {
+  const chips = { id: "c", type: "chips", name: "Chips", chips: ["Fast", "Private"], fontSize: 6, fontFamily: "Inter", fontWeight: "600",
+    color: "#fff", fillColor: "#000", position: { x: 0, y: 0 }, size: { width: 480, height: 96 }, rotation: 0, scale: 1 } as never;
+  let d = doc([group([board("b1", [chips])])]);
+  d.localization.locales = [{ code: "de-DE" }];
+  d = writeTranslations(d, [{ locale: "de-DE", id: "c#0", text: "Ganz schnell" }]);
+  const plan = planCsvImport(d, ["id,de-DE", "c#0,  Ganz   schnell ", "c#1, Privat  "].join("\n"));
+  expect(plan.unchanged).toBe(1);
+  expect(plan.changes.map((c) => [c.id, c.text])).toEqual([["c#1", "Privat"]]);
+  expect(writeTranslations(d, [{ locale: "de-DE", id: "c#0", text: "  Ganz   schnell " }])).toBe(d);
+});

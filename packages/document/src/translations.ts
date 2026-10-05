@@ -108,6 +108,9 @@ export function lengthWarning(row: TranslationRow, text: string): string | null 
   return text.length > Math.ceil(row.base.length * 1.5) + 4 ? "Longer than the source; it may shrink or wrap" : null;
 }
 
+/** One chip as a typed or imported cell is stored: one line, single spaces, at most 24 characters. */
+export const chipCell = (text: string) => text.replace(/\s+/g, " ").trim().slice(0, CHIP_MAX_CHARS).trim();
+
 /** Stores `next` as the override, or removes it and any map it leaves empty. */
 function put(b: Draft<ArtboardState>, locale: string, id: string, next: ElementLocaleOverride) {
   const byEl = ((b.localized ??= {})[locale] ??= {});
@@ -133,7 +136,7 @@ export function writeTranslations(doc: ChitrapxDoc, writes: TranslationWrite[]):
     const chip = parseChipId(w.id);
     if (chip) {
       const key = `${w.locale}\u0000${chip.elementId}`;
-      chipEdits.set(key, (chipEdits.get(key) ?? new Map()).set(chip.index, text.replace(/\s+/g, " ").trim().slice(0, CHIP_MAX_CHARS)));
+      chipEdits.set(key, (chipEdits.get(key) ?? new Map()).set(chip.index, chipCell(text)));
     } else texts.set(`${w.locale}\u0000${w.id}`, text);
   }
   if (!texts.size && !chipEdits.size) return doc;
