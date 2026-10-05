@@ -1,4 +1,7 @@
 // Ported from open-screenshot-generator (MIT), src/types/artboard.ts
+import type { Gradient } from './gradient';
+import type { TextMark } from './richText';
+
 export interface Point {
   x: number;
   y: number;
@@ -116,6 +119,11 @@ export interface TextElementProps extends BaseElement {
   // Tracking, in the same units as fontSize (both are divided by the 0.3
   // display scale when rendered), so it stays proportional to the type.
   letterSpacing?: number;
+  // SP10 rich text: styled ranges over `content` (start inclusive, end exclusive,
+  // UTF-16 offsets). Normalised on every load and edit, never rejected for range problems.
+  marks?: TextMark[];
+  // SP10 whole-box gradient fill (drawn with background-clip: text).
+  gradient?: Gradient;
 }
 
 export type ShapeType =
@@ -378,6 +386,8 @@ export type ArtboardElement =
 export interface ElementLocaleOverride {
   /** Text elements only. */
   content?: string;
+  /** This language's own marks. Absent while `content` differs from the base: the text renders unstyled. */
+  marks?: TextMark[];
   /** Script substitution, or a hand-picked face for this language. */
   fontFamily?: string;
   /** Device / image / video: the app UI inside the frame is itself localized. */

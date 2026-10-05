@@ -1,11 +1,12 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
+import { FONT_FAMILY_UNSAFE } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, "Use a colour like #1A2B3C");
-const font = z.string().trim().min(1).max(80);
+const font = z.string().trim().min(1).max(80).refine((v) => !FONT_FAMILY_UNSAFE.test(v), "Not a font name");
 
 export const brandSchema = z.object({
   primaryColor: hex.optional(),

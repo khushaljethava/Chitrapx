@@ -42,6 +42,11 @@ describe("apps", () => {
     const app = await createApp(ctx, { name: "A" });
     expect(await status(updateApp(ctx, app.id, { brand: { logoAssetId: crypto.randomUUID() } }))).toBe(400);
   });
+  it("brand font names follow the document's fontFamily rule", async () => {
+    const ctx = await ctxFor("pro");
+    expect(await status(createApp(ctx, { name: "F", brand: { headingFont: 'Evil"; }' } }))).toBe(400);
+    expect(await status(createApp(ctx, { name: "G", brand: { headingFont: "Pacifico (custom)" } }))).toBe(200);
+  });
 });
 
 describe("projects", () => {

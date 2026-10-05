@@ -1,5 +1,8 @@
 import { z } from "zod";
 import type { ArtboardElement, ArtboardState, ProjectLocalization } from "./artboard.ts";
+import { FONT_FAMILY_UNSAFE } from "./fontCatalog.ts";
+import { normalizeGradient } from "./gradient.ts";
+import { normalizeMarks, type TextMark } from "./richText.ts";
 import { TARGET_IDS, type TargetId } from "./targets.ts";
 
 export const projectKinds = ["screenshots", "video", "social"] as const;
@@ -15,6 +18,8 @@ export interface BoardGroup {
   variant?: string;
   boards: ArtboardState[];
   spanElements: ArtboardElement[];
+  /** The named style last applied (display only; values live in the elements). */
+  styleId?: string;
 }
 
 export interface ChitrapxDoc {
@@ -49,6 +54,7 @@ function cssSafe(value: unknown, ctx: z.RefinementCtx, path: (string | number)[]
   for (const [key, v] of Object.entries(value)) {
     const at = [...path, key];
     if (typeof v === "string") {
+      if (key === "fontFamily" && (v.length > 100 || FONT_FAMILY_UNSAFE.test(v))) { ctx.addIssue({ code: "custom", path: at, message: "Not a font family" }); continue; }
       if (COLOR_KEYS.has(key) && v !== "" && !COLOR.test(v.trim())) ctx.addIssue({ code: "custom", path: at, message: "Not a colour" });
       else if (!TEXT_KEYS.has(key) && !key.endsWith("Src") && key !== "backgroundImage" && CSS_FETCH.test(v)) ctx.addIssue({ code: "custom", path: at, message: "Not allowed in a style value" });
     } else cssSafe(v, ctx, at);
@@ -79,6 +85,7 @@ const group = z.object({
   variant: z.string().regex(/^[B-Z]$/).optional(),
   boards: z.array(board),
   spanElements: z.array(element).default([]),
+  styleId: z.string().regex(/^[a-z0-9-]{1,64}$/).optional(),
 });
 const localization = z.object({
   baseLocale: z.string().regex(LOCALE_CODE).default(DEFAULT_BASE_LOCALE),
@@ -94,7 +101,40 @@ export const docSchema = z.object({
   groups: z.array(group),
   localization: localization.default({ baseLocale: DEFAULT_BASE_LOCALE, locales: [] }),
   brand: z.object({ appId: z.string() }).optional(),
-}).superRefine((doc, ctx) => cssSafe(doc.groups, ctx, ["groups"]));
+}).superRefine((doc, ctx) => cssSafe(doc.groups, ctx, ["groups"])).transform(normalizeRichText);
+
+type Loose = Record<string, unknown>;
+function normalizeTextFields(el: Loose, content: string): Loose {
+  if (!("marks" in el) && !("gradient" in el)) return el;
+  const out = { ...el };
+  if ("marks" in out) {
+    const marks = Array.isArray(out.marks) ? normalizeMarks(out.marks as TextMark[], content.length) : [];
+    if (marks.length) out.marks = marks; else delete out.marks;
+  }
+  if ("gradient" in out) {
+    const g = normalizeGradient(out.gradient);
+    if (g) out.gradient = g; else delete out.gradient;
+  }
+  return out;
+}
+const isText = (e: Loose) => e.type === "text";
+
+/** Marks and gradients are cleaned (clamped, split, merged, sorted), never rejected for range problems. */
+function normalizeRichText<T extends { groups: unknown[] }>(doc: T): T {
+  for (const g of doc.groups as Array<{ boards: Loose[]; spanElements: Loose[] }>) {
+    g.spanElements = g.spanElements.map((e) => (isText(e) ? normalizeTextFields(e, String(e.content ?? "")) : e));
+    for (const b of g.boards) {
+      const elements = (b.elements as Loose[]).map((e) => (isText(e) ? normalizeTextFields(e, String(e.content ?? "")) : e));
+      b.elements = elements;
+      const localized = b.localized as Record<string, Record<string, Loose>> | undefined;
+      if (!localized) continue;
+      const base = new Map(elements.map((e) => [e.id, e]));
+      b.localized = Object.fromEntries(Object.entries(localized).map(([loc, byEl]) => [loc, Object.fromEntries(Object.entries(byEl ?? {}).map(([id, ov]) =>
+        [id, ov && typeof ov === "object" ? normalizeTextFields(ov, String(ov.content ?? base.get(id)?.content ?? "")) : ov]))]));
+    }
+  }
+  return doc;
+}
 
 export function emptyDoc(kind: ProjectKind): ChitrapxDoc {
   return { schemaVersion: 1, kind, groups: [], localization: { baseLocale: DEFAULT_BASE_LOCALE, locales: [] } };
