@@ -22,6 +22,12 @@ const MESSAGES: Record<string, string> = {
   plan_limit: "Your plan's project limit is reached.",
   project_missing: "This project was deleted.",
   abandoned: "The job stopped unexpectedly.",
+  icon_not_square: "Icons need a square image.",
+  icon_too_small: "Icons need an image of at least 64×64.",
+  icon_unreadable: "This image could not be read. Your credit was refunded.",
+  collage_unreadable: "One of the screenshots could not be read. Your credit was refunded.",
+  mockup_invalid: "The mockup could not be built. Please try again.",
+  app_missing: "This app was deleted.",
 };
 export function jobError(error: string | null | undefined): string {
   if (!error) return "Something went wrong.";
