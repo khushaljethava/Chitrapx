@@ -128,19 +128,33 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   // Charging for a template full of sample copy would be wrong: most slots must be written.
   // Copy that repeats a competitor's headline is dropped; it then counts as unwritten.
   const headlines = await competitorHeadlines(job, app.id);
-  const boards = copy.data.boards.map((b) => ({ ...b, texts: b.texts.filter((t) => !competitorEchoes(t.text, headlines)) }));
+  // Dropped slots keep the template's sample text; their ids (as in the document) go into the output so it can be shown.
+  const echoDropped: string[] = [];
+  const keep = (prefix: string) => (t: { id: string; text: string }) => {
+    if (!competitorEchoes(t.text, headlines)) return true;
+    echoDropped.push(`${prefix}${t.id}`);
+    return false;
+  };
+  const boards = copy.data.boards.map((b) => ({ ...b, texts: b.texts.filter(keep("")) }));
   const slotIds = new Set(textSlots(templateDoc).flat().map((x) => x.id));
   const written = new Set(boards.flatMap((b) => b.texts.map((x) => x.id)).filter((id) => slotIds.has(id)));
   if (slotIds.size && written.size < slotIds.size * MIN_COVERAGE) throw new FatalJobError("ai_incomplete");
+  // Too few usable chips is not worth failing a whole design over: the template's own chips stay (and the output says so).
   const chips = aiChips(copy.data.features ?? []);
-  if (wantChips && chips.length < CHIP_MIN) throw new FatalJobError("ai_incomplete");
+  const templateChips = wantChips && chips.length < CHIP_MIN;
 
   let designed = applyDesign(templateDoc, { screenshotOrder: order, boards }, assets.map((a) => a.id));
-  // The feature graphic's copy is held to the same rule (F4).
-  if (fgDoc) designed = withFeatureGraphic(designed, fgDoc, (copy.data.featureGraphic ?? []).filter((t) => !competitorEchoes(t.text, headlines)));
-  if (wantChips) designed = applyChips(designed, chips);
+  // The feature graphic's copy is held to the same rule (F4); its elements are prefixed "fg-" in the document.
+  if (fgDoc) designed = withFeatureGraphic(designed, fgDoc, (copy.data.featureGraphic ?? []).filter(keep("fg-")));
+  if (wantChips && !templateChips) designed = applyChips(designed, chips);
   await updateProjectDoc(job, () => ({ ...designed, brand: { appId: app.id } }));
-  return { actual: PRICES.ai_design, output: { templateSlug: template.slug, featureGraphicSlug: fgSlug, reasoning: pick.data.reasoning, usage: sumUsage(usage) } };
+  return {
+    actual: PRICES.ai_design,
+    output: {
+      templateSlug: template.slug, featureGraphicSlug: fgSlug, reasoning: pick.data.reasoning, usage: sumUsage(usage),
+      ...(echoDropped.length ? { echoDropped } : {}), ...(templateChips ? { templateChips } : {}),
+    },
+  };
 }
 
 const translateInput = z.object({
@@ -233,6 +247,13 @@ async function competitorHeadlines(job: JobContext, appId: string): Promise<stri
   return rows.flatMap((r) => { const p = competitorInsightSchema.safeParse(r.insight); return p.success ? [p.data.headline] : []; });
 }
 
+/** An image's stored analysis, when there is one of the current shape. */
+async function storedInsight(assetId: string): Promise<CompetitorInsight | null> {
+  const [row] = await db.select({ insight: schema.referenceInsights.insight }).from(schema.referenceInsights).where(eq(schema.referenceInsights.assetId, assetId));
+  const parsed = competitorInsightSchema.safeParse(row?.insight);
+  return parsed.success ? parsed.data : null;
+}
+
 const referenceInput = z.object({ appId: z.uuid(), uncached: z.array(z.uuid()).max(MAX_REFERENCES_PER_APP).default([]) });
 
 /** Analyses each competitor image once (cached per image), then writes one competitive angle into the app's brief. */
@@ -254,15 +275,23 @@ export async function runAiReference(raw: unknown, job: JobContext, deps: AiDeps
     const cached = competitorInsightSchema.safeParse(r.insight);
     if (cached.success) { insights.push(cached.data); continue; }
     if (!paid.has(r.asset.id)) continue;
+    // Another run paid for this image too may have analysed it since the board was read: look again before paying the model.
+    const since = await storedInsight(r.asset.id);
+    if (since) { insights.push(since); continue; }
     const image = await imageBlock(await deps.loadAsset(job.workspaceId, r.asset.sha256));
     const { data, usage: u } = await deps.model.generate({
       model: MODELS.fast, system: COMPETITOR_SYSTEM, schema: competitorInsightSchema, maxTokens: 2000,
       content: [image, { type: "text", text: "Describe this competitor screenshot." }],
     });
     usage.push(u);
+    // Insert or skip: only the run whose row lands charges for the image; a run that got there first keeps its analysis.
+    const [mine] = await db.insert(schema.referenceInsights).values({ workspaceId: job.workspaceId, assetId: r.asset.id, insight: data, model: u.model })
+      .onConflictDoNothing({ target: schema.referenceInsights.assetId }).returning({ id: schema.referenceInsights.id });
+    const theirs = mine ? null : await storedInsight(r.asset.id);
+    if (theirs) { insights.push(theirs); continue; }
+    // No row was there, or one of an outdated shape: this run's analysis is the one kept, and charged.
+    if (!mine) await db.update(schema.referenceInsights).set({ insight: data, model: u.model }).where(eq(schema.referenceInsights.assetId, r.asset.id));
     analysed++;
-    await db.insert(schema.referenceInsights).values({ workspaceId: job.workspaceId, assetId: r.asset.id, insight: data, model: u.model })
-      .onConflictDoUpdate({ target: schema.referenceInsights.assetId, set: { insight: data, model: u.model } });
     insights.push(data);
   }
   if (!insights.length) throw new FatalJobError("ai_incomplete");
