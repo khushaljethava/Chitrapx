@@ -25,7 +25,7 @@ type Drag =
 
 /** The active group's boards edge to edge (seams marked), with an interaction layer on top. */
 export function Canvas() {
-  const { resolveSrc } = useEditorAssets();
+  const { resolveSrc, extras } = useEditorAssets();
   const intake = useIntake();
   const [fileOver, setFileOver] = useState(false);
   const store = useEditorStore();
@@ -199,7 +199,7 @@ export function Canvas() {
           <div className="flex">
             {group.boards.map((b, i) => (
               <div key={b.id} className="relative">
-                <BoardView doc={doc} groupId={groupId} boardIndex={i} locale={locale} scale={zoom} resolveSrc={resolveSrc} />
+                <BoardView doc={doc} groupId={groupId} boardIndex={i} locale={locale} scale={zoom} resolveSrc={resolveSrc} extras={extras} />
               </div>
             ))}
           </div>

@@ -4,6 +4,7 @@ import { boardFor } from "./board.ts";
 import { BoardFonts } from "./fonts.tsx";
 import { defaultAnimations } from "./motion.ts";
 import { StaticArtboard } from "./osg/StaticArtboard";
+import type { RenderExtras } from "./extras.ts";
 import type { ResolveSrc } from "./sources.ts";
 
 export type VideoFrameProps = {
@@ -17,10 +18,12 @@ export type VideoFrameProps = {
   width: number;
   height: number;
   resolveSrc: ResolveSrc;
+  /** Workspace data beyond the document (uploaded fonts). */
+  extras?: RenderExtras;
 };
 
 /** One video frame: the current board (and the next one during a crossfade) with animations at `time`. */
-export function VideoFrame({ doc, groupId, locale, timeline, time, width, height, resolveSrc }: VideoFrameProps) {
+export function VideoFrame({ doc, groupId, locale, timeline, time, width, height, resolveSrc, extras }: VideoFrameProps) {
   const group = doc.groups.find((g) => g.id === groupId);
   const boards = useMemo(() => (group?.boards ?? []).map((_, i) => {
     const b = boardFor(doc, groupId, i, locale, resolveSrc).board;
@@ -29,7 +32,7 @@ export function VideoFrame({ doc, groupId, locale, timeline, time, width, height
   const layers = framesAt(timeline, time);
   return (
     <div style={{ position: "relative", width, height, overflow: "hidden", background: "#000" }}>
-      <BoardFonts boards={boards} />
+      <BoardFonts boards={boards} faces={extras?.faces} />
       {layers.map(({ boardIndex, localTime, opacity }) => {
         const b = boards[boardIndex];
         if (!b) return null;

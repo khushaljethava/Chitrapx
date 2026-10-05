@@ -40,3 +40,32 @@ describe("Google Fonts stylesheet", () => {
     expect(getRecommendedFontForLanguage("ar")).toBe("Noto Sans Arabic");
   });
 });
+
+import { renderToStaticMarkup } from "react-dom/server";
+import { createElement } from "react";
+import { BoardFonts, cssFontFamily, customFontFaceCss, type CustomFontFace } from "../src/index.ts";
+
+const face = (over: Partial<CustomFontFace> = {}): CustomFontFace => ({ family: "Acme Sans", weight: 400, italic: false, format: "woff2", url: "https://s3.example/u/w/abc?X-Amz-Signature=1", ...over });
+
+describe("uploaded font faces", () => {
+  it("writes one @font-face per face with block display", () => {
+    expect(customFontFaceCss([face(), face({ weight: 700, italic: true, format: "ttf" })])).toBe(
+      '@font-face{font-family:"Acme Sans";src:url("https://s3.example/u/w/abc?X-Amz-Signature=1") format("woff2");font-weight:400;font-style:normal;font-display:block}\n' +
+      '@font-face{font-family:"Acme Sans";src:url("https://s3.example/u/w/abc?X-Amz-Signature=1") format("truetype");font-weight:700;font-style:italic;font-display:block}');
+  });
+  it("cannot be broken out of by a hostile family name or URL", () => {
+    const css = customFontFaceCss([face({ family: 'Evil"}</style><script>x', url: 'https://x/"); background:url(//evil' })]);
+    expect(css).not.toContain("</style>");
+    expect(css).toContain('font-family:"Evil\\"}\\3c /style>\\3c script>x"');
+    expect(css).toContain('src:url("https://x/\\"); background:url(//evil")');
+  });
+  it("BoardFonts declares only the uploaded faces the boards use", () => {
+    const html = renderToStaticMarkup(createElement(BoardFonts, { boards: [board([text("Acme Sans")])], faces: [face(), face({ family: "Unused Co" })] }));
+    expect(html).toContain("Acme Sans");
+    expect(html).not.toContain("Unused Co");
+  });
+  it("a missing family falls back to a generic family instead of the page default", () => {
+    expect(cssFontFamily("Acme Sans")).toBe('"Acme Sans", sans-serif');
+    expect(cssFontFamily("Playfair Display")).toBe('"Playfair Display", serif');
+  });
+});

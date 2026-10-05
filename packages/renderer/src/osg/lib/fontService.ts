@@ -1,6 +1,7 @@
 // Ported from open-screenshot-generator (MIT), src/services/fontService.ts
 import { FONT_CATALOG, SYSTEM_FAMILIES, type FontScript } from '@chitrapx/document';
-import { googleFontsHref } from '../../fonts.tsx';
+import type { CustomFontFace } from '../../extras.ts';
+import { customFontFaceCss, googleFontsHref } from '../../fonts.tsx';
 import { GoogleFont } from './fonts';
 
 export type { FontScript } from '@chitrapx/document';
@@ -129,5 +130,17 @@ export function cssFontFamily(family: string): string {
   if (/^["'].*["']$/.test(name)) return name;
   const quoted = `"${name.replace(/["\\]/g, '\\$&')}"`;
   const generic = genericFor(name);
-  return generic ? `${quoted}, ${generic}` : quoted;
+  return `${quoted}, ${generic ?? 'sans-serif'}`;
+}
+
+/** Puts uploaded faces on the page for picker previews: one shared <style>, replaced on each call. */
+export function ensureCustomFaces(faces: CustomFontFace[]): void {
+  if (typeof document === 'undefined') return;
+  let style = document.getElementById('chitrapx-picker-faces') as HTMLStyleElement | null;
+  if (!style) {
+    style = document.createElement('style');
+    style.id = 'chitrapx-picker-faces';
+    document.head.appendChild(style);
+  }
+  style.textContent = customFontFaceCss(faces);
 }

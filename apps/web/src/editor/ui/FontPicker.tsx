@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { catalogFont } from "@chitrapx/document";
-import { cssFontFamily, ensureFont } from "@chitrapx/renderer";
+import { cssFontFamily, ensureCustomFaces, ensureFont, type CustomFontFace } from "@chitrapx/renderer";
 import { fontRows, GROUP_LABELS, type FontRow } from "../fontPickerModel.ts";
 
 const CATEGORIES = [["all", "All"], ["sans-serif", "Sans serif"], ["serif", "Serif"], ["display", "Display"], ["handwriting", "Handwriting"], ["monospace", "Monospace"]] as const;
@@ -30,12 +30,13 @@ function PreviewRow({ row, selected, onPick }: { row: FontRow; selected: boolean
 
 export function FontPicker({ id, label, value, onChange, used = [], custom = [], onUpload }: {
   id: string; label: string; value: string; onChange: (family: string) => void;
-  used?: string[]; custom?: Array<{ family: string }>; onUpload?: () => void;
+  used?: string[]; custom?: Array<{ family: string; faces: CustomFontFace[] }>; onUpload?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const rows = useMemo(() => fontRows({ query, category, used, custom: custom.map((c) => c.family) }), [query, category, used, custom]);
+  useEffect(() => { if (open) ensureCustomFaces(custom.flatMap((c) => c.faces)); }, [open, custom]);
   const pick = (family: string) => { onChange(family); setOpen(false); setQuery(""); };
   return (
     <div className="relative space-y-1">

@@ -1,10 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Brand } from "@chitrapx/db/schema";
 import { api } from "@/server/api.ts";
 import { FontPicker } from "@/editor/ui/FontPicker.tsx";
+import { FontUploadDialog } from "@/editor/ui/FontUploadDialog.tsx";
+import { facesOf } from "@/lib/fontFaces.ts";
+import type { FontFamilyRow } from "@/server/fonts.ts";
 
 type AppData = { id: string; name: string; description: string; platformHint: string; brand: Brand };
 
@@ -20,8 +23,10 @@ function ColorField({ id, label, value, onChange }: { id: string; label: string;
   );
 }
 
-export function BrandForm({ app }: { app: AppData }) {
+export function BrandForm({ app, fonts }: { app: AppData; fonts: FontFamilyRow[] }) {
   const router = useRouter();
+  const [uploading, setUploading] = useState(false);
+  const custom = useMemo(() => fonts.map((f) => ({ family: f.family, faces: facesOf([f]) })), [fonts]);
   const [form, setForm] = useState({
     name: app.name, description: app.description, platformHint: app.platformHint,
     primaryColor: app.brand.primaryColor ?? "", secondaryColor: app.brand.secondaryColor ?? "",
@@ -45,6 +50,7 @@ export function BrandForm({ app }: { app: AppData }) {
   }
 
   return (
+    <>
     <form onSubmit={save} className="card space-y-4">
       <h2 className="font-semibold">App and brand kit</h2>
       <p className="text-sm text-neutral-500">The AI uses these to write copy and style your screenshots.</p>
@@ -65,8 +71,8 @@ export function BrandForm({ app }: { app: AppData }) {
         </div>
         <ColorField id="b-primary" label="Primary colour" value={form.primaryColor} onChange={set("primaryColor")} />
         <ColorField id="b-secondary" label="Secondary colour" value={form.secondaryColor} onChange={set("secondaryColor")} />
-        <FontPicker id="b-hfont" label="Heading font" value={form.headingFont} onChange={set("headingFont")} />
-        <FontPicker id="b-bfont" label="Body font" value={form.bodyFont} onChange={set("bodyFont")} />
+        <FontPicker id="b-hfont" label="Heading font" value={form.headingFont} custom={custom} onUpload={() => setUploading(true)} onChange={set("headingFont")} />
+        <FontPicker id="b-bfont" label="Body font" value={form.bodyFont} custom={custom} onUpload={() => setUploading(true)} onChange={set("bodyFont")} />
       </div>
       <div className="flex items-center gap-3">
         <button className="btn">Save</button>
@@ -74,5 +80,7 @@ export function BrandForm({ app }: { app: AppData }) {
         {status.error && <span role="alert" className="error">{status.error}</span>}
       </div>
     </form>
+    {uploading && <FontUploadDialog onClose={() => setUploading(false)} onUploaded={() => router.refresh()} />}
+    </>
   );
 }

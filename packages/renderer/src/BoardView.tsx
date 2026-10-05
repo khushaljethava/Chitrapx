@@ -3,6 +3,7 @@ import type { ChitrapxDoc } from "@chitrapx/document";
 import { boardFor } from "./board.ts";
 import { BoardFonts } from "./fonts.tsx";
 import { StaticArtboard } from "./osg/StaticArtboard";
+import type { RenderExtras } from "./extras.ts";
 import type { ResolveSrc } from "./sources.ts";
 
 export type BoardViewProps = {
@@ -12,14 +13,16 @@ export type BoardViewProps = {
   locale: string | null;
   scale: number;
   resolveSrc: ResolveSrc;
+  /** Workspace data beyond the document (uploaded fonts). */
+  extras?: RenderExtras;
 };
 
 /** One board exactly as it exports, at `scale`. Props only: no stores, no fetching. */
-export function BoardView({ doc, groupId, boardIndex, locale, scale, resolveSrc }: BoardViewProps) {
+export function BoardView({ doc, groupId, boardIndex, locale, scale, resolveSrc, extras }: BoardViewProps) {
   const { board } = useMemo(() => boardFor(doc, groupId, boardIndex, locale, resolveSrc), [doc, groupId, boardIndex, locale, resolveSrc]);
   return (
     <>
-      <BoardFonts boards={[board]} />
+      <BoardFonts boards={[board]} faces={extras?.faces} />
       <StaticArtboard artboard={board} scale={scale} />
     </>
   );

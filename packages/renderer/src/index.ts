@@ -1,11 +1,12 @@
 export { BoardView, type BoardViewProps } from "./BoardView.tsx";
 export { boardFor } from "./board.ts";
-export { BoardFonts, fontFamiliesOf, fontUsesOf, googleFontsHref, type FontFace, type FontUse } from "./fonts.tsx";
+export { BoardFonts, customFontFaceCss, fontFamiliesOf, fontUsesOf, googleFontsHref, type FontFace, type FontUse } from "./fonts.tsx";
+export type { CustomFontFace, RenderExtras } from "./extras.ts";
 export { passthroughSrc, resolveBoardSources, type ResolveSrc } from "./sources.ts";
 export { waitForRender } from "./ready.ts";
 export { StaticArtboard, count3dDevices } from "./osg/StaticArtboard";
 export { LOCALES, type LocaleDef } from "./osg/i18n/locales";
-export { ALL_FONTS, cssFontFamily, ensureFont } from "./osg/lib/fontService";
+export { ALL_FONTS, cssFontFamily, ensureCustomFaces, ensureFont } from "./osg/lib/fontService";
 export { animationStateAt, type AnimationState } from "./osg/lib/animation";
 export { defaultAnimations } from "./motion.ts";
 export { VideoFrame, type VideoFrameProps } from "./VideoFrame.tsx";

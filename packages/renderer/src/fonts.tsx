@@ -1,4 +1,5 @@
-import { catalogFont, matchWeight, parseWeight, type ArtboardState, type TextElementProps } from "@chitrapx/document";
+import { catalogFont, matchWeight, parseWeight, type ArtboardState, type FontFormat, type TextElementProps } from "@chitrapx/document";
+import type { CustomFontFace } from "./extras.ts";
 
 export type FontFace = { weight: number; italic: boolean };
 export type FontUse = { family: string; faces: FontFace[] };
@@ -47,8 +48,25 @@ export function googleFontsHref(uses: FontUse[]): string | null {
   return params.length ? `https://fonts.googleapis.com/css2?${params.join("&")}&display=block` : null;
 }
 
-/** React 19 hoists this stylesheet into <head>; display=block keeps exports from capturing fallback glyphs. */
-export function BoardFonts({ boards }: { boards: ArtboardState[] }) {
-  const href = googleFontsHref(fontUsesOf(boards));
-  return href ? <link rel="stylesheet" href={href} precedence="chitrapx-fonts" /> : null;
+const FORMAT: Record<FontFormat, string> = { ttf: "truetype", otf: "opentype", woff: "woff", woff2: "woff2" };
+/** A CSS string literal that nothing can leave: quotes and backslashes escaped, "<" as \3c, line breaks dropped. */
+const cssString = (s: string) => `"${s.replace(/[\\"]/g, "\\$&").replace(/</g, "\\3c ").replace(/[\n\r\f]/g, "")}"`;
+
+/** One @font-face per uploaded face. display: block, like the Google stylesheet, so exports never capture fallback glyphs. */
+export function customFontFaceCss(faces: CustomFontFace[]): string {
+  return faces.map((f) => `@font-face{font-family:${cssString(f.family)};src:url(${cssString(f.url)}) format("${FORMAT[f.format]}");font-weight:${Math.round(f.weight)};font-style:${f.italic ? "italic" : "normal"};font-display:block}`).join("\n");
+}
+
+/** The Google stylesheet for catalogue families plus @font-face rules for the uploaded faces these boards use. */
+export function BoardFonts({ boards, faces = [] }: { boards: ArtboardState[]; faces?: CustomFontFace[] }) {
+  const uses = fontUsesOf(boards);
+  const href = googleFontsHref(uses);
+  const used = new Set(uses.map((u) => u.family));
+  const css = customFontFaceCss(faces.filter((f) => used.has(f.family)));
+  return (
+    <>
+      {href && <link rel="stylesheet" href={href} precedence="chitrapx-fonts" />}
+      {css && <style data-chitrapx-custom-fonts="">{css}</style>}
+    </>
+  );
 }

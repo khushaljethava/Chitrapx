@@ -7,7 +7,9 @@ import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
+import { facesOf } from "@/lib/fontFaces.ts";
 import { FontPicker } from "./FontPicker.tsx";
+import { FontUploadDialog } from "./FontUploadDialog.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
 import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
@@ -105,6 +107,9 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   const localized = locale !== base && refr.boardId !== null;
   const doc = useEditor((s) => s.doc);
   const used = useMemo(() => docFontFamilies(doc), [doc]);
+  const { fonts, refreshFonts } = useEditorAssets();
+  const [uploadingFont, setUploadingFont] = useState(false);
+  const custom = useMemo(() => fonts.map((f) => ({ family: f.family, faces: facesOf([f]) })), [fonts]);
   const g = useGesture();
   const content = useRef<HTMLTextAreaElement>(null);
   const a = el as unknown as AnyFields;
@@ -138,7 +143,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             <OverrideNote k="content" />
           </Row>
           <FontPicker id="i-font" label="Font" value={override?.fontFamily ?? a.fontFamily ?? ""} used={used}
-            onChange={(v) => setLocalizable("fontFamily", v)} />
+            custom={custom} onUpload={() => setUploadingFont(true)} onChange={(v) => setLocalizable("fontFamily", v)} />
           <OverrideNote k="fontFamily" />
           <div className="grid grid-cols-2 gap-2">
             <NumberField id="i-size" label="Size" value={a.fontSize ?? 40} min={1} onChange={(v) => set({ fontSize: Math.max(1, v) })} />
@@ -153,6 +158,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             ))}
             <button type="button" className={a.fontStyle === "italic" ? "btn px-3" : "btn-ghost px-3"} onClick={() => set({ fontStyle: a.fontStyle === "italic" ? "normal" : "italic" })}><em>I</em></button>
           </div>
+          {uploadingFont && <FontUploadDialog onClose={() => setUploadingFont(false)}
+            onUploaded={async (family) => { await refreshFonts(); if (family) setLocalizable("fontFamily", family); }} />}
         </>
       )}
 
