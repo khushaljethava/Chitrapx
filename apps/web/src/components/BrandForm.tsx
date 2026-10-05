@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Brand } from "@chitrapx/db/schema";
 import { api } from "@/server/api.ts";
+import { FontPicker } from "@/editor/ui/FontPicker.tsx";
 
 type AppData = { id: string; name: string; description: string; platformHint: string; brand: Brand };
 
@@ -64,14 +65,8 @@ export function BrandForm({ app }: { app: AppData }) {
         </div>
         <ColorField id="b-primary" label="Primary colour" value={form.primaryColor} onChange={set("primaryColor")} />
         <ColorField id="b-secondary" label="Secondary colour" value={form.secondaryColor} onChange={set("secondaryColor")} />
-        <div>
-          <label className="label" htmlFor="b-hfont">Heading font</label>
-          <input id="b-hfont" className="input" placeholder="Inter" value={form.headingFont} onChange={(e) => set("headingFont")(e.target.value)} />
-        </div>
-        <div>
-          <label className="label" htmlFor="b-bfont">Body font</label>
-          <input id="b-bfont" className="input" placeholder="Inter" value={form.bodyFont} onChange={(e) => set("bodyFont")(e.target.value)} />
-        </div>
+        <FontPicker id="b-hfont" label="Heading font" value={form.headingFont} onChange={set("headingFont")} />
+        <FontPicker id="b-bfont" label="Body font" value={form.bodyFont} onChange={set("bodyFont")} />
       </div>
       <div className="flex items-center gap-3">
         <button className="btn">Save</button>

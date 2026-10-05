@@ -14,3 +14,4 @@ export * from "./layout.ts";
 export * from "./match.ts";
 export * from "./deviceStatusBar.ts";
 export * from "./fontCatalog.ts";
+export * from "./docFonts.ts";

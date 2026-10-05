@@ -1,17 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { MAX_BOARD_EDGE, statusBarSpec } from "@chitrapx/document";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { docFontFamilies, MAX_BOARD_EDGE, statusBarSpec } from "@chitrapx/document";
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
-import { ALL_FONTS } from "@chitrapx/renderer";
 import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
+import { FontPicker } from "./FontPicker.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
 import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
-const FONT_OPTIONS = ALL_FONTS.map((f) => [f.family, f.family] as const);
 const WEIGHTS = [["300", "Light"], ["400", "Regular"], ["500", "Medium"], ["600", "Semibold"], ["700", "Bold"], ["800", "Extra bold"], ["900", "Black"]] as const;
 const DEVICES = [
   ["iphone-17-pro-max", "iPhone 17 Pro Max"], ["iphone-15", "iPhone 15"], ["iphone-15-pro", "iPhone 15 Pro"], ["iphone-x", "iPhone X"],
@@ -104,6 +103,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   const override = useEditor((s): ElementLocaleOverride | undefined => refr.boardId
     ? s.doc.groups.find((g) => g.id === refr.groupId)?.boards.find((b) => b.id === refr.boardId)?.localized?.[s.locale]?.[refr.elementId] : undefined);
   const localized = locale !== base && refr.boardId !== null;
+  const doc = useEditor((s) => s.doc);
+  const used = useMemo(() => docFontFamilies(doc), [doc]);
   const g = useGesture();
   const content = useRef<HTMLTextAreaElement>(null);
   const a = el as unknown as AnyFields;
@@ -136,7 +137,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             <textarea id="i-content" ref={content} className="input min-h-20" value={override?.content ?? a.content ?? ""} onChange={(e) => setLocalizable("content", e.target.value)} {...g} />
             <OverrideNote k="content" />
           </Row>
-          <SelectField id="i-font" label="Font" value={override?.fontFamily ?? a.fontFamily ?? ""} options={withCurrent(FONT_OPTIONS, override?.fontFamily ?? a.fontFamily ?? "")} onChange={(v) => setLocalizable("fontFamily", v)} />
+          <FontPicker id="i-font" label="Font" value={override?.fontFamily ?? a.fontFamily ?? ""} used={used}
+            onChange={(v) => setLocalizable("fontFamily", v)} />
           <OverrideNote k="fontFamily" />
           <div className="grid grid-cols-2 gap-2">
             <NumberField id="i-size" label="Size" value={a.fontSize ?? 40} min={1} onChange={(v) => set({ fontSize: Math.max(1, v) })} />
