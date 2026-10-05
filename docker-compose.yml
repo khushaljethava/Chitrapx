@@ -1,0 +1,15 @@
+# Local S3 for dev and e2e. Console: http://127.0.0.1:9001 (user chitrapx / chitrapx-dev-secret).
+services:
+  minio:
+    image: cgr.dev/chainguard/minio:latest
+    user: "0:0" # the named volume is root-owned
+    command: ["server", "/data", "--console-address", ":9001"]
+    ports: ["9000:9000", "9001:9001"]
+    environment:
+      MINIO_ROOT_USER: chitrapx
+      MINIO_ROOT_PASSWORD: chitrapx-dev-secret
+      # MinIO answers PutBucketCors with NotImplemented; its CORS comes from here instead.
+      MINIO_API_CORS_ALLOW_ORIGIN: http://localhost:3000
+    volumes: ["minio-data:/data"]
+volumes:
+  minio-data:

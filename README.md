@@ -8,7 +8,9 @@ Requires Node 24, pnpm 9, Docker.
 
 ```bash
 pnpm i
-pnpm db:start              # local Supabase (Postgres, Auth, Storage) in Docker
+pnpm db:start              # local Supabase (Postgres, Auth) in Docker
+pnpm storage:up            # MinIO (S3) in Docker on :9000, console on :9001
+pnpm storage:setup         # buckets, CORS, lifecycle rules (idempotent)
 cp .env.example .env       # then paste ANON_KEY and SERVICE_ROLE_KEY from `pnpm exec supabase status`
 pnpm db:migrate
 pnpm db:seed               # loads the bundled templates

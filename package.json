@@ -14,7 +14,9 @@
     "db:start": "supabase start",
     "db:stop": "supabase stop",
     "db:migrate": "pnpm --filter @chitrapx/db migrate",
-    "db:seed": "pnpm --filter @chitrapx/db seed"
+    "db:seed": "pnpm --filter @chitrapx/db seed",
+    "storage:up": "docker compose up -d minio",
+    "storage:setup": "pnpm --filter @chitrapx/storage run setup"
   },
   "devDependencies": {
     "@types/node": "^26.6.4",
