@@ -1,6 +1,6 @@
 import { produce, type Draft } from "immer";
 import {
-  applyStyle, applyTexts, hash32, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, writeTranslations, type TextMark, type TranslationWrite, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyStyle, applyTexts, CHIP_MAX, CHIP_MAX_CHARS, hash32, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, remapChipOverride, retarget, writeTranslations, type ChipsElementProps, type TextMark, type TranslationWrite, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
@@ -25,6 +25,7 @@ export type Command =
   | { type: "setOverride"; ref: Ref; locale: string; props: Partial<ElementLocaleOverride> }
   | { type: "setTranslations"; writes: TranslationWrite[] }
   | { type: "setMirrorRtl"; on: boolean }
+  | { type: "setChips"; ref: Ref; chips: string[]; from: number[] }
   | { type: "setTextRich"; ref: Ref; locale?: string; content: string; marks: TextMark[] }
   | { type: "resetOverride"; ref: Ref; locale: string; keys: string[] }
   | { type: "setScreenshot"; ref: Ref; src: string | undefined; locale?: string }
@@ -397,6 +398,27 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         if (!el) return;
         el.screenshotSrc = cmd.src;
         el.screenshotRect ??= FULL_SCREEN;
+        return;
+      }
+      case "setChips": {
+        const el = list(d, cmd.ref.groupId, cmd.ref.boardId)?.find((e) => e.id === cmd.ref.elementId) as unknown as ChipsElementProps | undefined;
+        if (!el || el.type !== "chips") return;
+        const next = cmd.chips.map((c) => c.replace(/\s+/g, " ").trim().slice(0, CHIP_MAX_CHARS)).slice(0, CHIP_MAX);
+        const from = cmd.from.slice(0, next.length);
+        // A blank or repeated chip would be dropped on load and shift every later chip's translations: refuse the edit (F6).
+        if (next.some((c) => !c) || new Set(next.map((c) => c.toLowerCase())).size !== next.length) return;
+        if (next.length === el.chips.length && next.every((c, i) => c === el.chips[i]) && from.every((j, i) => j === i)) return;
+        el.chips = next;
+        // Every language's words follow their chip to its new place; a new chip starts untranslated.
+        const b = cmd.ref.boardId ? findBoard(d, cmd.ref.groupId, cmd.ref.boardId) : undefined;
+        for (const byEl of Object.values(b?.localized ?? {})) {
+          const ov = byEl[el.id];
+          if (!ov?.chips) continue;
+          const remapped = remapChipOverride(ov.chips, from);
+          if (remapped) ov.chips = remapped;
+          else { delete ov.chips; delete ov.origin; delete ov.sourceHash; }
+          if (!Object.keys(ov).length) delete byEl[el.id];
+        }
         return;
       }
       case "setMirrorRtl":

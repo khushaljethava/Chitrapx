@@ -16,6 +16,9 @@ const base = (w: number, h: number, ew: number, eh: number) =>
 
 const ADDERS: Array<[string, NewElement]> = [
   ["Text", (w, h) => ({ ...base(w, h, w * 0.8, h * 0.08), type: "text", name: "Text", content: "Your headline", fontSize: Math.round(w * 0.075 * 0.3) /* OSG text renders at fontSize / 0.3 px */, fontFamily: "Bricolage Grotesque", fontWeight: "700", color: "#111111", textAlign: "center", lineHeight: 1.1 })],
+  ["Chips", (w, h) => ({ ...base(w, h, w * 0.47, w * 0.094), type: "chips", name: "Chips", chips: ["Fast", "Private", "Offline"],
+    fontSize: Math.round(w * 0.0225 * 0.3 * 10) / 10 /* drawn at fontSize / 0.3 px, like text */, fontFamily: "Bricolage Grotesque", fontWeight: "600",
+    color: "#111111", fillColor: "#ffffff", align: "left" })],
   ["Rectangle", (w, h) => ({ ...base(w, h, w * 0.5, w * 0.3), type: "shape", name: "Rectangle", shapeType: "rectangle", fillColor: "#4f46e5", strokeColor: "#000000", strokeWidth: 0, borderRadius: Math.round(w * 0.03) })],
   ["Circle", (w, h) => ({ ...base(w, h, w * 0.3, w * 0.3), type: "shape", name: "Circle", shapeType: "circle", fillColor: "#f59e0b", strokeColor: "#000000", strokeWidth: 0 })],
   ["Star", (w, h) => ({ ...base(w, h, w * 0.2, w * 0.2), type: "shape", name: "Star", shapeType: "star", fillColor: "#facc15", strokeColor: "#000000", strokeWidth: 0, customPoints: 5, innerRadius: 45 })],

@@ -9,3 +9,9 @@ it("catalog.json is up to date with the templates (run pnpm --filter @chitrapx/d
   expect(catalog.length).toBeGreaterThan(80);
   expect(catalog.every((c: { boards: unknown[] }) => c.boards.length > 0)).toBe(true);
 });
+
+it("feature graphics with chips say so, and only those", () => {
+  const catalog = JSON.parse(renderCatalog()) as Array<{ slug: string; boards: Array<{ chips?: number }> }>;
+  const withChips = catalog.filter((c) => c.boards.some((b) => b.chips)).map((c) => c.slug);
+  expect(withChips).toEqual(["fg-food-delivery", "fg-habit-tracker", "fg-music-stream", "fg-travel-explore"]);
+});

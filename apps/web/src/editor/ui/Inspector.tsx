@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { applyMark, clearMark, docFontFamilies, MAX_BOARD_EDGE, rangeStyle, statusBarSpec } from "@chitrapx/document";
-import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, StylePatch, TextElementProps } from "@chitrapx/document";
+import type { ArtboardElement, ChipsElementProps, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, StylePatch, TextElementProps } from "@chitrapx/document";
 import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
 import { fitLandscape } from "../geometry.ts";
@@ -10,6 +10,7 @@ import { marksFor, stylingNotCarried } from "../richTextModel.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
 import { facesOf } from "@/lib/fontFaces.ts";
+import { ChipsEditor } from "./ChipsEditor.tsx";
 import { FontPicker } from "./FontPicker.tsx";
 import { FontUploadDialog } from "./FontUploadDialog.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
@@ -41,7 +42,8 @@ const STYLES = [["normal", "Flat"], ["3d-left", "3D, facing left"], ["3d-right",
 const POSES = (["classic", "front", "upright", "side", "tilted", "reclined", "laying", "floating", "drifting", "leaning", "soaring", "isometric"] as const).map((p) => [p, p[0]!.toUpperCase() + p.slice(1)] as const);
 /** Every element type's fields, optional: the inspector shows only the ones that apply. */
 type AnyFields = Partial<Omit<TextElementProps, "type"> & Omit<ShapeElementProps, "type" | "borderRadius"> & Omit<DeviceFrameElementProps, "type"> & Omit<ImageElementProps, "type" | "opacity" | "borderRadius">>
-  & { borderRadius?: number | string; showStatusBar?: boolean; statusBarPlatform?: "ios" | "android"; statusBarTheme?: "light" | "dark"; statusBarBg?: "transparent" | "solid"; statusBarColor?: string; statusBarTime?: string; styleType?: string; deviceType?: string };
+  & { borderRadius?: number | string; showStatusBar?: boolean; statusBarPlatform?: "ios" | "android"; statusBarTheme?: "light" | "dark"; statusBarBg?: "transparent" | "solid"; statusBarColor?: string; statusBarTime?: string; styleType?: string; deviceType?: string }
+  & { align?: "left" | "center" | "right"; chips?: string[] };
 
 /** Free text is applied only once it is a time the document accepts, so a half-typed value never breaks saving; an invalid one reverts on blur. */
 function TimeField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -203,6 +205,23 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             onChange={(v) => set({ textTransform: v === "none" ? undefined : v })} />
           {uploadingFont && <FontUploadDialog onClose={() => setUploadingFont(false)}
             onUploaded={async (family) => { await refreshFonts(); if (family) setLocalizable("fontFamily", family); }} />}
+        </>
+      )}
+      {el.type === "chips" && (
+        <>
+          <ChipsEditor refr={refr} el={el as ChipsElementProps} locale={localized ? locale : null} />
+          <FontPicker id="i-chips-font" label="Font" value={a.fontFamily ?? ""} used={used} custom={custom} onChange={(v) => set({ fontFamily: v })} />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberField id="i-chips-size" label="Size" value={a.fontSize ?? 7} min={1} step={0.5} onChange={(v) => set({ fontSize: Math.max(1, v) })} />
+            <SelectField id="i-chips-weight" label="Weight" value={String(a.fontWeight ?? "600")} options={WEIGHTS} onChange={(v) => set({ fontWeight: v })} />
+          </div>
+          <ColorField id="i-chips-text" label="Text colour" value={a.color ?? "#111111"} onChange={(v) => set({ color: v })} />
+          <ColorField id="i-chips-fill" label="Chip colour" value={a.fillColor ?? "#ffffff"} onChange={(v) => set({ fillColor: v })} />
+          <div className="flex gap-1" role="group" aria-label="Chip alignment">
+            {(["left", "center", "right"] as const).map((al) => (
+              <button key={al} type="button" className={(a.align ?? "left") === al ? "btn flex-1 px-2" : "btn-ghost flex-1 px-2"} onClick={() => set({ align: al })}>{al[0]!.toUpperCase() + al.slice(1)}</button>
+            ))}
+          </div>
         </>
       )}
 

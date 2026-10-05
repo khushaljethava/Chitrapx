@@ -192,6 +192,32 @@
         "fontStyle": "normal",
         "textAlign": "left",
         "lineHeight": 1.35
+       },
+       {
+        "id": "travel-chips",
+        "type": "chips",
+        "name": "Feature chips",
+        "position": {
+         "x": 58,
+         "y": 384
+        },
+        "size": {
+         "width": 480,
+         "height": 96
+        },
+        "rotation": 0,
+        "scale": 1,
+        "chips": [
+         "Offline maps",
+         "Trip planner",
+         "Local picks"
+        ],
+        "fontSize": 6.6,
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "color": "#0E5E66",
+        "fillColor": "#FFFFFF",
+        "align": "left"
        }
       ],
       "backgroundColor": "#24B6C2",

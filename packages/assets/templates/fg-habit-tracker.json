@@ -209,6 +209,32 @@
         "fontStyle": "normal",
         "textAlign": "left",
         "lineHeight": 1.35
+       },
+       {
+        "id": "habit-chips",
+        "type": "chips",
+        "name": "Feature chips",
+        "position": {
+         "x": 58,
+         "y": 384
+        },
+        "size": {
+         "width": 480,
+         "height": 96
+        },
+        "rotation": 0,
+        "scale": 1,
+        "chips": [
+         "Daily streaks",
+         "Reminders",
+         "Insights"
+        ],
+        "fontSize": 6.6,
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "color": "#C6F7E2",
+        "fillColor": "#0F4230",
+        "align": "left"
        }
       ],
       "backgroundColor": "#5FC99A",

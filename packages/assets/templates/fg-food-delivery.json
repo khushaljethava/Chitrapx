@@ -203,6 +203,32 @@
         "fontStyle": "normal",
         "textAlign": "left",
         "lineHeight": 1.35
+       },
+       {
+        "id": "food-chips",
+        "type": "chips",
+        "name": "Feature chips",
+        "position": {
+         "x": 58,
+         "y": 384
+        },
+        "size": {
+         "width": 480,
+         "height": 96
+        },
+        "rotation": 0,
+        "scale": 1,
+        "chips": [
+         "Fast delivery",
+         "Live tracking",
+         "Top restaurants"
+        ],
+        "fontSize": 6.6,
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "color": "#E5502A",
+        "fillColor": "#FFFFFF",
+        "align": "left"
        }
       ],
       "backgroundColor": "#FF7A45",

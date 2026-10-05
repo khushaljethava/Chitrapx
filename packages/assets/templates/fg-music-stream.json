@@ -166,6 +166,32 @@
         "fontStyle": "normal",
         "textAlign": "left",
         "lineHeight": 1.35
+       },
+       {
+        "id": "music-chips",
+        "type": "chips",
+        "name": "Feature chips",
+        "position": {
+         "x": 58,
+         "y": 398
+        },
+        "size": {
+         "width": 480,
+         "height": 92
+        },
+        "rotation": 0,
+        "scale": 1,
+        "chips": [
+         "Offline mode",
+         "No ads",
+         "Lyrics"
+        ],
+        "fontSize": 6.6,
+        "fontFamily": "Bricolage Grotesque",
+        "fontWeight": "600",
+        "color": "#FFFFFF",
+        "fillColor": "#2A1147",
+        "align": "left"
        }
       ],
       "backgroundColor": "#2A1147",

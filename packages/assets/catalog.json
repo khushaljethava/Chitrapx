@@ -660,7 +660,8 @@
   "boards": [
    {
     "devices": 1,
-    "texts": 2
+    "texts": 2,
+    "chips": 1
    }
   ]
  },
@@ -673,7 +674,8 @@
   "boards": [
    {
     "devices": 1,
-    "texts": 2
+    "texts": 2,
+    "chips": 1
    }
   ]
  },
@@ -686,7 +688,8 @@
   "boards": [
    {
     "devices": 1,
-    "texts": 2
+    "texts": 2,
+    "chips": 1
    }
   ]
  },
@@ -738,7 +741,8 @@
   "boards": [
    {
     "devices": 1,
-    "texts": 2
+    "texts": 2,
+    "chips": 1
    }
   ]
  },

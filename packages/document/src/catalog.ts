@@ -8,7 +8,7 @@ export type CatalogEntry = {
   category: string;
   target: string;
   /** Per board: how many screenshots it shows and how many text slots it has. */
-  boards: Array<{ devices: number; texts: number }>;
+  boards: Array<{ devices: number; texts: number; chips?: number }>;
 };
 
 type TemplateFile = { slug: string; name: string; description: string; category: string; kind: string; doc: ChitrapxDoc };
@@ -23,10 +23,10 @@ export function buildCatalog(templates: TemplateFile[]): CatalogEntry[] {
       return {
         slug: t.slug, name: t.name, description: t.description, category: t.category,
         target: getTarget(g.target)?.label ?? g.target,
-        boards: g.boards.map((b) => ({
-          devices: b.elements.filter((e) => e.type === "device").length,
-          texts: b.elements.filter((e) => e.type === "text").length,
-        })),
+        boards: g.boards.map((b) => {
+          const chips = b.elements.filter((e) => e.type === "chips").length;
+          return { devices: b.elements.filter((e) => e.type === "device").length, texts: b.elements.filter((e) => e.type === "text").length, ...(chips ? { chips } : {}) };
+        }),
       };
     });
 }

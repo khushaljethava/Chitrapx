@@ -434,3 +434,33 @@ describe("RTL (SP11)", () => {
     expect(applyCommand(off, { type: "setMirrorRtl", on: false })).toBe(off);
   });
 });
+
+describe("chips (SP11)", () => {
+  function chipsDoc(): ChitrapxDoc {
+    const d = doc();
+    d.groups[0]!.boards[0]!.elements.push({ id: "ch", type: "chips", chips: ["Fast", "Private", "Offline"], fontSize: 6, fontFamily: "Inter", color: "#fff", fillColor: "#000",
+      position: { x: 0, y: 0 }, size: { width: 400, height: 90 }, rotation: 0, scale: 1 } as unknown as ArtboardElement);
+    d.groups[0]!.boards[0]!.localized = { "de-DE": { ch: { chips: ["Schnell", "Privat", ""], origin: "manual" } } };
+    return d;
+  }
+  const chipsOf = (d: ChitrapxDoc) => (findElement(d, r("ch")) as unknown as { chips: string[] }).chips;
+  const deOf = (d: ChitrapxDoc) => d.groups[0]!.boards[0]!.localized!["de-DE"]!.ch!.chips;
+
+  it("moving and deleting chips carries every language's words with them", () => {
+    // "Offline" to the front, "Private" removed.
+    const d = applyCommand(chipsDoc(), { type: "setChips", ref: r("ch"), chips: ["Offline", "Fast"], from: [2, 0] });
+    expect(chipsOf(d)).toEqual(["Offline", "Fast"]);
+    expect(deOf(d)).toEqual(["", "Schnell"]);
+  });
+
+  it("a new chip has no translation yet, and an unchanged list is no step", () => {
+    const d0 = chipsDoc();
+    expect(deOf(applyCommand(d0, { type: "setChips", ref: r("ch"), chips: ["Fast", "Private", "Offline", "Sync"], from: [0, 1, 2, -1] }))).toEqual(["Schnell", "Privat"]);
+    expect(applyCommand(d0, { type: "setChips", ref: r("ch"), chips: ["Fast", "Private", "Offline"], from: [0, 1, 2] })).toBe(d0);
+  });
+  it("a blank or repeated chip is refused as a whole, so translations never shift (F6)", () => {
+    const d0 = chipsDoc();
+    expect(applyCommand(d0, { type: "setChips", ref: r("ch"), chips: ["Fast", "", "Offline"], from: [0, 1, 2] })).toBe(d0);
+    expect(applyCommand(d0, { type: "setChips", ref: r("ch"), chips: ["Fast", "fast", "Offline"], from: [0, 1, 2] })).toBe(d0);
+  });
+});
