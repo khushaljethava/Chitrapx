@@ -1,4 +1,4 @@
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
 import { BRAND_TOKENS, briefSchema, FONT_FAMILY_UNSAFE, glossarySchema } from "@chitrapx/document";
@@ -70,6 +70,8 @@ export async function updateApp(ctx: Ctx, appId: string, raw: unknown): Promise<
   if (input.brand?.logoAssetId) {
     const [asset] = await db.select({ id: schema.assets.id }).from(schema.assets).where(and(
       eq(schema.assets.id, input.brand.logoAssetId), eq(schema.assets.workspaceId, ctx.workspaceId),
+      // A competitor's screenshot is analysis-only (SP11): never the app's own brand.
+      ne(schema.assets.kind, "reference"),
     ));
     if (!asset) throw badRequest("unknown_logo_asset");
   }
