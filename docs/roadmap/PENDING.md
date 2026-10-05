@@ -12,7 +12,7 @@ Three sub-projects remain: SP12 is next, then SP15; SP16 can go in any time. SP1
 | SP9 | Editor essentials | Done | `main` |
 | SP10 | Typography and style (plus S3 storage) | Done, merged 2026-10-05 | `main` (`db97254`) |
 | SP11 | Localization and AI copy | Done, merged 2026-10-05 (migrations 0010, 0011 applied to the dev database) | `main` (`ed2004a`) |
-| SP12 | Launch assets | Not started | roadmap only |
+| SP12 | Launch assets | Built on a branch, awaiting review (no migration) | spec `docs/superpowers/specs/2026-10-06-sp12-launch-assets-design.md` |
 | SP15 | Collaboration | Not started | roadmap only |
 | SP16 | Polish | Not started | roadmap only |
 | SP13 | Developer automation (API, CLI, MCP) | Dropped | — |

@@ -1,6 +1,6 @@
 # SP12: Launch assets
 
-**Status:** Not started
+**Status:** Built on a branch, awaiting review. Spec: `docs/superpowers/specs/2026-10-06-sp12-launch-assets-design.md`.
 **Goal:** Users turn one 1024x1024 image (uploaded, or generated as a starter logo) into every app icon file a store submission needs, and turn their screenshots into a single collage image or a single framed-device PNG.
 **Depends on:** SP8 (done): the job and export infrastructure (`apps/worker/src/runJob.ts`, `apps/worker/src/handlers.ts`, `apps/web/src/server/jobs.ts`), the `exports` storage bucket, ZIP output and the free-job hourly quota (`FREE_JOBS_PER_HOUR`, `FREE_JOBS` in `apps/web/src/server/jobs.ts:33-34`).
 **Gap source:** `launch` (icon ZIP, logo generator, collage, mockup). The icon set also matches what appicon.co produces, which `launch/src/config.rs:145` names as its reference behaviour.
