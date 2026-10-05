@@ -4,7 +4,7 @@ import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
+  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, PRESET_KEYS, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
   type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
 } from "@chitrapx/document";
@@ -80,7 +80,7 @@ async function insightsFor(job: JobContext, assets: Array<{ sha256: string }>, d
   return out;
 }
 
-const designInput = z.object({ appId: z.uuid(), brief: z.string().max(4000).optional() });
+const designInput = z.object({ appId: z.uuid(), brief: z.string().max(4000).optional(), preset: z.enum(PRESET_KEYS).optional() });
 
 /** Screenshots in, finished screenshot set out: analyse, pick a template, write the copy, apply. */
 export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
@@ -94,7 +94,7 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
 
   const usage: Usage[] = [];
   const insights = await insightsFor(job, assets, deps, usage);
-  const brief = appBrief(app, { brief: input.data.brief });
+  const brief = appBrief(app, { brief: input.data.brief, preset: input.data.preset });
 
   const pick = await deps.model.generate({
     model: MODELS.writer, system: PICK_SYSTEM, cachedContext: catalogContext(catalog()), schema: templateChoiceSchema, effort: "medium",

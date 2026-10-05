@@ -19,4 +19,24 @@ describe("prompt builders (SP11)", () => {
     expect(appBrief(row).brief).toBe("Saved\nTone: calm");
     expect(appBrief(row, { brief: "Submitted" }).brief).toBe("Submitted");
   });
+  it("a preset adds its vertical to the pick and copy prompts; two presets read differently; none changes nothing", () => {
+    const plain = pickPrompt(app, []);
+    const finance = pickPrompt({ ...app, preset: "finance" }, []);
+    const game = pickPrompt({ ...app, preset: "game" }, []);
+    expect(plain).not.toContain("Vertical:");
+    expect(finance).toContain("Vertical: Finance / Fintech.");
+    expect(finance).toContain('"Your money, finally clear."');
+    expect(finance).not.toBe(game);
+    expect(copyPrompt({ ...app, preset: "game" }, [], [], [], [])).toContain("Vertical: Game / Entertainment.");
+    expect(copyPrompt(app, [], [], [], [])).not.toContain("Vertical:");
+  });
+
+  it("suggests the preset's colours only when the app has no brand colours", () => {
+    expect(pickPrompt({ ...app, preset: "finance" }, [])).toContain("Suggested colours for this vertical: #0F766E");
+    expect(pickPrompt({ ...app, preset: "finance", brand: { primaryColor: "#112233" } }, [])).not.toContain("Suggested colours");
+  });
+
+  it("an app with only an SP10 brand palette counts as having brand colours (F12)", () => {
+    expect(pickPrompt({ ...app, preset: "finance", brand: { palette: [{ token: "primary", color: "#112233" }] } }, [])).not.toContain("Suggested colours");
+  });
 });

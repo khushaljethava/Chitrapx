@@ -1,19 +1,35 @@
-import { briefText, type AppBriefFields, type CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
+import { briefText, CATEGORY_BANKS, presetFor, type AppBriefFields, type CatalogEntry, ScreenInsight, SlotText, TextSlot } from "@chitrapx/document";
 
 export type AppBrief = {
   name: string;
   description: string;
   platform: string;
   brief: string;
-  brand: { primaryColor?: string; secondaryColor?: string };
+  brand: { primaryColor?: string; secondaryColor?: string; palette?: ReadonlyArray<{ token: string; color: string }> };
+  /** SP11: a preset key; the vertical steers voice and examples. */
+  preset?: string;
 };
 
 /** The parts of an apps row every prompt reads. */
 export type AppRow = { name: string; description: string; platformHint: string; brand: AppBrief["brand"]; brief: AppBriefFields };
 
 /** What every prompt knows about the app. `submitted` is what an AI design was started with; otherwise the saved brief is used. */
-export function appBrief(app: AppRow, submitted: { brief?: string } = {}): AppBrief {
-  return { name: app.name, description: app.description, platform: app.platformHint, brief: submitted.brief ?? briefText(app.brief), brand: app.brand };
+export function appBrief(app: AppRow, submitted: { brief?: string; preset?: string } = {}): AppBrief {
+  return {
+    name: app.name, description: app.description, platform: app.platformHint, brief: submitted.brief ?? briefText(app.brief), brand: app.brand,
+    preset: submitted.preset ?? (app.brief.preset || undefined),
+  };
+}
+
+/** The preset's vertical: one voice line and three bank headlines for register. Empty without a preset. */
+export function verticalLines(app: Pick<AppBrief, "preset">): string {
+  const p = presetFor(app.preset);
+  if (!p) return "";
+  const bank = CATEGORY_BANKS.find((b) => b.id === p.bankId);
+  const examples = bank
+    ? `\nExample headlines for this vertical (register only, never copy): ${bank.lines.slice(0, 3).map((l) => JSON.stringify(l.text.replace(/\n/g, " "))).join(", ")}`
+    : "";
+  return `\nVertical: ${p.label}. ${p.voice}${examples}`;
 }
 
 const STYLE = `Write like the best App Store screenshot copy: short, concrete benefits a shopper understands at a glance.
@@ -29,10 +45,14 @@ export const catalogContext = (catalog: CatalogEntry[]) =>
   `Template catalog (JSON). Each board lists how many screenshots (devices) and text slots it has.\n${JSON.stringify(catalog)}`;
 
 export function pickPrompt(app: AppBrief, insights: ScreenInsight[]): string {
+  const colours = [app.brand.primaryColor, app.brand.secondaryColor].filter(Boolean).join(", ");
+  const p = presetFor(app.preset);
+  // An SP10 brand palette counts as brand colours too (preflight F12).
+  const suggested = !colours && !app.brand.palette?.length && p ? `\nSuggested colours for this vertical: ${Object.values(p.palette).join(", ")}` : "";
   return `App: ${app.name} (${app.platform})
 Description: ${app.description || "(none)"}
-Brief from the team: ${app.brief || "(none)"}
-Brand colours: ${[app.brand.primaryColor, app.brand.secondaryColor].filter(Boolean).join(", ") || "(none)"}
+Brief from the team: ${app.brief || "(none)"}${verticalLines(app)}
+Brand colours: ${colours || "(none)"}${suggested}
 
 Screenshots, by index:
 ${insights.map((s, i) => `${i}. ${s.summary} Feature: ${s.feature}. Mood: ${s.mood}.`).join("\n")}`;
@@ -42,17 +62,19 @@ export const COPY_SYSTEM = `You write the text for every text slot of an App Sto
 ${STYLE}
 Each slot has an id, a role (its name in the design), the template's sample text and a maximum length. Keep the shape of the sample: if a headline is split across several slots (for example an accent word in its own slot), split yours the same way so the design still reads naturally. Ratings, badges and small labels stay short and plausible; never invent statistics, awards or press quotes, and replace sample ones with neutral, truthful wording. Return text for every slot.`;
 
+const slotLine = (s: TextSlot) => `  - id "${s.id}", role "${s.role}", max ${s.maxChars} chars, sample: ${JSON.stringify(s.text)}`;
+
 /** `perBoard[i]` lists positions in `order` shown on board i (none, one, or several devices). */
 export function copyPrompt(app: AppBrief, insights: ScreenInsight[], order: number[], perBoard: number[][], slots: TextSlot[][]): string {
   return `App: ${app.name}
 Description: ${app.description || "(none)"}
-Brief: ${app.brief || "(none)"}
+Brief: ${app.brief || "(none)"}${verticalLines(app)}
 
 Boards in order, with the screenshots each one shows.
 ${slots.map((board, i) => {
     const shots = (perBoard[i] ?? []).map((k) => insights[order[k] ?? -1]).filter((s): s is ScreenInsight => !!s);
     return `Board ${i}${shots.length ? ` shows: ${shots.map((s) => `${s.summary} (feature: ${s.feature})`).join("; ")}` : " shows no screenshot"}
-${board.map((s) => `  - id "${s.id}", role "${s.role}", max ${s.maxChars} chars, sample: ${JSON.stringify(s.text)}`).join("\n")}`;
+${board.map(slotLine).join("\n")}`;
   }).join("\n\n")}`;
 }
 

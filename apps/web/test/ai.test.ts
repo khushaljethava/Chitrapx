@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { ZodError } from "zod";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
@@ -94,5 +95,12 @@ describe("AI brief (SP11)", () => {
       .rejects.toMatchObject({ issues: [expect.objectContaining({ message: "Keep the brief under 2000 characters" })] });
     expect(await balance(db, s.ctx.workspaceId)).toBe(20);
     expect(await listProjects(s.ctx, s.app.id)).toEqual([]);
+  });
+  it("a preset is saved with the brief and passed to the job; an unknown one is refused", async () => {
+    const s = await setup(20);
+    const { jobId } = await startAiDesign(s.ctx, boss, s.app.id, { brief: "Budgets", preset: "finance" });
+    expect(await inputOf(jobId)).toEqual({ appId: s.app.id, brief: "Budgets", preset: "finance" });
+    expect((await getApp(s.ctx, s.app.id)).brief.preset).toBe("finance");
+    await expect(startAiDesign(s.ctx, boss, s.app.id, { preset: "crypto-casino" })).rejects.toBeInstanceOf(ZodError);
   });
 });

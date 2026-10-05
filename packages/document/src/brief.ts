@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PRESET_KEYS, type PresetKey } from "./presets.ts";
 
 /** SP11: one brief per app. Free text plus optional structured fields, all serialised into the prompts by briefText. */
 export const BRIEF_MAX = 2000;
@@ -32,6 +33,7 @@ export const briefSchema = z.object({
   audience: briefFields.audience.optional(),
   tone: briefFields.tone.optional(),
   keywords: briefFields.keywords.optional(),
+  preset: z.enum(PRESET_KEYS).or(z.literal("")).optional(),
 }).strict();
 
 /** What `apps.brief` holds. Every field is optional; a new app has `{}`. */
@@ -41,7 +43,7 @@ export type AppBriefFields = {
   tone?: BriefTone | "";
   keywords?: string[];
   /** A preset key, or "" for none. */
-  preset?: string;
+  preset?: PresetKey | "";
   /** The editable summary of the analysed competitor images. */
   competitor?: string;
 };

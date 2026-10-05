@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { BRIEF_MAX, BRIEF_TONES, type AppBriefFields } from "@chitrapx/document";
+import { applyPreset, BRIEF_MAX, BRIEF_TONES, PRESETS, presetFor, type AppBriefFields, type PresetKey } from "@chitrapx/document";
 import { api } from "@/server/api.ts";
 
 const keywordList = (s: string) => s.split(",").map((k) => k.trim()).filter(Boolean);
@@ -11,6 +11,18 @@ const keywordList = (s: string) => s.split(",").map((k) => k.trim()).filter(Bool
 export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: string; screenshotCount: number; brief: AppBriefFields }) {
   const router = useRouter();
   const [form, setForm] = useState({ text: saved.text ?? "", audience: saved.audience ?? "", tone: saved.tone ?? "", keywords: (saved.keywords ?? []).join(", ") });
+  const [preset, setPreset] = useState<PresetKey | "">(saved.preset ?? "");
+  /** Fills empty fields only; a written brief is replaced only after the user says so. */
+  function pickPreset(key: PresetKey | "") {
+    setPreset(key);
+    if (!key) return;
+    const p = presetFor(key)!;
+    const replace = !!form.text.trim() && form.text.trim() !== p.aiBrief && window.confirm(`Replace your brief with the ${p.label} starter text?`);
+    setForm((f) => {
+      const { preset: _picked, ...next } = applyPreset(f, key, replace);
+      return next;
+    });
+  }
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const set = (patch: Partial<typeof form>) => setForm((f) => ({ ...f, ...patch }));
@@ -21,7 +33,7 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
     setError("");
     try {
       const { projectId } = await api<{ projectId: string }>(`/api/apps/${appId}/ai-design`, "POST", {
-        brief: form.text, audience: form.audience, tone: form.tone, keywords: keywordList(form.keywords),
+        brief: form.text, audience: form.audience, tone: form.tone, keywords: keywordList(form.keywords), preset,
       });
       router.push(`/dashboard/projects/${projectId}`);
     } catch (err) { setError((err as Error).message); setBusy(false); }
@@ -34,6 +46,13 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           Chitrapx studies your screenshots, picks a template, orders the screens for conversion and writes the copy. You can change everything afterwards.
         </p>
+      </div>
+      <div>
+        <label className="label" htmlFor="ai-preset">App type</label>
+        <select id="ai-preset" className="input" value={preset} onChange={(e) => pickPreset(e.target.value as PresetKey | "")}>
+          <option value="">None</option>
+          {PRESETS.map((p) => <option key={p.key} value={p.key} title={p.description}>{p.label}</option>)}
+        </select>
       </div>
       <label className="label" htmlFor="ai-brief-text">Anything the AI should know? (optional)</label>
       <textarea id="ai-brief-text" className="input min-h-16" placeholder="Audience, tone, the features that matter most" value={form.text}
