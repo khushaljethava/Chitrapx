@@ -58,9 +58,9 @@ export function signatureValid(payload: string, signature: unknown, key: string)
 export async function createOrder(ctx: Ctx, raw: unknown) {
   const { pack } = z.object({ pack: z.enum(Object.keys(CREDIT_PACKS) as [PackId, ...PackId[]]) }).parse(raw);
   const { credits, amount } = CREDIT_PACKS[pack];
-  const [{ open }] = await db.select({ open: count() }).from(schema.payments).where(and(
+  const [{ open }] = (await db.select({ open: count() }).from(schema.payments).where(and(
     eq(schema.payments.workspaceId, ctx.workspaceId), eq(schema.payments.status, "created"), gt(schema.payments.createdAt, new Date(Date.now() - 3600_000)),
-  ));
+  ))) as [{ open: number }];
   if (open >= MAX_OPEN_ORDERS_PER_HOUR) throw new HttpError(429, "too_many_orders", "Too many unpaid orders; try again later");
   // Our row exists before Razorpay's order, so a paid order can never be unknown to us.
   const [row] = await db.insert(schema.payments).values({
