@@ -2,7 +2,7 @@ import { and, count, eq } from "drizzle-orm";
 import type { PgBoss } from "pg-boss";
 import { z } from "zod";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { allTexts, briefFields, briefText, LOCALE_CODE, PRESET_KEYS, type AppBriefFields, type ChitrapxDoc } from "@chitrapx/document";
+import { allTexts, briefFields, briefText, hasChips, LOCALE_CODE, PRESET_KEYS, type AppBriefFields, type ChitrapxDoc } from "@chitrapx/document";
 import { getApp, updateApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { badRequest } from "./http.ts";
@@ -27,7 +27,7 @@ function assertTextFits(doc: ChitrapxDoc) {
   if (allTexts(doc).reduce((n, t) => n + t.text.length, 0) > MAX_TEXT_CHARS) throw badRequest("too_much_text");
 }
 
-const enqueue = (ctx: Ctx, boss: PgBoss, projectId: string, type: "ai_design" | "ai_translate" | "ai_copy", input: unknown) =>
+const enqueue = (ctx: Ctx, boss: PgBoss, projectId: string, type: "ai_design" | "ai_translate" | "ai_copy" | "ai_chips", input: unknown) =>
   withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, projectId, type, input }));
 
 /** Creates the project the design lands in, then queues the job. If queueing fails it is removed; if the job fails, the worker removes it. */
@@ -77,4 +77,11 @@ export async function startCopyVariants(ctx: Ctx, boss: PgBoss, projectId: strin
   if (!project.doc.groups.length) throw badRequest("project_is_empty");
   assertTextFits(project.doc);
   return enqueue(ctx, boss, project.id, "ai_copy", {});
+}
+
+/** New feature chips for the project (1 credit). Only projects that have a chips element. */
+export async function startChips(ctx: Ctx, boss: PgBoss, projectId: string) {
+  const project = await getProject(ctx, projectId);
+  if (!hasChips(project.doc)) throw badRequest("no_chips");
+  return enqueue(ctx, boss, project.id, "ai_chips", {});
 }

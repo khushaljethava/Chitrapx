@@ -90,3 +90,23 @@ Keep each slot's role and roughly its length. Return all three tones, each with 
 
 export const variantsPrompt = (app: Pick<AppBrief, "name" | "brief">, texts: SlotText[]) =>
   `App: ${app.name}\nBrief: ${app.brief || "(none)"}\nCurrent copy (id and text):\n${JSON.stringify(texts)}`;
+
+export const CHIPS_SYSTEM = `You write the feature chips for a Google Play feature graphic: 4 to 6 short pills naming concrete features a shopper looks for, most important first. Each chip is one or two words and at most 16 characters. No duplicates, no end punctuation, no emoji, no claims such as "best" or "#1". Use the app's own vocabulary.`;
+
+/** A preset's example chips, as style only. */
+export function chipExamples(app: Pick<AppBrief, "preset">): string {
+  const p = presetFor(app.preset);
+  return p ? `\nExample chips for this vertical (style only): ${p.chips.map((c) => JSON.stringify(c)).join(", ")}` : "";
+}
+
+export function chipsPrompt(app: AppBrief, insights: ScreenInsight[], texts: SlotText[]): string {
+  return `App: ${app.name}
+Description: ${app.description || "(none)"}
+Brief: ${app.brief || "(none)"}${verticalLines(app)}${chipExamples(app)}
+
+What the screenshots show:
+${insights.length ? insights.map((s) => `- ${s.feature}: ${s.summary}`).join("\n") : "(no screenshot notes)"}
+
+Current screenshot copy:
+${JSON.stringify(texts)}`;
+}

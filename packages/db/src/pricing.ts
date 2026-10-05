@@ -9,6 +9,8 @@ export const PRICES = {
   ai_translate: 2,
   /** Three alternative copy sets. */
   ai_copy: 3,
+  /** SP11: new feature chips for a project (free when AI design writes them). */
+  ai_chips: 1,
   /** One App Preview or social video. */
   video: 3,
   /** Converting an uploaded screen recording for playback. Free. */

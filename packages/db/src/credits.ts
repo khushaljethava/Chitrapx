@@ -9,7 +9,7 @@ export class InsufficientCreditsError extends Error {
 
 export const RETRY = { retryLimit: 3, retryDelay: 2, retryBackoff: true } as const;
 /** pg-boss redelivers a job still running after this long; must exceed the slowest healthy run. */
-const EXPIRE_SECONDS: Partial<Record<JobType, number>> = { export: 1800, ai_design: 900, ai_translate: 900, ai_copy: 600, video: 1800, process_recording: 900, export_single: 600, project_bundle: 1800, project_import: 1800 };
+const EXPIRE_SECONDS: Partial<Record<JobType, number>> = { export: 1800, ai_design: 900, ai_translate: 900, ai_copy: 600, ai_chips: 600, video: 1800, process_recording: 900, export_single: 600, project_bundle: 1800, project_import: 1800 };
 
 export async function balance(db: Db, workspaceId: string): Promise<number> {
   const r = await db.execute<{ s: number }>(

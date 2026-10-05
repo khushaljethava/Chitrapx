@@ -1,6 +1,6 @@
 import { ObjectMissingError } from "@chitrapx/storage";
 import { PRICES, type JobType } from "@chitrapx/db";
-import { cleanupFailedDesign, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
+import { cleanupFailedDesign, runAiChips, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
 import { anthropicModel } from "./ai/model.ts";
 import { cleanupFailedImport, runBundle, runImport, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
@@ -73,6 +73,7 @@ export const handlers: Record<JobType, JobHandler> = {
   ai_design: (input, job) => runAiDesign(input, job, aiDeps()),
   ai_translate: (input, job) => runAiTranslate(input, job, aiDeps()),
   ai_copy: (input, job) => runAiCopy(input, job, aiDeps()),
+  ai_chips: (input, job) => runAiChips(input, job, aiDeps()),
 };
 
 /** What to undo when a job fails for good. */

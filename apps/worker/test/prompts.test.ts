@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appBrief, copyPrompt, pickPrompt, variantsPrompt, type AppBrief } from "../src/ai/prompts.ts";
+import { appBrief, chipsPrompt, copyPrompt, pickPrompt, variantsPrompt, type AppBrief } from "../src/ai/prompts.ts";
 
 const app: AppBrief = { name: "Bloom", description: "Coffee recipes", platform: "ios", brief: "Busy parents\nKeywords: pour over, grinder", brand: {} };
 
@@ -38,5 +38,13 @@ describe("prompt builders (SP11)", () => {
 
   it("an app with only an SP10 brand palette counts as having brand colours (F12)", () => {
     expect(pickPrompt({ ...app, preset: "finance", brand: { palette: [{ token: "primary", color: "#112233" }] } }, [])).not.toContain("Suggested colours");
+  });
+  it("the chips prompt carries the brief, what the screenshots show, the copy and the preset's example chips", () => {
+    const insight = { summary: "Log a brew", feature: "Brew logging", uiElements: [], mood: "calm", dominantColors: [], textOnScreen: "" };
+    const p = chipsPrompt({ ...app, preset: "health" }, [insight], [{ id: "h", text: "Brew better" }]);
+    expect(p).toContain("Keywords: pour over, grinder");
+    expect(p).toContain("- Brew logging: Log a brew");
+    expect(p).toContain('"Brew better"');
+    expect(p).toContain('Example chips for this vertical (style only): "Sleep tracking"');
   });
 });

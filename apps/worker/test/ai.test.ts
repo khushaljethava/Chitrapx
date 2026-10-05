@@ -5,7 +5,7 @@ import { balance, db, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { allTexts, migrate, textSlots, type ChitrapxDoc } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
+import { runAiChips, runAiCopy, runAiDesign, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
 import type { StructuredModel, StructuredRequest } from "../src/ai/model.ts";
 import { runJob } from "../src/runJob.ts";
 
@@ -42,7 +42,7 @@ async function setup(screenshots = 3, credits = 30) {
   const [project] = await db.insert(schema.projects).values({ workspaceId: ws, appId: app!.id, name: "AI", kind: "screenshots", doc: { schemaVersion: 1, kind: "screenshots", groups: [], localization: { baseLocale: "en-US", locales: [] } } }).returning();
   return { ws, app: app!, assets, project: project! };
 }
-async function queue(ws: string, projectId: string, type: "ai_design" | "ai_translate" | "ai_copy", input: object, cost: number) {
+async function queue(ws: string, projectId: string, type: "ai_design" | "ai_translate" | "ai_copy" | "ai_chips" | "ai_reference", input: object, cost: number) {
   const [job] = await db.insert(schema.jobs).values({ workspaceId: ws, projectId, type, input, creditsReserved: cost }).returning();
   await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: -cost, reason: "reserve", jobId: job!.id });
   return job!.id;
@@ -258,5 +258,47 @@ describe("translate from another language (SP11)", () => {
     await runJob(jobId, (input, job) => runAiTranslate(input, job, deps(model)));
     const out = (await projectRow(s.project.id)).doc as ChitrapxDoc;
     expect(out.groups[0]!.boards[0]!.localized!["de-DE"]![firstId]).toMatchObject({ content: expect.stringMatching(/^\[de\] /), origin: "auto" });
+  });
+});
+
+describe("ai_chips (SP11)", () => {
+  /** A Habit Tracker feature graphic whose chips already have a German translation. */
+  async function chipsProject(s: Awaited<ReturnType<typeof setup>>) {
+    const [t] = await db.select().from(schema.templates).where(eq(schema.templates.slug, "fg-habit-tracker"));
+    const doc = migrate(t!.doc);
+    doc.localization.locales = [{ code: "de-DE" }];
+    doc.groups[0]!.boards[0]!.localized = { "de-DE": { "habit-chips": { chips: ["Tägliche Serien"], origin: "auto" } } };
+    await db.update(schema.projects).set({ doc }).where(eq(schema.projects.id, s.project.id));
+    return doc;
+  }
+  const chipsIn = (d: ChitrapxDoc) => (d.groups[0]!.boards[0]!.elements.find((e) => e.type === "chips") as unknown as { chips: string[] }).chips;
+
+  it("replaces only the chips, drops their old translations and charges 1", async () => {
+    const s = await setup(1);
+    const before = await chipsProject(s);
+    const { model, calls } = fakeModel(() => ({ features: ["Brew timer", "Recipes", "Bean log", "Recipes", "Grind guide", "A very long feature name"] }));
+    const jobId = await queue(s.ws, s.project.id, "ai_chips", {}, 1);
+    await runJob(jobId, (input, job) => runAiChips(input, job, deps(model)));
+
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { chips: ["Brew timer", "Recipes", "Bean log", "Grind guide"] } });
+    const out = (await projectRow(s.project.id)).doc as ChitrapxDoc;
+    expect(chipsIn(out)).toEqual(["Brew timer", "Recipes", "Bean log", "Grind guide"]);
+    const texts = (d: ChitrapxDoc) => d.groups[0]!.boards[0]!.elements.filter((e) => e.type === "text");
+    expect(texts(out)).toEqual(texts(before));
+    expect(out.groups[0]!.boards[0]!.localized?.["de-DE"]?.["habit-chips"]).toBeUndefined();
+    expect(calls).toHaveLength(1);
+    expect(calls[0]!.system).toContain("feature chips");
+    expect(await balance(db, s.ws)).toBe(29);
+  });
+
+  it("fails and refunds when fewer than four usable chips come back", async () => {
+    const s = await setup(1);
+    const before = await chipsProject(s);
+    const { model } = fakeModel(() => ({ features: ["One", "Two", "Three words here"] }));
+    const jobId = await queue(s.ws, s.project.id, "ai_chips", {}, 1);
+    await runJob(jobId, (input, job) => runAiChips(input, job, deps(model)));
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
+    expect(chipsIn((await projectRow(s.project.id)).doc as ChitrapxDoc)).toEqual(chipsIn(before));
+    expect(await balance(db, s.ws)).toBe(30);
   });
 });

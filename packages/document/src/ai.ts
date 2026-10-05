@@ -43,6 +43,9 @@ export const TONES = ["confident", "warm", "punchy"] as const;
 export const variantsSchema = z.object({
   variants: z.array(z.object({ tone: z.enum(TONES), texts: z.array(slotText) })),
 });
+
+/** SP11: the chips writer's answer, filtered by aiChips before use. */
+export const chipsPlanSchema = z.object({ features: z.array(z.string()).describe("4 to 6 feature chips, most important first") });
 export type CopyVariants = z.infer<typeof variantsSchema>;
 
 export type TextSlot = { id: string; role: string; text: string; maxChars: number };

@@ -1,10 +1,10 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  allTexts, applyDesign, applyTranslations, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
+  aiChips, allTexts, applyChips, applyDesign, applyTranslations, CHIP_MIN, chipsPlanSchema, hasChips, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
   type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
 } from "@chitrapx/document";
@@ -13,7 +13,7 @@ import { imageBlock } from "./images.ts";
 import { MODELS, sumUsage, type StructuredModel, type Usage } from "./model.ts";
 import {
   ANALYZE_SYSTEM, catalogContext, COPY_SYSTEM, copyPrompt, PICK_SYSTEM, pickPrompt, translatePrompt, translateSystem,
-  VARIANTS_SYSTEM, variantsPrompt, appBrief,
+  VARIANTS_SYSTEM, variantsPrompt, appBrief, CHIPS_SYSTEM, chipsPrompt,
 } from "./prompts.ts";
 
 export type AiDeps = { model: StructuredModel; loadAsset: (workspaceId: string, sha256: string) => Promise<Buffer> };
@@ -181,4 +181,25 @@ export async function runAiCopy(_raw: unknown, job: JobContext, deps: AiDeps) {
     .filter((v) => v.texts.length);
   if (!variants.length) throw new FatalJobError("ai_no_variants");
   return { actual: PRICES.ai_copy, output: { variants, usage: sumUsage([usage]) } };
+}
+
+/** New feature chips for the project's chips elements. Reads cached screenshot notes only: no vision calls. */
+export async function runAiChips(_raw: unknown, job: JobContext, deps: AiDeps) {
+  const { doc, app } = await projectDoc(job);
+  if (!hasChips(doc)) throw new FatalJobError("no_chips");
+  const shots = await db.select({ sha256: schema.assets.sha256 }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, job.workspaceId), eq(schema.assets.appId, app.id), eq(schema.assets.kind, "screenshot")))
+    .orderBy(asc(schema.assets.createdAt)).limit(MAX_SCREENSHOTS);
+  const cached = shots.length ? await db.select({ insight: schema.screenInsights.insight }).from(schema.screenInsights)
+    .where(and(eq(schema.screenInsights.workspaceId, job.workspaceId), inArray(schema.screenInsights.sha256, shots.map((s) => s.sha256)))) : [];
+  const insights = cached.flatMap((c) => { const p = screenInsightSchema.safeParse(c.insight); return p.success ? [p.data] : []; });
+  const texts = allTexts(doc).filter((t) => t.text.trim() && !t.id.includes("#"));
+  const { data, usage } = await deps.model.generate({
+    model: MODELS.writer, system: CHIPS_SYSTEM, schema: chipsPlanSchema, effort: "low",
+    content: [{ type: "text", text: chipsPrompt(appBrief(app), insights, texts) }],
+  });
+  const chips = aiChips(data.features);
+  if (chips.length < CHIP_MIN) throw new FatalJobError("ai_incomplete");
+  await updateProjectDoc(job, (current) => applyChips(current, chips));
+  return { actual: PRICES.ai_chips, output: { chips, usage: sumUsage([usage]) } };
 }

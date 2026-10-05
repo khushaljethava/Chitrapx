@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import { balance, db, InsufficientCreditsError, schema } from "@chitrapx/db";
 import { seedTemplates } from "@chitrapx/db/seed";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { startAiDesign, startCopyVariants, startTranslate } from "@/server/ai.ts";
+import { startAiDesign, startChips, startCopyVariants, startTranslate } from "@/server/ai.ts";
 import { createApp, getApp } from "@/server/apps.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createProject, listProjects } from "@/server/projects.ts";
@@ -15,7 +15,7 @@ beforeAll(async () => {
   await seedTemplates();
   boss = new PgBoss({ connectionString: process.env.DATABASE_URL!, schema: "pgboss_test" });
   await boss.start();
-  for (const q of ["ai_design", "ai_translate", "ai_copy"]) await boss.createQueue(q);
+  for (const q of ["ai_design", "ai_translate", "ai_copy", "ai_chips", "ai_reference"]) await boss.createQueue(q);
 });
 afterAll(async () => { await boss.stop({ graceful: false }); });
 
@@ -120,5 +120,16 @@ describe("translate from any language (SP11)", () => {
     expect(await balance(db, s.ctx.workspaceId)).toBe(16);
     const b = await startTranslate(s.ctx, boss, p.id, { locales: ["de-DE"], sourceLocale: "en-US" });
     expect(await inputOf(b.jobId)).toEqual({ locales: ["de-DE"] });
+  });
+});
+
+describe("chips (SP11)", () => {
+  it("regenerating chips costs 1 credit and needs a chips element", async () => {
+    const s = await setup(5);
+    const plain = await createProject(s.ctx, s.app.id, { name: "P", templateSlug: "amoura-dating" });
+    await expect(startChips(s.ctx, boss, plain.id)).rejects.toMatchObject({ code: "no_chips" });
+    const fg = await createProject(s.ctx, s.app.id, { name: "F", templateSlug: "fg-habit-tracker" });
+    await startChips(s.ctx, boss, fg.id);
+    expect(await balance(db, s.ctx.workspaceId)).toBe(4);
   });
 });
