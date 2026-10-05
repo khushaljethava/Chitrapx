@@ -1,9 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { cspHeader } from "@/lib/csp.ts";
 import { SUPABASE_ANON_KEY, SUPABASE_URL } from "@/lib/supabase/env.ts";
 
-/** Refreshes the Supabase session cookie and keeps signed-out users out of /dashboard and /editor. */
+const CSP = cspHeader({ supabaseUrl: SUPABASE_URL ?? "", storageEndpoint: process.env.S3_ENDPOINT, dev: process.env.NODE_ENV === "development" });
+
+/**
+ * Refreshes the Supabase session cookie and keeps signed-out users out of /dashboard and /editor.
+ * Every page also gets the Content-Security-Policy, report-only for now (see lib/csp.ts).
+ */
 export async function proxy(request: NextRequest) {
+  const res = await handle(request);
+  res.headers.set("Content-Security-Policy-Report-Only", CSP);
+  return res;
+}
+
+async function handle(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {

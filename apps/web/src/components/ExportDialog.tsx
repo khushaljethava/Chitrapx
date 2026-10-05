@@ -5,6 +5,7 @@ import {
   allLocales, exportPlan, getTarget, MAX_EXPORT_ITEMS, presetSelection, sourcesFor, storeOf, storeReadiness, suggestedSelection, TARGETS,
   type ChitrapxDoc, type ContentIssue, type ExportPreset, type ExportSelection, type Target, type TargetId,
 } from "@chitrapx/document";
+import { track } from "@/lib/track.ts";
 import { api, ApiError } from "@/server/api.ts";
 import { jobError } from "./jobText.ts";
 import { useDialog } from "./useDialog.ts";
@@ -89,6 +90,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
     try {
       if (beforeExport && !(await beforeExport())) { setError("Save your changes first."); return; }
       await api(`/api/projects/${projectId}/export`, "POST", { kind: "zip", selection });
+      track("export_started", { kind: "zip" });
       setJobs(await load());
     } catch (err) { setError(err instanceof ApiError ? err.message : "Something went wrong."); }
     finally { setPosting(false); }

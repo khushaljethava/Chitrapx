@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { balance, db } from "@chitrapx/db";
 import { CreditsBadge } from "@/components/CreditsBadge.tsx";
+import { SiteFooter } from "@/components/SiteFooter.tsx";
 import { requireContext } from "@/server/context.ts";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
       </header>
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">{children}</main>
+      <SiteFooter />
     </div>
   );
 }

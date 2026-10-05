@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SiteFooter } from "@/components/SiteFooter.tsx";
 import { parseChangelog, type Inline } from "@/lib/changelog.ts";
 
 // Prerendered at build time: CHANGELOG.md is read once by the build, never at request time.
@@ -26,6 +27,7 @@ function Text({ parts }: { parts: Inline[] }) {
 
 export default function ChangelogPage() {
   return (
+    <>
     <main className="mx-auto max-w-2xl space-y-10 px-4 py-12">
       <header className="space-y-2">
         <Link href="/" className="text-sm text-neutral-500 hover:underline">Chitrapx</Link>
@@ -49,5 +51,7 @@ export default function ChangelogPage() {
         </section>
       ))}
     </main>
+    <SiteFooter />
+    </>
   );
 }
