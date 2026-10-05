@@ -129,6 +129,18 @@ describe("project_import", () => {
     fails(zipSync({ "manifest.json": strToU8(JSON.stringify(manifest({ assets: [] }))), "doc.json": new Uint8Array(5 * 1024 * 1024 + 1) }), "bundle_invalid"));
   it("rejects a file that is not a zip", () => fails(strToU8("hello"), "bundle_invalid"));
 
+  it("never links a project image to a competitor reference with the same bytes: the import fails (SP11 final review)", async () => {
+    const ws = await makeWorkspace((await createUser()).id);
+    const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Has a competitor board" }).returning();
+    const [ref] = await db.insert(schema.assets).values({ workspaceId: ws, appId: app!.id, kind: "reference", storagePath: `${ws}/${sha(PNG)}`,
+      mime: "image/png", bytes: PNG.length, sha256: sha(PNG) }).returning();
+    const r = await importInto(good(), "pro", ws, app!.id);
+    expect(r.job).toMatchObject({ status: "failed", error: "asset_kind_conflict" });
+    expect(await db.select().from(schema.projects).where(eq(schema.projects.workspaceId, ws))).toEqual([]);
+    expect(await db.select().from(schema.assets).where(eq(schema.assets.workspaceId, ws))).toEqual([ref]);
+    expect(r.deps.files.has(`staging/${ws}/${r.uploadId}`)).toBe(false);
+  });
+
   it("stops at the plan's project limit, checked under the workspace lock", async () => {
     const ws = await makeWorkspace((await createUser()).id);
     const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Full" }).returning();

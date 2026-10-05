@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CHIP_BUDGET, CHIP_MAX, chipId, type ChipsElementProps, type ElementLocaleOverride } from "@chitrapx/document";
 import { api } from "@/server/api.ts";
+import { chipEditError } from "../chipsModel.ts";
 import type { Ref } from "../commands.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { useDocJob } from "../docJobs.tsx";
@@ -38,9 +39,14 @@ export function ChipsEditor({ refr, el, locale }: { refr: Ref; el: ChipsElementP
     setBase(order.map((k) => chips[k]!), order);
   };
   function edit(i: number, text: string) {
+    setError("");
     if (locale) store.getState().apply({ type: "setTranslations", writes: [{ locale, id: chipId(el.id, i), text }] });
     else if (!text.trim()) remove(i);
-    else setBase(chips.map((c, k) => (k === i ? text : c)), identity());
+    else {
+      const refused = chipEditError(chips, i, text);
+      if (refused) setError(refused);
+      else setBase(chips.map((c, k) => (k === i ? text : c)), identity());
+    }
   }
   async function regenerate() {
     setBusy(true);

@@ -205,6 +205,9 @@ export async function runImport(raw: unknown, job: JobContext, deps: BundleDeps,
         }).onConflictDoNothing().returning();
         const row = inserted ?? (await tx.db.select().from(schema.assets).where(and(eq(schema.assets.workspaceId, job.workspaceId),
           eq(schema.assets.appId, input.appId), eq(schema.assets.sha256, a.sha256))))[0]!;
+        // The same bytes are on this app's competitor board. A reference row is never a design source (exports refuse
+        // it), and turning it into an upload would take it off the board, so the import stops, as an upload would.
+        if (row.kind === "reference") fail("asset_kind_conflict");
         idOf.set(a.sha256, row.id);
         if (inserted && a.kind === "recording") await queue(tx, job.workspaceId, row.id);
       }

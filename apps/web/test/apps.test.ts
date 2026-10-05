@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { emptyDoc } from "@chitrapx/db";
+import { db, emptyDoc, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { createApp, deleteApp, getApp, updateApp } from "@/server/apps.ts";
 import { createProject, deleteProject, listProjects, updateProject } from "@/server/projects.ts";
@@ -41,6 +41,17 @@ describe("apps", () => {
     const ctx = await ctxFor();
     const app = await createApp(ctx, { name: "A" });
     expect(await status(updateApp(ctx, app.id, { brand: { logoAssetId: crypto.randomUUID() } }))).toBe(400);
+  });
+  it("rejects a competitor reference image as the logo (SP11 final review)", async () => {
+    const ctx = await ctxFor();
+    const app = await createApp(ctx, { name: "A" });
+    const sha = crypto.randomUUID().replace(/-/g, "").padEnd(64, "0");
+    const asset = (kind: "reference" | "image") => db.insert(schema.assets).values({ workspaceId: ctx.workspaceId, appId: app.id, kind,
+      storagePath: `${ctx.workspaceId}/${kind}-${sha}`, mime: "image/png", bytes: 1, sha256: `${kind[0]}${sha.slice(1)}` }).returning().then((r) => r[0]!);
+    const ref = await asset("reference");
+    await expect(updateApp(ctx, app.id, { brand: { logoAssetId: ref.id } })).rejects.toMatchObject({ status: 400, code: "unknown_logo_asset" });
+    const img = await asset("image");
+    expect((await updateApp(ctx, app.id, { brand: { logoAssetId: img.id } })).brand.logoAssetId).toBe(img.id);
   });
   it("brand font names follow the document's fontFamily rule", async () => {
     const ctx = await ctxFor("pro");

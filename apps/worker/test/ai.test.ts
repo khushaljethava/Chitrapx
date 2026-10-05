@@ -346,16 +346,19 @@ describe("AI design for Google Play (SP11)", () => {
     expect(calls.every((c) => !(c.content[0] as { text?: string }).text?.includes('"features"'))).toBe(true);
   });
 
-  it("too few usable chips for a Play app fails and refunds", async () => {
+  it("too few usable chips for a Play app keeps the design with the template's own chips (SP11 final review)", async () => {
     const s = await setup(2, 30, "both");
     const slots = await amouraSlots();
     const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext
-      ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "" }
+      ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "", featureGraphicSlug: "fg-habit-tracker" }
       : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: "ok" })) })), features: ["Timer"] }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
-    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
-    expect(await balance(db, s.ws)).toBe(30);
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { featureGraphicSlug: "fg-habit-tracker", templateChips: true } });
+    const [t] = await db.select().from(schema.templates).where(eq(schema.templates.slug, "fg-habit-tracker"));
+    const chipsOf = (d: ChitrapxDoc) => (d.groups.at(-1)!.boards[0]!.elements.find((e) => e.type === "chips") as unknown as { chips: string[] }).chips;
+    expect(chipsOf((await projectRow(s.project.id)).doc as ChitrapxDoc)).toEqual(chipsOf(migrate(t!.doc)));
+    expect(await balance(db, s.ws)).toBe(20);
   });
 });
 
@@ -415,6 +418,31 @@ describe("ai_reference (SP11)", () => {
     expect(copyText).not.toContain(competitor.headline);
     const first = ((await projectRow(s.project.id)).doc as ChitrapxDoc).groups[0]!.boards[0]!.elements.find((e) => e.id === slots[0]![0]!.id) as unknown as { content: string };
     expect(first.content).not.toBe("Track every habit you have");
+    // The slot kept its sample text; the job says which one (SP11 final review).
+    expect((await jobRow(jobId)).output).toMatchObject({ echoDropped: [slots[0]![0]!.id] });
+  });
+
+  it("two runs paid for the same image analyse and charge it once (SP11 final review)", async () => {
+    const s = await setup(0);
+    const ids = await references(s, 2);
+    // B reads the board, then waits inside its first image call until A has finished.
+    let aDone!: () => void;
+    const gate = new Promise<void>((r) => { aDone = r; });
+    let reached!: () => void;
+    const inCall = new Promise<void>((r) => { reached = r; });
+    const b = fakeModel(answer);
+    const slowB: StructuredModel = { async generate(req) { if (req.model === "claude-haiku-4-5" && b.calls.length === 0) { reached(); await gate; } return b.model.generate(req); } };
+    const jobA = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: ids }, 2);
+    const jobB = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: ids }, 2);
+    const runB = runJob(jobB, (input, job) => runAiReference(input, job, deps(slowB)));
+    await inCall;
+    await runJob(jobA, (input, job) => runAiReference(input, job, deps(fakeModel(answer).model)));
+    aDone();
+    await runB;
+    expect(await jobRow(jobA)).toMatchObject({ status: "done", output: { analysed: 2 } });
+    expect(await jobRow(jobB)).toMatchObject({ status: "done", output: { analysed: 0, cached: 2 } });
+    expect(b.calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(1); // the second image was found cached
+    expect(await balance(db, s.ws)).toBe(28);
   });
   it("feature graphic copy that repeats a competitor headline is dropped too (F4)", async () => {
     const s = await setup(3, 30, "android");

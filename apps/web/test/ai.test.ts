@@ -164,4 +164,21 @@ describe("competitor analysis (SP11)", () => {
     for (let i = 0; i < 29; i++) await db.insert(schema.jobs).values({ workspaceId: s.ctx.workspaceId, type: "export_single", creditsReserved: 0 });
     await expect(startReferenceAnalysis(s.ctx, boss, s.app.id)).rejects.toMatchObject({ status: 429, code: "rate_limited" });
   });
+
+  it("a paid run is neither blocked by nor counted toward the free allowance (SP11 final review)", async () => {
+    const s = await setup(5, 0);
+    await references(s, 2, 0);
+    await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: s.ctx.workspaceId, type: "export_single", creditsReserved: 0 })));
+    await startReferenceAnalysis(s.ctx, boss, s.app.id); // the free allowance is used up, but this run costs 2 credits
+    expect(await balance(db, s.ctx.workspaceId)).toBe(3);
+
+    const t = await setup(0, 0);
+    await references(t, 1, 1);
+    await db.insert(schema.jobs).values([
+      ...Array.from({ length: 29 }, () => ({ workspaceId: t.ctx.workspaceId, type: "export_single", creditsReserved: 0 })),
+      ...Array.from({ length: 3 }, () => ({ workspaceId: t.ctx.workspaceId, type: "ai_reference", creditsReserved: 2 })),
+    ]);
+    await startReferenceAnalysis(t.ctx, boss, t.app.id); // the 30th free job: paid runs did not count
+    await expect(startReferenceAnalysis(t.ctx, boss, t.app.id)).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+  });
 });
