@@ -4,14 +4,13 @@ AI-first App Store and Google Play screenshot generator (SaaS). Design: `docs/su
 
 ## Local setup
 
-Requires Node 24, pnpm 9, Docker.
+Requires Node 24, pnpm 9, Docker (for MinIO) and a Supabase project (Postgres and Auth).
 
 ```bash
 pnpm i
-pnpm db:start              # local Supabase (Postgres, Auth) in Docker
 pnpm storage:up            # MinIO (S3) in Docker on :9000, console on :9001
 pnpm storage:setup         # buckets, CORS, lifecycle rules (idempotent)
-cp .env.example .env       # then paste ANON_KEY and SERVICE_ROLE_KEY from `pnpm exec supabase status`
+cp .env.example .env       # then fill in DATABASE_URL and the three Supabase keys from your project dashboard
 pnpm db:migrate
 pnpm db:seed               # loads the bundled templates
 pnpm --filter @chitrapx/worker exec playwright install chromium   # for exports
