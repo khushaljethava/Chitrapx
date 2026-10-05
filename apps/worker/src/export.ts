@@ -2,7 +2,7 @@ import { strToU8, zipSync } from "fflate";
 import { chromium, type Browser } from "playwright";
 import { storageOrigin } from "@chitrapx/storage";
 import { exportSource, PRICES, renderUrl } from "@chitrapx/db";
-import { checkExportable, exportBatches, storeReadiness } from "@chitrapx/document";
+import { checkExportable, exportBatches, storeReadiness, type ExportItem } from "@chitrapx/document";
 import { FatalJobError, type JobContext } from "./runJob.ts";
 import { finishPng, reportText, type FileIssue } from "./storeFiles.ts";
 import { storage } from "./storage.ts";
@@ -35,17 +35,13 @@ async function launch(): Promise<Browser> {
   return chromium.launch({ args: ["--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"] });
 }
 
-/** Renders every board x locale of the job's project at exact store size and stores a ZIP. */
-export async function runExport(input: unknown, job: JobContext, kind: "zip" | "single" = "zip"): Promise<{ actual: number; output: unknown }> {
-  const src = await exportSource({ workspaceId: job.workspaceId, projectId: job.projectId, input });
-  if (!src) throw new FatalJobError("project_missing");
-  const check = checkExportable(src.doc, src.selection);
-  if (!check.ok) throw new FatalJobError(check.code);
-  const plan = check.plan;
+/**
+ * Screenshots every plan item through the signed render page, at exact size, in plan order. Raw
+ * PNGs: exports finish them for the stores; `transparent` (SP12 mockups) keeps their alpha.
+ */
+export async function renderPlan(job: JobContext, plan: ExportItem[], opts: { transparent?: boolean } = {}): Promise<Buffer[]> {
   const origins = await exportOrigins();
-
-  const files: Record<string, Uint8Array> = {};
-  const post: FileIssue[] = [];
+  const out: Buffer[] = [];
   const browser = await launch();
   try {
     const page = await browser.newPage({ viewport: { width: 1280, height: 1024 }, deviceScaleFactor: 1 });
@@ -59,18 +55,35 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
       if (!ready.ok) throw new FatalJobError(ready.errors.slice(0, 5).join("; "));
       for (const i of batch) {
         const item = plan[i]!;
-        const png = await page.locator(`[data-item="${i}"]`).screenshot({ type: "png", animations: "disabled" });
+        const png = await page.locator(`[data-item="${i}"]`).screenshot({ type: "png", animations: "disabled", omitBackground: opts.transparent ?? false });
         const { width, height } = pngSize(png);
         if (width !== item.width || height !== item.height) {
           throw new Error(`${item.file}: rendered ${width}x${height}, expected ${item.width}x${item.height}`);
         }
-        const done = await finishPng(png, item.file);
-        post.push(...done.issues);
-        files[item.file] = done.png;
+        out[i] = png;
       }
     }
   } finally {
     await browser.close();
+  }
+  return out;
+}
+
+/** Renders every board x locale of the job's project at exact store size and stores a ZIP. */
+export async function runExport(input: unknown, job: JobContext, kind: "zip" | "single" = "zip"): Promise<{ actual: number; output: unknown }> {
+  const src = await exportSource({ workspaceId: job.workspaceId, projectId: job.projectId, input });
+  if (!src) throw new FatalJobError("project_missing");
+  const check = checkExportable(src.doc, src.selection);
+  if (!check.ok) throw new FatalJobError(check.code);
+  const plan = check.plan;
+
+  const files: Record<string, Uint8Array> = {};
+  const post: FileIssue[] = [];
+  const pngs = await renderPlan(job, plan);
+  for (const [i, item] of plan.entries()) {
+    const done = await finishPng(pngs[i]!, item.file);
+    post.push(...done.issues);
+    files[item.file] = done.png;
   }
 
   if (kind === "single") {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MOCKUP_DEVICE_IDS, MOCKUP_FITS } from "./mockup.ts";
 
 /** SP12 launch assets: request bodies (web) and job inputs (worker), shared so both validate alike. */
 
@@ -40,6 +41,18 @@ export function cleanLogoText(text: string | undefined | null): string | null {
   const chars = [...(text ?? "").replace(/\s+/gu, "")].slice(0, LOGO_TEXT_MAX);
   return chars.length ? chars.join("") : null;
 }
+
+export const cropSchema = z.object({ left: z.number().int().min(0), top: z.number().int().min(0), width: z.number().int().positive(), height: z.number().int().positive() });
+
+export const mockupRequest = z.object({
+  assetId: z.uuid(),
+  deviceType: z.enum(MOCKUP_DEVICE_IDS),
+  fit: z.enum(MOCKUP_FITS).optional(),
+  background: hex.optional(),
+}).strict();
+export type MockupRequest = z.infer<typeof mockupRequest>;
+/** The mockup job also carries the document the web app built (read through launchSource) and the area to keep. */
+export const mockupInput = mockupRequest.extend({ doc: z.unknown(), selection: z.unknown(), crops: z.array(cropSchema).length(1) });
 
 const seed = z.number().int().min(0).max(LOGO_SEED_MAX);
 export const logoRequest = z.object({ appId: z.uuid(), text: z.string().max(40).optional(), seed: seed.optional() }).strict();

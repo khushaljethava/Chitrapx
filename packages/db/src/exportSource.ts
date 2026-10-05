@@ -23,3 +23,17 @@ export async function exportSource(job: { workspaceId: string; projectId: string
   const selection = defaultSelection(doc);
   return { doc, selection: input.locales?.length ? { ...selection, locales: input.locales } : selection };
 }
+
+/** Job types whose document lives in the job input (SP12): no project, nothing to hide or clean up. */
+export const INLINE_DOC_JOBS = ["mockup", "collage"] as const;
+
+/**
+ * The in-memory document of a quick mockup or framed collage, validated again (colours, CSS) on
+ * every read. Only the web app writes job inputs; null for other job types or anything invalid.
+ */
+export function launchSource(job: { type: string; input: unknown }): { doc: ChitrapxDoc; selection: ExportSelection } | null {
+  if (!(INLINE_DOC_JOBS as readonly string[]).includes(job.type)) return null;
+  const input = (job.input ?? {}) as { doc?: unknown; selection?: unknown };
+  if (!input.doc) return null;
+  try { return { doc: migrate(input.doc), selection: exportSelectionSchema.parse(input.selection) }; } catch { return null; }
+}

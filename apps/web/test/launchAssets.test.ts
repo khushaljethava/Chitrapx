@@ -2,11 +2,11 @@ import { randomBytes } from "node:crypto";
 import { eq } from "drizzle-orm";
 import { PgBoss } from "pg-boss";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { balance, db, schema } from "@chitrapx/db";
+import { balance, db, launchSource, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createApp } from "@/server/apps.ts";
-import { enqueueAppIcons, enqueueLogo } from "@/server/launchAssets.ts";
+import { enqueueAppIcons, enqueueLogo, enqueueMockup } from "@/server/launchAssets.ts";
 
 let boss: PgBoss;
 beforeAll(async () => {
@@ -44,8 +44,8 @@ describe("logo enqueue", () => {
     const kept = await enqueueLogo(ctx, boss, { appId: app.id, seed: 42 });
     expect(kept.seed).toBe(42);
     const jobs = await jobsOf(ctx);
-    expect(jobs.map((j) => j.input).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))).toEqual(
-      [{ appId: app.id, text: "", seed: 42 }, { appId: app.id, text: "ab", seed: picked.seed }].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))));
+    expect(jobs.map((j) => j.input)).toEqual(expect.arrayContaining([{ appId: app.id, text: "", seed: 42 }, { appId: app.id, text: "ab", seed: picked.seed }]));
+    expect(jobs).toHaveLength(2);
     expect(await balance(db, ctx.workspaceId)).toBe(0);
   });
 
@@ -61,6 +61,43 @@ describe("logo enqueue", () => {
     const app = await createApp(ctx, { name: "Logo" });
     await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "export_single", creditsReserved: 0 })));
     await expect(enqueueLogo(ctx, boss, { appId: app.id })).rejects.toMatchObject({ status: 429, code: "rate_limited" });
+  });
+});
+
+describe("quick mockup enqueue", () => {
+  it("is free and queues a one-board document of the screenshot in the device, with no project", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Mock" });
+    const shot = await asset(ctx, app.id, { kind: "screenshot", width: 1170, height: 2532 });
+    const { jobId } = await enqueueMockup(ctx, boss, { assetId: shot.id, deviceType: "iphone-15", background: "#FFFFFF" });
+    const [job] = await jobsOf(ctx);
+    expect(job).toMatchObject({ id: jobId, type: "mockup", projectId: null, creditsReserved: 0 });
+    const src = launchSource(job!);
+    expect(src!.doc.groups[0]!.boards).toHaveLength(1);
+    const device = src!.doc.groups[0]!.boards[0]!.elements[0] as unknown as { screenshotSrc: string; deviceType: string };
+    expect(device).toMatchObject({ screenshotSrc: `asset:${shot.id}`, deviceType: "iphone-15" });
+    expect(src!.doc.groups[0]!.boards[0]!.backgroundColor).toBe("#ffffff");
+    expect((job!.input as { crops: unknown[] }).crops).toHaveLength(1);
+  });
+
+  it("asks for fit or fill when the shape differs, and refuses recordings and unknown devices", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Mock" });
+    const square = await asset(ctx, app.id, { width: 1000, height: 1000 });
+    await expect(enqueueMockup(ctx, boss, { assetId: square.id, deviceType: "iphone-15" })).rejects.toMatchObject({ status: 400, code: "fit_required" });
+    await enqueueMockup(ctx, boss, { assetId: square.id, deviceType: "iphone-15", fit: "fit" });
+    const rec = await asset(ctx, app.id, { kind: "recording" });
+    await expect(enqueueMockup(ctx, boss, { assetId: rec.id, deviceType: "iphone-15", fit: "fit" })).rejects.toMatchObject({ code: "not_an_image" });
+    await expect(enqueueMockup(ctx, boss, { assetId: square.id, deviceType: "custom", fit: "fit" })).rejects.toThrow();
+    expect(await jobsOf(ctx)).toHaveLength(1);
+  });
+
+  it("counts toward the free hourly allowance", async () => {
+    const ctx = await ctxWith(0);
+    const app = await createApp(ctx, { name: "Mock" });
+    const shot = await asset(ctx, app.id, { width: 1000, height: 1000 });
+    await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "mockup", creditsReserved: 0 })));
+    await expect(enqueueMockup(ctx, boss, { assetId: shot.id, deviceType: "iphone-15", fit: "fill" })).rejects.toMatchObject({ status: 429 });
   });
 });
 

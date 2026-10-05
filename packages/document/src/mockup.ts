@@ -43,8 +43,12 @@ export const MOCKUP_DEVICE_IDS = Object.keys(MOCKUP_DEVICES) as [MockupDeviceId,
 /** "fit" shows the whole screenshot (contain), "fill" covers the screen and crops (cover). */
 export const MOCKUP_FITS = ["fit", "fill"] as const;
 export type MockupFit = (typeof MOCKUP_FITS)[number];
-/** Screenshots whose shape differs from the screen's by more than this must choose fit or fill. */
-export const FIT_TOLERANCE = 0.03;
+/**
+ * Screenshots whose shape differs from the screen's by more than this must choose fit or fill.
+ * The frames are drawn, not traced from hardware: a real 1170x2532 iPhone shot is 4% off the
+ * iPhone 15 frame's screen, and filling it crops only a sliver, so small differences just fill.
+ */
+export const FIT_TOLERANCE = 0.06;
 
 /** Width / height of the device's screen area. */
 export function screenAspect(id: MockupDeviceId): number {

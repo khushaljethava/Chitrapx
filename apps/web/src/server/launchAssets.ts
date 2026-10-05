@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, LOGO_SEED_MAX, logoRequest, MIN_ICON_SOURCE } from "@chitrapx/document";
+import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, LOGO_SEED_MAX, logoRequest, MIN_ICON_SOURCE, mockupDoc, mockupRequest, needsFitChoice } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { HttpError, notFound } from "./http.ts";
@@ -29,6 +29,23 @@ export async function enqueueAppIcons(ctx: Ctx, boss: PgBoss, raw: unknown): Pro
   if (a.width !== a.height) throw new HttpError(400, "icon_not_square", `The icon image must be square; this one is ${a.width}×${a.height}`);
   if (a.width < MIN_ICON_SOURCE) throw new HttpError(400, "icon_too_small", `The icon image must be at least ${MIN_ICON_SOURCE}×${MIN_ICON_SOURCE}`);
   return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "app_icons", input: { ...body, sha256: a.sha256 } }));
+}
+
+const fitRequired = () => new HttpError(400, "fit_required", "This screenshot's shape differs from the device's screen. Choose fit or fill.");
+
+/**
+ * mockup (free, hourly allowance): one screenshot inside a device frame. The one-board document is
+ * built here and travels in the job input, so no helper project is created or left behind.
+ */
+export async function enqueueMockup(ctx: Ctx, boss: PgBoss, raw: unknown): Promise<{ jobId: string }> {
+  const body = mockupRequest.parse(raw ?? {});
+  const a = await launchImage(ctx, body.assetId);
+  if (!body.fit && needsFitChoice(body.deviceType, a.width, a.height)) throw fitRequired();
+  const built = mockupDoc([{ src: `asset:${a.id}`, fit: body.fit }], { deviceType: body.deviceType, background: body.background });
+  return withTx(async (tx) => {
+    await assertFreeQuota(tx, ctx.workspaceId);
+    return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "mockup", input: { ...body, ...built } });
+  });
 }
 
 /** logo_starter (free, hourly allowance): a seeded 1024 logo stored as an image of the app. Returns the seed used. */

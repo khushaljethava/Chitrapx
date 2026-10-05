@@ -9,8 +9,10 @@ declare global {
 }
 
 /** Every requested board at 1:1, one after another, each wrapped in [data-item] for the worker. */
-export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
+export function RenderSheet({ doc, plan, indices, assetUrls, extras, transparent = false }: {
   doc: ChitrapxDoc; plan: ExportItem[]; indices: number[]; assetUrls: Record<string, string>; extras?: RenderExtras;
+  /** SP12 mockups and collage frames: no page colour behind the boards, so a transparent board stays transparent. */
+  transparent?: boolean;
 }) {
   // Auto-shrink measures text with whatever face is loaded. The first pass runs before the faces arrive,
   // so once they have loaded the sizes are measured again before anything is captured.
@@ -51,9 +53,9 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras }: {
   }, [missing, fontsLoaded]);
 
   return (
-    <main style={{ background: "#fff", padding: 0, margin: 0 }}>
+    <main style={{ background: transparent ? "transparent" : "#fff", padding: 0, margin: 0 }}>
       {/* The Next.js dev indicator would otherwise be captured into exported PNGs. */}
-      <style>{"nextjs-portal{display:none!important}"}</style>
+      <style>{`nextjs-portal{display:none!important}${transparent ? "html,body{background:transparent!important}" : ""}`}</style>
       <BoardFonts boards={boards.map((b) => b.board)} faces={extras?.faces} />
       {boards.map(({ i, board }) => (
         <div key={i} data-item={i} style={{ width: board.size.width, height: board.size.height, overflow: "hidden" }}>

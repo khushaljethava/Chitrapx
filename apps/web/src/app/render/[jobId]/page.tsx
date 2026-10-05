@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { and, eq, inArray } from "drizzle-orm";
-import { db, exportSource, schema, verifyRenderSig } from "@chitrapx/db";
+import { db, exportSource, INLINE_DOC_JOBS, launchSource, schema, verifyRenderSig } from "@chitrapx/db";
 import { exportPlan, migrate, VIDEO_FORMAT_IDS, type VideoFormat } from "@chitrapx/document";
 import { RenderSheet } from "@/components/RenderSheet.tsx";
 import { VideoSheet } from "@/components/VideoSheet.tsx";
@@ -23,8 +23,19 @@ export default async function RenderPage({ params, searchParams }: {
   const { exp, sig, items } = await searchParams;
   if (!verifyRenderSig(jobId, exp, sig)) notFound();
   const [job] = await db.select().from(schema.jobs)
-    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), inArray(schema.jobs.type, ["export", "export_single", "video"])));
-  if (!job?.projectId) notFound();
+    .where(and(eq(schema.jobs.id, jobId), eq(schema.jobs.status, "running"), inArray(schema.jobs.type, ["export", "export_single", "video", ...INLINE_DOC_JOBS])));
+  if (!job) notFound();
+  if ((INLINE_DOC_JOBS as readonly string[]).includes(job.type)) {
+    // SP12 quick mockups and framed collages: the document is in the job input, boards on a transparent page.
+    const src = launchSource(job);
+    if (!src) notFound();
+    const plan = exportPlan(src.doc, src.selection);
+    const wanted = (items ?? "").split(",").filter(Boolean).map(Number).filter((i) => Number.isInteger(i) && plan[i]);
+    const jobCtx = { userId: "", workspaceId: job.workspaceId, plan: "free" as const };
+    const assetUrls = await assetUrlMap(jobCtx, appStorage(), src.doc);
+    return <RenderSheet doc={src.doc} plan={plan} indices={wanted.length ? wanted : plan.map((_, i) => i)} assetUrls={assetUrls} transparent />;
+  }
+  if (!job.projectId) notFound();
   if (job.type === "video") {
     const [project] = await db.select().from(schema.projects)
       .where(and(eq(schema.projects.id, job.projectId), eq(schema.projects.workspaceId, job.workspaceId)));
