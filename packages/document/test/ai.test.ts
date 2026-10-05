@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDesign, applyTexts, applyTranslations, textSlots, type ChitrapxDoc } from "../src/index.ts";
+import { applyDesign, applyTexts, applyTranslations, hash32, textSlots, type ChitrapxDoc } from "../src/index.ts";
 import { board, device, doc, group, text } from "./fixtures.ts";
 
 const tpl = () => doc([group([
@@ -54,7 +54,7 @@ describe("applyTranslations", () => {
     d.groups[0]!.boards[1]!.localized = { "de-DE": { h2: { content: "Rezepte teilen (von Hand)", origin: "manual" } } };
     d = applyTranslations(d, "de-DE", [{ id: "h1", text: "Jeden Brühvorgang verfolgen" }, { id: "h2", text: "Rezepte teilen" }, { id: "nope", text: "x" }]);
     expect(d.localization.locales.map((l) => l.code)).toEqual(["de-DE"]);
-    expect(d.groups[0]!.boards[0]!.localized?.["de-DE"]?.h1).toEqual({ content: "Jeden Brühvorgang verfolgen", origin: "auto" });
+    expect(d.groups[0]!.boards[0]!.localized?.["de-DE"]?.h1).toEqual({ content: "Jeden Brühvorgang verfolgen", origin: "auto", sourceHash: hash32("Track every brew") });
     expect(d.groups[0]!.boards[1]!.localized?.["de-DE"]?.h2).toEqual({ content: "Rezepte teilen (von Hand)", origin: "manual" });
   });
 
@@ -89,7 +89,7 @@ describe("review fixes", () => {
   it("skips a translation whose source text changed since the job read it", () => {
     const d = tpl();
     const sources = new Map([["h1", "Track every brew"], ["h2", "Old wording"]]);
-    const out = applyTranslations(d, "de-DE", [{ id: "h1", text: "Verfolgen" }, { id: "h2", text: "Veraltet" }], sources);
+    const out = applyTranslations(d, "de-DE", [{ id: "h1", text: "Verfolgen" }, { id: "h2", text: "Veraltet" }], { sources });
     expect(out.groups[0]!.boards[0]!.localized!["de-DE"]!.h1!.content).toBe("Verfolgen");
     expect(out.groups[0]!.boards[1]!.localized?.["de-DE"]?.h2).toBeUndefined();
   });

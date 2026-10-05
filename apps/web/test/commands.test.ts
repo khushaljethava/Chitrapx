@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { hash32 } from "@chitrapx/document";
 import type { ArtboardElement, ArtboardState, ChitrapxDoc } from "@chitrapx/document";
 import { applyCommand, findElement, type Ref } from "@/editor/commands.ts";
 
@@ -69,10 +70,10 @@ describe("commands", () => {
 
   it("locale overrides: set, reset, and screenshots per locale; base untouched", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } });
-    expect(d.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { a: { content: "Hallo", origin: "manual" } } });
+    expect(d.groups[0]!.boards[0]!.localized).toEqual({ "de-DE": { a: { content: "Hallo", origin: "manual", sourceHash: hash32("a") } } });
     expect(findElement(d, r("a"))).toMatchObject({ content: "a" });
     d = applyCommand(d, { type: "setScreenshot", ref: r("a"), src: "asset:x", locale: "de-DE" });
-    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", origin: "manual", screenshotSrc: "asset:x" });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", origin: "manual", sourceHash: hash32("a"), screenshotSrc: "asset:x" });
     d = applyCommand(d, { type: "resetOverride", ref: r("a"), locale: "de-DE", keys: ["content", "origin", "screenshotSrc"] });
     expect(d.groups[0]!.boards[0]!.localized).toEqual({});
     d = applyCommand(d, { type: "setScreenshot", ref: r("a"), src: "asset:y" });
@@ -115,7 +116,7 @@ describe("review fixes", () => {
   it("duplicating an element copies its translations to the copy", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo" } });
     d = applyCommand(d, { type: "duplicateElements", refs: [r("a")], newIds: ["a2"], offset: 10 });
-    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo", origin: "manual" });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a2).toEqual({ content: "Hallo", origin: "manual", sourceHash: hash32("a") });
   });
 });
 
@@ -132,7 +133,7 @@ describe("hand-edited translations", () => {
   it("typing over a machine translation marks it manual so a later translate keeps it", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo", origin: "auto" } });
     d = applyCommand(d, { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Servus" } });
-    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Servus", origin: "manual" });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Servus", origin: "manual", sourceHash: hash32("a") });
   });
 });
 
@@ -404,5 +405,21 @@ describe("clearing styling in a language (SP10 review I3)", () => {
     const d = applyCommand(base, { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Track habits", marks: [] });
     expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ marks: [] });
     expect(applyCommand(d, { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Track habits", marks: [] })).toBe(d);
+  });
+});
+
+describe("translations table (SP11)", () => {
+  it("setTranslations writes a manual, hashed override on every size holding the id, and repeating it is no step", () => {
+    const two = doc();
+    two.groups.push({ ...structuredClone(two.groups[0]!), id: "g2", target: "ipad-13" });
+    const d = applyCommand(two, { type: "setTranslations", writes: [{ locale: "de-DE", id: "a", text: "Hallo" }] });
+    const want = { content: "Hallo", origin: "manual", sourceHash: hash32("a") };
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual(want);
+    expect(d.groups[1]!.boards[0]!.localized!["de-DE"]!.a).toEqual(want);
+    expect(applyCommand(d, { type: "setTranslations", writes: [{ locale: "de-DE", id: "a", text: "Hallo" }] })).toBe(d);
+  });
+  it("an inline canvas edit in a language records the base text's hash (F3)", () => {
+    const d = applyCommand(doc(), { type: "setTextRich", ref: r("a"), locale: "de-DE", content: "Hallo", marks: [] });
+    expect(d.groups[0]!.boards[0]!.localized!["de-DE"]!.a).toEqual({ content: "Hallo", origin: "manual", sourceHash: hash32("a") });
   });
 });

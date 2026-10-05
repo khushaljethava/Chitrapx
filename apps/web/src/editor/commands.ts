@@ -1,6 +1,6 @@
 import { produce, type Draft } from "immer";
 import {
-  applyStyle, applyTexts, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, type TextMark, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
+  applyStyle, applyTexts, hash32, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, retarget, writeTranslations, type TextMark, type TranslationWrite, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
@@ -23,6 +23,7 @@ export type Command =
   | { type: "moveBoard"; groupId: string; boardId: string; toIndex: number }
   | { type: "updateBoard"; groupId: string; boardId: string; props: Partial<ArtboardState> }
   | { type: "setOverride"; ref: Ref; locale: string; props: Partial<ElementLocaleOverride> }
+  | { type: "setTranslations"; writes: TranslationWrite[] }
   | { type: "setTextRich"; ref: Ref; locale?: string; content: string; marks: TextMark[] }
   | { type: "resetOverride"; ref: Ref; locale: string; keys: string[] }
   | { type: "setScreenshot"; ref: Ref; src: string | undefined; locale?: string }
@@ -66,6 +67,7 @@ const findBoard = (d: Draft<ChitrapxDoc>, groupId: string, boardId: string) =>
 
 /** The only way the document changes. Pure: returns a new document (structurally shared), never mutates. */
 export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
+  if (cmd.type === "setTranslations") return writeTranslations(doc, cmd.writes);
   if (cmd.type === "setTexts") return applyTexts(doc, cmd.texts);
   if (cmd.type === "applyStyle") {
     const styled = applyStyle(doc, cmd.groupId, cmd.styleId);
@@ -109,7 +111,8 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           const sameMarks = JSON.stringify(existing?.marks) === JSON.stringify(wanted);
           if ((inherits || existing?.content === cmd.content) && sameMarks) return; // nothing to do: no undo step
           const ov = (((b.localized ??= {})[cmd.locale] ??= {})[cmd.ref.elementId] ??= {}) as Record<string, unknown>;
-          if (!inherits && ov.content !== cmd.content) { ov.content = cmd.content; ov.origin = "manual"; }
+          // Hashed against the base like every translation writer, so a later base edit shows it as stale.
+          if (!inherits && ov.content !== cmd.content) { ov.content = cmd.content; ov.origin = "manual"; ov.sourceHash = hash32(baseEl.content ?? ""); }
           if (wanted) { if (!sameMarks) ov.marks = wanted; } else delete ov.marks;
           return;
         }
@@ -366,12 +369,16 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           Object.assign(current, cmd.props);
           // A person typed this: machine translation must never overwrite it.
           if ("content" in cmd.props && !("origin" in cmd.props)) current.origin = "manual";
+          if ("content" in cmd.props && !("sourceHash" in cmd.props)) current.sourceHash = hash32(baseContent);
           if ("content" in cmd.props && !("marks" in cmd.props) && Array.isArray(current.marks)) {
             const m = remapMarks(before, String(current.content ?? ""), current.marks as TextMark[]);
             if (m.length) current.marks = m; else delete current.marks;
           }
         }
-        else for (const k of cmd.keys) delete current[k];
+        else {
+          for (const k of cmd.keys) delete current[k];
+          if (current.content === undefined) delete current.sourceHash; // a fingerprint of nothing
+        }
         if (!Object.keys(current).length) delete byEl[cmd.ref.elementId];
         if (!Object.keys(byEl).length) delete byLocale[cmd.locale];
         return;

@@ -4,6 +4,7 @@ import type { ArtboardElement, TextElementProps } from "./artboard.ts";
 import type { ChitrapxDoc } from "./doc.ts";
 import { fillScreenshots } from "./fill.ts";
 import { remapMarks } from "./richText.ts";
+import { hash32 } from "./hash.ts";
 
 /**
  * What the models return. They never produce document JSON: only these small plans,
@@ -121,28 +122,40 @@ export function applyTexts(doc: ChitrapxDoc, texts: SlotText[]): ChitrapxDoc {
   });
 }
 
+/** How a machine translation lands (SP11). */
+export type TranslateApply = {
+  /** The text each id had when the job read it. A slot whose text changed since is skipped: its translation is of old words. */
+  sources?: Map<string, string>;
+  /** The language `sources` was read from; the base when absent. */
+  sourceLocale?: string;
+  /** Replace translations a person wrote. Default: keep them. */
+  overwriteManual?: boolean;
+};
+
 /**
- * Writes machine translations as locale overrides marked `origin: "auto"` and adds the language.
- * A slot a person already translated (an override with content and no `origin: "auto"`) is kept.
+ * Writes machine translations as locale overrides marked `origin: "auto"`, hashed against the base text, and adds
+ * the language. A slot a person translated (content without `origin: "auto"`) is kept unless `overwriteManual`.
  */
-export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotText[], sources?: Map<string, string>): ChitrapxDoc {
+export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotText[], opts: TranslateApply = {}): ChitrapxDoc {
   if (locale === doc.localization.baseLocale) return doc;
   const byId = new Map(texts.map((t) => [t.id, t.text.trim()]));
+  const from = opts.sourceLocale && opts.sourceLocale !== doc.localization.baseLocale ? opts.sourceLocale : null;
   return produce(doc, (d) => {
     if (!d.localization.locales.some((l) => l.code === locale)) d.localization.locales.push({ code: locale });
     for (const g of d.groups) for (const b of g.boards) for (const e of b.elements) {
       const text = byId.get(e.id);
       if (text === undefined || e.type !== "text") continue;
       const base = (e as TextElementProps).content ?? "";
-      // The base text changed while the translation ran: this translation is of old words.
-      if (sources && sources.has(e.id) && sources.get(e.id) !== base) continue;
-      const byEl = ((b.localized ??= {})[locale] ??= {});
-      const current = byEl[e.id];
-      if (current?.content !== undefined && current.origin !== "auto") continue; // a person wrote this
+      const sourceNow = from ? (b.localized?.[from]?.[e.id]?.content || base) : base;
+      if (opts.sources?.has(e.id) && opts.sources.get(e.id) !== sourceNow) continue;
+      const current = b.localized?.[locale]?.[e.id];
+      if (current?.content !== undefined && current.origin !== "auto" && !opts.overwriteManual) continue; // a person wrote this
       const next = text.slice(0, budget(base));
       // The language's own marks were offsets into its old wording.
-      const { marks: _old, ...rest } = current ?? {};
-      byEl[e.id] = { ...rest, ...(current?.content === next && _old ? { marks: _old } : {}), content: next, origin: "auto" };
+      const { marks: old, ...rest } = current ?? {};
+      ((b.localized ??= {})[locale] ??= {})[e.id] = {
+        ...rest, ...(current?.content === next && old ? { marks: old } : {}), content: next, origin: "auto", sourceHash: hash32(base),
+      };
     }
   });
 }

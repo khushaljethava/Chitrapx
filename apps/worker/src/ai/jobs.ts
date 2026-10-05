@@ -153,7 +153,7 @@ export async function runAiTranslate(raw: unknown, job: JobContext, deps: AiDeps
   // Applied to the latest document under the lock: edits made meanwhile are kept, and a slot whose
   // base text changed while translating is skipped rather than given a stale translation.
   const sources = new Map(texts.map((t) => [t.id, t.text]));
-  await updateProjectDoc(job, (current) => results.reduce((d, r) => applyTranslations(d, r.locale, r.texts, sources), current));
+  await updateProjectDoc(job, (current) => results.reduce((d, r) => applyTranslations(d, r.locale, r.texts, { sources }), current));
   const skipped = input.data.locales.filter((l) => !results.some((r) => r.locale === l));
   return { actual: PRICES.ai_translate * results.length, output: { locales: results.map((r) => r.locale), skipped, usage: sumUsage(usage) } };
 }
