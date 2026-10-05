@@ -2,7 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { BRAND_TOKENS, brandPalette, type BrandPalette } from "@chitrapx/document";
 import type { Brand } from "@chitrapx/db/schema";
+import { PaletteGrid } from "./PaletteGrid.tsx";
+import { extractPalette } from "@/lib/colorExtract.ts";
 import { api } from "@/server/api.ts";
 import { FontPicker } from "@/editor/ui/FontPicker.tsx";
 import { FontUploadDialog } from "@/editor/ui/FontUploadDialog.tsx";
@@ -23,7 +26,7 @@ function ColorField({ id, label, value, onChange }: { id: string; label: string;
   );
 }
 
-export function BrandForm({ app, fonts }: { app: AppData; fonts: FontFamilyRow[] }) {
+export function BrandForm({ app, fonts, screenshots }: { app: AppData; fonts: FontFamilyRow[]; screenshots: string[] }) {
   const router = useRouter();
   const [uploading, setUploading] = useState(false);
   const custom = useMemo(() => fonts.map((f) => ({ family: f.family, faces: facesOf([f]) })), [fonts]);
@@ -33,6 +36,9 @@ export function BrandForm({ app, fonts }: { app: AppData; fonts: FontFamilyRow[]
     headingFont: app.brand.headingFont ?? "", bodyFont: app.brand.bodyFont ?? "",
   });
   const [status, setStatus] = useState<{ ok?: string; error?: string }>({});
+  const saved = brandPalette(app.brand);
+  const [palette, setPalette] = useState<BrandPalette>(saved);
+  const [found, setFound] = useState<string[] | null>(null);
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
   const opt = (v: string) => (v.trim() ? v.trim() : undefined);
 
@@ -42,7 +48,8 @@ export function BrandForm({ app, fonts }: { app: AppData; fonts: FontFamilyRow[]
     try {
       await api(`/api/apps/${app.id}`, "PATCH", {
         name: form.name, description: form.description, platformHint: form.platformHint,
-        brand: { primaryColor: opt(form.primaryColor), secondaryColor: opt(form.secondaryColor), headingFont: opt(form.headingFont), bodyFont: opt(form.bodyFont) },
+        brand: { primaryColor: opt(form.primaryColor), secondaryColor: opt(form.secondaryColor), headingFont: opt(form.headingFont), bodyFont: opt(form.bodyFont),
+          palette: BRAND_TOKENS.filter((t) => palette[t] && /^#[0-9a-fA-F]{6}$/.test(palette[t]!)).map((t) => ({ token: t, color: palette[t]! })) },
       });
       setStatus({ ok: "Saved" });
       router.refresh();
@@ -73,6 +80,21 @@ export function BrandForm({ app, fonts }: { app: AppData; fonts: FontFamilyRow[]
         <ColorField id="b-secondary" label="Secondary colour" value={form.secondaryColor} onChange={set("secondaryColor")} />
         <FontPicker id="b-hfont" label="Heading font" value={form.headingFont} custom={custom} onUpload={() => setUploading(true)} onChange={set("headingFont")} />
         <FontPicker id="b-bfont" label="Body font" value={form.bodyFont} custom={custom} onUpload={() => setUploading(true)} onChange={set("bodyFont")} />
+        <div className="sm:col-span-2 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="label">Brand palette</span>
+            <button type="button" className="btn-ghost text-sm" disabled={!screenshots.length}
+              onClick={async () => setFound(await extractPalette(screenshots))}>Extract from screenshots</button>
+          </div>
+          {found && (found.length === 0
+            ? <p role="status" className="text-xs text-neutral-500">No distinct colours found in these screenshots</p>
+            : <div className="flex items-center gap-2">
+                {found.map((c) => <span key={c} title={c} className="h-7 w-7 rounded border border-neutral-300" style={{ background: c }} />)}
+                <button type="button" className="text-sm text-indigo-600 hover:underline"
+                  onClick={() => { setPalette(Object.fromEntries(found.map((c, i) => [BRAND_TOKENS[i]!, c]))); setFound(null); }}>Use these</button>
+              </div>)}
+          <PaletteGrid value={palette} onChange={setPalette} saved={saved} />
+        </div>
       </div>
       <div className="flex items-center gap-3">
         <button className="btn">Save</button>

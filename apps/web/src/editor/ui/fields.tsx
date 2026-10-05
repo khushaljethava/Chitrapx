@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isColor } from "@chitrapx/document";
+import { BRAND_TOKENS, isColor, parseBrandToken, toBrandToken, type BrandPalette, type BrandToken } from "@chitrapx/document";
+import { useEditorAssets } from "../assets.tsx";
 import { useEditorStore } from "../context.tsx";
 
 /** Form controls whose whole edit (focus to blur) is one undo step. */
@@ -32,11 +33,19 @@ export function NumberField({ id, label, value, onChange, step = 1, min, max }: 
 }
 
 /** Free text is applied only once it is a colour the document accepts, so a half-typed value never breaks saving. */
+/** The app's brand colours as swatches: the stored value is the token, the hex is for display. */
+export const brandSwatches = (palette: BrandPalette = {}) =>
+  BRAND_TOKENS.filter((t) => palette[t]).map((t) => ({ label: t as BrandToken, value: toBrandToken(t), hex: palette[t]! }));
+
 export function ColorField({ id, label, value, onChange }: { id: string; label: string; value: string; onChange: (v: string) => void }) {
   const g = useGesture();
   const [text, setText] = useState(value);
   useEffect(() => setText(value), [value]);
-  const hex = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000";
+  const { extras } = useEditorAssets();
+  const swatches = brandSwatches(extras.palette);
+  const token = parseBrandToken(value);
+  const shown = token ? extras.palette?.[token] ?? "#000000" : value;
+  const hex = /^#[0-9a-fA-F]{6}$/.test(shown) ? shown : "#000000";
   const valid = text === "" || isColor(text);
   return (
     <Row label={label} htmlFor={id}>
@@ -45,6 +54,14 @@ export function ColorField({ id, label, value, onChange }: { id: string; label: 
         <input id={id} className={`input ${valid ? "" : "border-red-500"}`} aria-invalid={!valid} value={text}
           onChange={(e) => { setText(e.target.value); if (e.target.value === "" || isColor(e.target.value)) onChange(e.target.value); }} {...g} />
       </div>
+      {swatches.length > 0 && (
+        <div className="flex gap-1" aria-label="Brand colours">
+          {swatches.map((s) => (
+            <button key={s.value} type="button" title={`Brand ${s.label}`} aria-label={`Use brand ${s.label}`} onClick={() => onChange(s.value)}
+              className={`h-5 w-5 rounded border ${value === s.value ? "ring-2 ring-indigo-500" : "border-neutral-300"}`} style={{ background: s.hex }} />
+          ))}
+        </div>
+      )}
     </Row>
   );
 }

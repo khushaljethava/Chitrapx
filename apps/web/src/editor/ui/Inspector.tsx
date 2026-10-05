@@ -13,7 +13,7 @@ import { FontPicker } from "./FontPicker.tsx";
 import { FontUploadDialog } from "./FontUploadDialog.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
 import { RichTextToolbar } from "./RichTextToolbar.tsx";
-import { AssetPicker, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
+import { AssetPicker, brandSwatches, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
 const WEIGHTS = [["300", "Light"], ["400", "Regular"], ["500", "Medium"], ["600", "Semibold"], ["700", "Bold"], ["800", "Extra bold"], ["900", "Black"]] as const;
 const DEVICES = [
@@ -109,7 +109,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   const localized = locale !== base && refr.boardId !== null;
   const doc = useEditor((s) => s.doc);
   const used = useMemo(() => docFontFamilies(doc), [doc]);
-  const { fonts, refreshFonts } = useEditorAssets();
+  const { fonts, refreshFonts, extras } = useEditorAssets();
   const [uploadingFont, setUploadingFont] = useState(false);
   const custom = useMemo(() => fonts.map((f) => ({ family: f.family, faces: facesOf([f]) })), [fonts]);
   const g = useGesture();
@@ -160,7 +160,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             <div className="relative">
               {sel && (
                 <div className="absolute bottom-full left-0 z-20 mb-1">
-                  <RichTextToolbar style={rangeStyle(currentMarks, sel)} onApply={applyRich} />
+                  <RichTextToolbar style={rangeStyle(currentMarks, sel)} onApply={applyRich} swatches={brandSwatches(extras.palette)} />
                 </div>
               )}
               <textarea id="i-content" ref={content} className="input min-h-20" value={textValue} onChange={(e) => setLocalizable("content", e.target.value)}
