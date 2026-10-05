@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { MAX_BOARD_EDGE } from "@chitrapx/document";
+import { MAX_BOARD_EDGE, statusBarSpec } from "@chitrapx/document";
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, TextElementProps } from "@chitrapx/document";
 import { ALL_FONTS } from "@chitrapx/renderer";
 import { useEditorAssets } from "../assets.tsx";
@@ -22,7 +22,7 @@ const STYLES = [["normal", "Flat"], ["3d-left", "3D, facing left"], ["3d-right",
 const POSES = (["classic", "front", "upright", "side", "tilted", "reclined", "laying", "floating", "drifting", "leaning", "soaring", "isometric"] as const).map((p) => [p, p[0]!.toUpperCase() + p.slice(1)] as const);
 /** Every element type's fields, optional: the inspector shows only the ones that apply. */
 type AnyFields = Partial<Omit<TextElementProps, "type"> & Omit<ShapeElementProps, "type" | "borderRadius"> & Omit<DeviceFrameElementProps, "type"> & Omit<ImageElementProps, "type" | "opacity" | "borderRadius">>
-  & { borderRadius?: number | string };
+  & { borderRadius?: number | string; showStatusBar?: boolean; statusBarPlatform?: "ios" | "android"; statusBarTheme?: "light" | "dark"; statusBarBg?: "transparent" | "solid"; statusBarColor?: string; statusBarTime?: string; styleType?: string; deviceType?: string };
 
 /** Sizes the document accepts: at least 8 px, at most the largest board edge. */
 const clampEdge = (v: number) => Math.min(MAX_BOARD_EDGE, Math.max(8, v));
@@ -165,6 +165,35 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             onPick={(src) => store.getState().apply({ type: "setScreenshot", ref: refr, src, locale: localized ? locale : undefined })} />
           <OverrideNote k="screenshotSrc" />
           <SelectField id="i-fit" label="Screenshot fit" value={a.screenshotObjectFit ?? "cover"} options={FITS} onChange={(v) => set({ screenshotObjectFit: v })} />
+          {(() => {
+            const spec = statusBarSpec(a.deviceType ?? "");
+            if (!spec) return null;
+            const is3d = /^3d-/.test(a.styleType ?? "");
+            return (
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" disabled={is3d} checked={!!a.showStatusBar && !is3d}
+                    onChange={(e) => set(e.target.checked
+                      ? { showStatusBar: true, statusBarPlatform: a.statusBarPlatform ?? spec.platform, statusBarTheme: a.statusBarTheme ?? "dark", statusBarBg: a.statusBarBg ?? "transparent", statusBarTime: a.statusBarTime ?? "9:41" }
+                      : { showStatusBar: false })} />
+                  Status bar
+                </label>
+                {is3d && <p className="text-xs text-neutral-500">Not available on 3D devices.</p>}
+                {a.showStatusBar && !is3d && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <SelectField id="i-sb-platform" label="Style" value={a.statusBarPlatform ?? spec.platform} options={[["ios", "iOS"], ["android", "Android"]] as const} onChange={(v) => set({ statusBarPlatform: v })} />
+                    <SelectField id="i-sb-theme" label="Icons" value={a.statusBarTheme ?? "dark"} options={[["dark", "Dark"], ["light", "Light"]] as const} onChange={(v) => set({ statusBarTheme: v })} />
+                    <SelectField id="i-sb-bg" label="Background" value={a.statusBarBg ?? "transparent"} options={[["transparent", "Transparent"], ["solid", "Solid"]] as const} onChange={(v) => set({ statusBarBg: v })} />
+                    <Row label="Time" htmlFor="i-sb-time">
+                      <input id="i-sb-time" className="input" value={a.statusBarTime ?? "9:41"} maxLength={5} {...g}
+                        onChange={(e) => { if (/^\d{0,2}:?\d{0,2}$/.test(e.target.value)) set({ statusBarTime: e.target.value }); }} />
+                    </Row>
+                    {a.statusBarBg === "solid" && <ColorField id="i-sb-color" label="Bar colour" value={a.statusBarColor ?? "#ffffff"} onChange={(v) => set({ statusBarColor: v })} />}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </>
       )}
 

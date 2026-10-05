@@ -5,6 +5,7 @@ import { useState, useRef } from 'react';
 import { Button } from '../shims/ui';
 import { Input } from '../shims/ui';
 import { UploadCloudIcon, ImagePlusIcon } from '../shims/icons';
+import { statusBarSpec } from '@chitrapx/document';
 import type { DeviceFrameElementProps as DeviceFrameElementType, DeviceType, DeviceStyleType } from '@chitrapx/document';
 import { getDeviceDescriptor } from '../lib/deviceRegistry';
 import { cn } from '../shims/utils';
@@ -17,6 +18,7 @@ import { getFlatDeviceChrome, getFlatFrameStyles, renderChassis } from './device
 // Chitrapx: imported directly; the app code-splits renderer routes instead of next/dynamic.
 import { Device3DRenderer } from './Device3DRenderer';
 import { VideoScreen } from './VideoScreen';
+import { StatusBar } from './StatusBar';
 
 interface DeviceFrameElementProps {
   element: DeviceFrameElementType;
@@ -363,7 +365,10 @@ export function DeviceFrameElement({ element, onUpdate, isSelected, videoSrc, vi
     borderRadius: screenBorderRadius,
     zIndex: 1,
   };
-  
+  // Simulated status bar; the 3D branch returned earlier, so it never draws on 3D devices.
+  const bar = element.showStatusBar ? statusBarSpec(element.deviceType) : null;
+  const solidShift = bar && element.statusBarBg === 'solid' ? bar.heightPct : 0;
+
   return (
     <div
       className="w-full h-full flex items-center justify-center bg-transparent group"
@@ -383,11 +388,15 @@ export function DeviceFrameElement({ element, onUpdate, isSelected, videoSrc, vi
             {/* All notches/islands/cutouts are anchored inside the screen so they
                 stay glued to its top edge at any size or aspect ratio */}
             {notchElement}
+            {bar && (
+              <StatusBar platform={element.statusBarPlatform ?? bar.platform} theme={element.statusBarTheme ?? 'dark'}
+                background={element.statusBarBg ?? 'transparent'} color={element.statusBarColor} time={element.statusBarTime ?? '9:41'} heightPct={bar.heightPct} />
+            )}
             {screenshot && element.screenshotRect ? (
               <div
                 style={{
                   position: 'absolute',
-                  top: `${element.screenshotRect.top}%`,
+                  top: `${element.screenshotRect.top + solidShift}%`,
                   left: `${element.screenshotRect.left}%`,
                   width: `${element.screenshotRect.width}%`,
                   height: `${element.screenshotRect.height}%`,

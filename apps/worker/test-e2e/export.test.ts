@@ -343,3 +343,35 @@ describe("sizes and export (SP8)", () => {
     }
   }, 300_000);
 });
+
+describe("editor essentials (SP9)", () => {
+  async function singlePng(ws: string, appId: string, doc: ChitrapxDoc) {
+    const g = doc.groups[0]!;
+    const id = await newProject(ws, appId, doc);
+    const j = await pinnedExport(ws, id, { targets: [g.target], locales: [doc.localization.baseLocale], board: { groupId: g.id, boardIndex: 0 } }, "export_single");
+    await runJob(j, (input, job) => runExport(input, job, "single"));
+    expect((await jobRow(j)).status).toBe("done");
+    const { data, error } = await storageApi().from(EXPORTS_BUCKET).download(`${ws}/${j}.png`);
+    if (error) throw error;
+    return Buffer.from(await data.arrayBuffer());
+  }
+
+  it("a hidden element is not in the exported PNG", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const { ws, appId } = await workspaceWithApp();
+    const shown = PNG.sync.read(await singlePng(ws, appId, doc));
+    const hiddenDoc = JSON.parse(JSON.stringify(doc)) as ChitrapxDoc;
+    const t = hiddenDoc.groups[0]!.boards[0]!.elements.find((e) => e.type === "text") as { hidden?: boolean };
+    t.hidden = true;
+    const hidden = PNG.sync.read(await singlePng(ws, appId, hiddenDoc));
+    expect(pixelmatch(shown.data, hidden.data, null, shown.width, shown.height, { threshold: 0.1 })).toBeGreaterThan(1000);
+  }, 180_000);
+
+  it("an iPhone with a solid iOS status bar matches its golden image", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const dev = doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "device") as Record<string, unknown>;
+    Object.assign(dev, { deviceType: "iphone-15-pro", styleType: "normal", showStatusBar: true, statusBarPlatform: "ios", statusBarTheme: "dark", statusBarBg: "solid", statusBarColor: "#ffffff", statusBarTime: "9:41" });
+    const { ws, appId } = await workspaceWithApp();
+    compareGolden("status-bar-ios.png", await singlePng(ws, appId, doc));
+  }, 120_000);
+});
