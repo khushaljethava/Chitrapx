@@ -18,7 +18,7 @@ export interface Size {
 // a video device has no screenshot rect, no 3D pose, and its own properties.
 // 'audio' is a sound layer on an App Preview board: it has a place on the
 // timeline and in the Layers panel, but nothing on the canvas.
-export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture' | 'audio';
+export type ElementType = 'text' | 'shape' | 'device' | 'image' | 'video' | 'video-device' | 'gesture' | 'audio' | 'chips';
 
 // Enter/exit animation presets for App Preview video exports. On the canvas
 // elements render static; the presets only play in the exported MP4 (and the
@@ -326,6 +326,25 @@ export interface VideoElementProps extends BaseElement {
   durationSeconds?: number; // source duration, probed on upload
 }
 
+// SP11: feature chips, a row of pills (the Google Play feature graphic, key-feature lists). The list is the
+// content; a language may give each chip its own words but shares the order and the count.
+export interface ChipsElementProps extends BaseElement {
+  type: 'chips';
+  chips: string[];
+  /** Same units as text: drawn at fontSize / 0.3, not multiplied by scale. */
+  fontSize: number;
+  fontFamily: string;
+  fontWeight?: string;
+  /** Chip text colour. */
+  color: string;
+  /** Chip background. */
+  fillColor: string;
+  /** Logical: 'left' is the side the language starts on. */
+  align?: 'left' | 'center' | 'right';
+  /** Space between chips in board px; default 0.4 of the drawn font size. */
+  gap?: number;
+}
+
 // Animated gesture hints (tap ripples, swipe trails) for App Preview videos.
 // On the canvas they loop forever so the designer can see them; in the export
 // they play once at triggerTime (or loop when gestureRepeat is set).
@@ -370,7 +389,8 @@ export type ArtboardElement =
   | VideoElementProps
   | VideoDeviceElementProps
   | GestureElementProps
-  | AudioElementProps;
+  | AudioElementProps
+  | ChipsElementProps;
 
 /**
  * One locale's overrides for one element. Every field is optional and anything
@@ -391,6 +411,8 @@ export interface ElementLocaleOverride {
   content?: string;
   /** This language's own marks. Absent while `content` differs from the base: the text renders unstyled. */
   marks?: TextMark[];
+  /** Chips elements only: this language's words per chip, parallel to the base list; "" keeps the base chip. */
+  chips?: string[];
   /** Script substitution, or a hand-picked face for this language. */
   fontFamily?: string;
   /** Device / image / video: the app UI inside the frame is itself localized. */

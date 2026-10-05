@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ArtboardElement, ArtboardState, ProjectLocalization } from "./artboard.ts";
+import { normalizeChipOverride, normalizeChips } from "./chips.ts";
 import { FONT_FAMILY_UNSAFE } from "./fontCatalog.ts";
 import { normalizeGradient } from "./gradient.ts";
 import { normalizeMarks, type TextMark } from "./richText.ts";
@@ -65,7 +66,7 @@ const point = z.object({ x: z.number(), y: z.number() });
 const size = z.object({ width: z.number().positive().max(MAX_BOARD_EDGE), height: z.number().positive().max(MAX_BOARD_EDGE) });
 const element = z.object({
   id: z.string().min(1),
-  type: z.enum(["text", "shape", "device", "image", "video", "video-device", "gesture", "audio"]),
+  type: z.enum(["text", "shape", "device", "image", "video", "video-device", "gesture", "audio", "chips"]),
   position: point,
   size,
   statusBarTime: z.string().regex(/^\d{1,2}:\d{2}$/).optional(),
@@ -120,19 +121,32 @@ function normalizeTextFields(el: Loose, content: string, keepEmptyMarks = false)
   return out;
 }
 const isText = (e: Loose) => e.type === "text";
+const isChipsEl = (e: Loose) => e.type === "chips";
+const normalizeElement = (e: Loose): Loose =>
+  isText(e) ? normalizeTextFields(e, String(e.content ?? "")) : isChipsEl(e) ? { ...e, chips: normalizeChips(e.chips) } : e;
 
-/** Marks and gradients are cleaned (clamped, split, merged, sorted), never rejected for range problems. */
+/** A language's override: its marks against its own wording, its chips list against the base list's length. */
+function normalizeOverride(ov: Loose, baseEl: Loose | undefined): Loose {
+  const out = normalizeTextFields(ov, String(ov.content ?? baseEl?.content ?? ""), true);
+  if (!("chips" in out)) return out;
+  const chips = baseEl && isChipsEl(baseEl) ? normalizeChipOverride(out.chips, (baseEl.chips as unknown[]).length) : undefined;
+  const next = { ...out };
+  if (chips) next.chips = chips; else delete next.chips;
+  return next;
+}
+
+/** Marks, gradients and chip lists are cleaned (clamped, split, merged, sorted, capped), never rejected for range problems. */
 function normalizeRichText<T extends { groups: unknown[] }>(doc: T): T {
   for (const g of doc.groups as Array<{ boards: Loose[]; spanElements: Loose[] }>) {
-    g.spanElements = g.spanElements.map((e) => (isText(e) ? normalizeTextFields(e, String(e.content ?? "")) : e));
+    g.spanElements = g.spanElements.map(normalizeElement);
     for (const b of g.boards) {
-      const elements = (b.elements as Loose[]).map((e) => (isText(e) ? normalizeTextFields(e, String(e.content ?? "")) : e));
+      const elements = (b.elements as Loose[]).map(normalizeElement);
       b.elements = elements;
       const localized = b.localized as Record<string, Record<string, Loose>> | undefined;
       if (!localized) continue;
       const base = new Map(elements.map((e) => [e.id, e]));
       b.localized = Object.fromEntries(Object.entries(localized).map(([loc, byEl]) => [loc, Object.fromEntries(Object.entries(byEl ?? {}).map(([id, ov]) =>
-        [id, ov && typeof ov === "object" ? normalizeTextFields(ov, String(ov.content ?? base.get(id)?.content ?? ""), true) : ov]))]));
+        [id, ov && typeof ov === "object" ? normalizeOverride(ov, base.get(id)) : ov]))]));
     }
   }
   return doc;

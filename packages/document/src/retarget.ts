@@ -24,7 +24,8 @@ export function retarget(group: BoardGroup, targetId: TargetId): BoardGroup {
       position: { x: (el.position.x - boardOffsetX) * s + ox + newBoardOffsetX, y: el.position.y * s + oy },
       size: { width: el.size.width * s, height: el.size.height * s },
     } as ArtboardElement;
-    if (out.type === "text") out.fontSize = out.fontSize * s;
+    if (out.type === "text" || out.type === "chips") out.fontSize = out.fontSize * s;
+    if (out.type === "chips" && out.gap !== undefined) out.gap = out.gap * s;
     return out;
   };
 

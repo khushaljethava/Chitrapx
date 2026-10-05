@@ -2,6 +2,8 @@ import { produce } from "immer";
 import { z } from "zod";
 import type { ArtboardElement, TextElementProps } from "./artboard.ts";
 import type { ChitrapxDoc } from "./doc.ts";
+import type { ChipsElementProps } from "./artboard.ts";
+import { CHIP_MAX_CHARS, chipId, chipsSource, normalizeChipOverride } from "./chips.ts";
 import { fillScreenshots } from "./fill.ts";
 import { remapMarks } from "./richText.ts";
 import { hash32 } from "./hash.ts";
@@ -55,10 +57,13 @@ export function textSlots(doc: ChitrapxDoc): TextSlot[][] {
   })));
 }
 
-/** Every distinct base text in the document (deduplicated by id across boards and sizes). */
+/** Every distinct base text in the document (deduplicated by id across boards and sizes); chips as `<id>#<n>`. */
 export function allTexts(doc: ChitrapxDoc): SlotText[] {
   const seen = new Map<string, string>();
-  for (const g of doc.groups) for (const b of g.boards) for (const e of b.elements) if (isText(e) && !seen.has(e.id)) seen.set(e.id, e.content ?? "");
+  for (const g of doc.groups) for (const b of g.boards) for (const e of b.elements) {
+    if (isText(e)) { if (!seen.has(e.id)) seen.set(e.id, e.content ?? ""); }
+    else if (e.type === "chips") (e as ChipsElementProps).chips.forEach((c, i) => { const id = chipId(e.id, i); if (!seen.has(id)) seen.set(id, c); });
+  }
   return [...seen].map(([id, text]) => ({ id, text }));
 }
 
@@ -111,11 +116,17 @@ export function applyDesign(template: ChitrapxDoc, plan: { screenshotOrder: numb
   });
 }
 
-/** Sets base text for every element with that id, on every board of every size. */
+/** Sets base text for every element with that id, on every board of every size; chip ids set one chip. */
 export function applyTexts(doc: ChitrapxDoc, texts: SlotText[]): ChitrapxDoc {
   const byId = new Map(texts.map((t) => [t.id, t.text]));
   return produce(doc, (d) => {
     for (const g of d.groups) for (const b of g.boards) for (const e of b.elements) {
+      if (e.type === "chips") {
+        const el = e as unknown as ChipsElementProps;
+        const next = el.chips.map((c, i) => byId.get(chipId(el.id, i))?.trim().slice(0, CHIP_MAX_CHARS) || c);
+        if (next.some((c, i) => c !== el.chips[i])) el.chips = next;
+        continue;
+      }
       const text = byId.get(e.id);
       if (text !== undefined && e.type === "text") setContent(e as TextElementProps, text.trim().slice(0, budget((e as TextElementProps).content ?? "")));
     }
@@ -140,16 +151,28 @@ export function applyTranslations(doc: ChitrapxDoc, locale: string, texts: SlotT
   if (locale === doc.localization.baseLocale) return doc;
   const byId = new Map(texts.map((t) => [t.id, t.text.trim()]));
   const from = opts.sourceLocale && opts.sourceLocale !== doc.localization.baseLocale ? opts.sourceLocale : null;
+  const changedSince = (id: string, now: string) => !!opts.sources?.has(id) && opts.sources.get(id) !== now;
   return produce(doc, (d) => {
     if (!d.localization.locales.some((l) => l.code === locale)) d.localization.locales.push({ code: locale });
     for (const g of d.groups) for (const b of g.boards) for (const e of b.elements) {
+      const current = b.localized?.[locale]?.[e.id];
+      const manual = (has: unknown) => has !== undefined && current?.origin !== "auto" && !opts.overwriteManual; // a person wrote this
+      if (e.type === "chips") {
+        const el = e as unknown as ChipsElementProps;
+        const words = el.chips.map((_, i) => byId.get(chipId(el.id, i)));
+        if (!words.some(Boolean) || manual(current?.chips)) continue;
+        const src = from ? b.localized?.[from]?.[el.id]?.chips : undefined;
+        if (el.chips.some((c, i) => changedSince(chipId(el.id, i), src?.[i] || c))) continue;
+        const chips = normalizeChipOverride(words.map((w, i) => w?.slice(0, CHIP_MAX_CHARS) || current?.chips?.[i] || ""), el.chips.length);
+        if (!chips) continue;
+        ((b.localized ??= {})[locale] ??= {})[el.id] = { ...current, chips, origin: "auto", sourceHash: hash32(chipsSource(el.chips)) };
+        continue;
+      }
       const text = byId.get(e.id);
       if (text === undefined || e.type !== "text") continue;
       const base = (e as TextElementProps).content ?? "";
-      const sourceNow = from ? (b.localized?.[from]?.[e.id]?.content || base) : base;
-      if (opts.sources?.has(e.id) && opts.sources.get(e.id) !== sourceNow) continue;
-      const current = b.localized?.[locale]?.[e.id];
-      if (current?.content !== undefined && current.origin !== "auto" && !opts.overwriteManual) continue; // a person wrote this
+      if (changedSince(e.id, from ? (b.localized?.[from]?.[e.id]?.content || base) : base)) continue;
+      if (manual(current?.content)) continue;
       const next = text.slice(0, budget(base));
       // The language's own marks were offsets into its old wording.
       const { marks: old, ...rest } = current ?? {};
