@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import type { BrandToken } from "@chitrapx/document";
+import type { AppBriefFields, BrandToken } from "@chitrapx/document";
 import {
   index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid,
 } from "drizzle-orm/pg-core";
@@ -78,6 +78,10 @@ export const apps = pgTable("apps", {
   platformHint: platformEnum("platform_hint").notNull().default("both"),
   description: text("description").notNull().default(""),
   brand: jsonb("brand").$type<Brand>().notNull().default({}),
+  /** SP11: one brief per app, reused by AI design, copy variants and chips. */
+  brief: jsonb("brief").$type<AppBriefFields>().notNull().default({}),
+  /** SP11: terms AI translation keeps exactly as written (the app name is always kept too). */
+  glossary: text("glossary").array().notNull().default(sql`'{}'::text[]`),
   createdAt: createdAt(),
 }, (t) => [index("apps_workspace_idx").on(t.workspaceId)]);
 

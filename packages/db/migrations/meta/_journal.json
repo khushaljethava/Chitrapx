@@ -71,6 +71,13 @@
       "when": 1791087440063,
       "tag": "0009_smart_karen_page",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791201431244,
+      "tag": "0010_special_firedrake",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { and, count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
-import { BRAND_TOKENS, FONT_FAMILY_UNSAFE } from "@chitrapx/document";
+import { BRAND_TOKENS, briefSchema, FONT_FAMILY_UNSAFE, glossarySchema } from "@chitrapx/document";
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError, notFound } from "./http.ts";
 
@@ -25,12 +25,16 @@ const appFields = {
   description: z.string().trim().max(2000),
   platformHint: z.enum(["ios", "android", "both"]),
   brand: brandSchema,
+  brief: briefSchema,
+  glossary: glossarySchema,
 };
 const createInput = z.object({
   ...appFields,
   description: appFields.description.default(""),
   platformHint: appFields.platformHint.default("both"),
   brand: brandSchema.default({}),
+  brief: briefSchema.default({}),
+  glossary: glossarySchema.default([]),
 });
 const updateInput = z.object(appFields).partial();
 
@@ -70,7 +74,12 @@ export async function updateApp(ctx: Ctx, appId: string, raw: unknown): Promise<
     if (!asset) throw badRequest("unknown_logo_asset");
   }
   const [app] = await db.update(schema.apps)
-    .set({ ...input, ...(input.brand && { brand: { ...current.brand, ...input.brand } }) })
+    .set({
+      ...input,
+      ...(input.brand && { brand: { ...current.brand, ...input.brand } }),
+      // Like the brand, the brief is merged: a form that sends one field never clears the others.
+      ...(input.brief && { brief: { ...current.brief, ...input.brief } }),
+    })
     .where(own(ctx, appId)).returning();
   if (!app) throw notFound();
   return app;

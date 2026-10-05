@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyDoc } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
-import { createApp, deleteApp, updateApp } from "@/server/apps.ts";
+import { createApp, deleteApp, getApp, updateApp } from "@/server/apps.ts";
 import { createProject, deleteProject, listProjects, updateProject } from "@/server/projects.ts";
 import type { Ctx } from "@/server/context.ts";
 
@@ -80,5 +80,32 @@ describe("projects", () => {
     expect(await updateProject(ctx, p.id, { name: "New" })).toMatchObject({ name: "New" });
     await deleteProject(ctx, p.id);
     expect(await listProjects(ctx, app.id)).toHaveLength(0);
+  });
+});
+
+describe("app brief and glossary (SP11)", () => {
+  it("merges the brief field by field and keeps fields that were not sent", async () => {
+    const ctx = await ctxFor("pro");
+    const app = await createApp(ctx, { name: "B" });
+    expect(app).toMatchObject({ brief: {}, glossary: [] });
+    await updateApp(ctx, app.id, { brief: { text: "  Busy parents  ", tone: "calm" } });
+    const next = await updateApp(ctx, app.id, { brief: { keywords: ["Meal plan", "meal plan", "groceries"] } });
+    expect(next.brief).toEqual({ text: "Busy parents", tone: "calm", keywords: ["Meal plan", "groceries"] });
+  });
+
+  it("rejects a brief over 2000 characters with a message and stores nothing", async () => {
+    const ctx = await ctxFor("pro");
+    const app = await createApp(ctx, { name: "L" });
+    await expect(updateApp(ctx, app.id, { brief: { text: "x".repeat(2001) } }))
+      .rejects.toMatchObject({ issues: [expect.objectContaining({ message: "Keep the brief under 2000 characters" })] });
+    expect((await getApp(ctx, app.id)).brief).toEqual({});
+  });
+
+  it("replaces the glossary and validates its terms", async () => {
+    const ctx = await ctxFor("pro");
+    const app = await createApp(ctx, { name: "G" });
+    expect((await updateApp(ctx, app.id, { glossary: ["Bloom", "bloom", "Pour-over Pro"] })).glossary).toEqual(["Bloom", "Pour-over Pro"]);
+    expect((await updateApp(ctx, app.id, { glossary: [] })).glossary).toEqual([]);
+    expect(await status(updateApp(ctx, app.id, { glossary: ["x".repeat(61)] }))).toBe(400);
   });
 });
