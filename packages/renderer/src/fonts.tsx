@@ -1,4 +1,4 @@
-import { catalogFont, matchWeight, parseWeight, type ArtboardState, type FontFormat, type TextElementProps } from "@chitrapx/document";
+import { catalogFont, matchWeight, parseWeight, type ArtboardState, type ChipsElementProps, type FontFormat, type TextElementProps } from "@chitrapx/document";
 import type { CustomFontFace } from "./extras.ts";
 
 export type FontFace = { weight: number; italic: boolean };
@@ -13,6 +13,11 @@ export function fontUsesOf(boards: ArtboardState[]): FontUse[] {
     uses.set(family, faces);
   };
   for (const b of boards) for (const el of b.elements) {
+    if (el.type === "chips") {
+      const c = el as ChipsElementProps;
+      if (c.fontFamily?.trim()) add(c.fontFamily.trim(), parseWeight(c.fontWeight ?? "600"), false);
+      continue;
+    }
     if (el.type !== "text") continue;
     const t = el as TextElementProps;
     const family = t.fontFamily?.trim();

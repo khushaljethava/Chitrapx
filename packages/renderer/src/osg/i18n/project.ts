@@ -18,6 +18,7 @@
 import type {
   ArtboardElement,
   ArtboardState,
+  ChipsElementProps,
   ElementLocaleOverride,
   LocaleEntry,
   TextElementProps,
@@ -188,6 +189,7 @@ function isEmptyOverride(ov: ElementLocaleOverride | undefined): ov is undefined
   if (ov.detached && ov.detached.length > 0) return false;
   if (ov.hidden !== undefined) return false;
   if (ov.marks !== undefined) return false;
+  if (ov.chips !== undefined) return false;
   const record = ov as unknown as Record<string, unknown>;
   return ALWAYS_LOCAL_KEYS.every((key) => record[key] === undefined);
 }
@@ -366,7 +368,14 @@ export function resolveElementForLocale(
     assign(key, value);
   }
 
-  if (el.type !== 'text') return next;
+  // SP11: a chips list in this language replaces the base chips one by one; "" keeps the base chip.
+  if (el.type === 'chips' && ov.chips !== undefined) {
+    const baseChips = (el as ChipsElementProps).chips ?? [];
+    const shown = baseChips.map((c, i) => ov.chips?.[i]?.trim() || c);
+    if (!sameValue(shown, baseChips)) assign('chips', shown);
+  }
+
+  if (el.type !== 'text' && el.type !== 'chips') return next;
 
   // The auto substitutions are conveniences for languages the user has NOT
   // taken manual control of. Detaching either one is how you say "I am choosing
@@ -375,6 +384,9 @@ export function resolveElementForLocale(
     const family = autoFamilyFor(entry);
     if (family && family !== (next as TextElementProps).fontFamily) assign('fontFamily', family);
   }
+
+  // Chips take the script's face, not text leading or auto-shrink.
+  if (el.type !== 'text') return next;
 
   // SP11: Arabic and Urdu need more leading than Latin at the same size. A detached line height is the user's choice.
   if (ov.content !== undefined && !isDetached(ov, 'lineHeight')) {

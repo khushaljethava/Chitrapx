@@ -6,6 +6,7 @@ import { ArtboardBackgroundImage } from './ArtboardBackgroundImage';
 import { elementVisualStyle } from './lib/elementStyle';
 import { animationStateAt } from './lib/animation';
 import { TextElement } from './elements/TextElement';
+import { ChipsElement } from './elements/ChipsElement';
 import { ShapeElement } from './elements/ShapeElement';
 import { DeviceFrameElement } from './elements/DeviceFrameElement';
 import { ImageElement } from './elements/ImageElement';
@@ -21,6 +22,7 @@ import type {
   VideoElementProps,
   VideoDeviceElementProps,
   GestureElementProps,
+  ChipsElementProps,
 } from '@chitrapx/document';
 
 // The read-only render site, shared by every "show me what this looks like"
@@ -149,6 +151,7 @@ export function StaticArtboard({ artboard, scale, time }: { artboard: ArtboardSt
             {element.type === 'gesture' && (
               <GestureElement element={element as GestureElementProps} isSelected={false} />
             )}
+            {element.type === 'chips' && <ChipsElement element={element as ChipsElementProps} />}
           </div>
           );
         })}

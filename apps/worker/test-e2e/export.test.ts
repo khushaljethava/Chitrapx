@@ -502,3 +502,18 @@ describe("right-to-left (SP11)", () => {
     compareGolden("rtl-he.png", await localePng(ws, appId, await translated("he", "מוכנים ל-Bloom? 2026", false), "he"));
   }, 180_000);
 });
+
+describe("chips (SP11)", () => {
+  it("German chips on a feature graphic render as pills, within the box, and match their golden", async () => {
+    const doc = await templateDoc("fg-food-delivery");
+    const b = doc.groups[0]!.boards[0]!;
+    b.elements = b.elements.filter((e) => e.type !== "chips");
+    b.elements.push({ id: "e2e-chips", type: "chips", name: "Chips", chips: ["Fast delivery", "Live tracking", "Top restaurants"], fontSize: 6.6,
+      fontFamily: "Bricolage Grotesque", fontWeight: "600", color: "#E5502A", fillColor: "#FFFFFF", align: "left",
+      position: { x: 58, y: 384 }, size: { width: 480, height: 96 }, rotation: 0, scale: 1 } as never);
+    doc.localization = { baseLocale: "en-US", locales: [{ code: "de-DE" }] };
+    b.localized = { "de-DE": { "e2e-chips": { chips: ["Schnelle Lieferung", "Live-Verfolgung", "Top-Restaurants"], origin: "manual" } } };
+    const { ws, appId } = await workspaceWithApp();
+    compareGolden("chips-de.png", await localePng(ws, appId, migrate(doc), "de-DE"));
+  }, 180_000);
+});

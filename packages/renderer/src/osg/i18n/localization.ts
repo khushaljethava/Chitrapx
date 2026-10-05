@@ -180,6 +180,7 @@ export function isOverrideEmpty(ov: ElementLocaleOverride | undefined): boolean 
     !ov ||
     ((!ov.detached || ov.detached.length === 0) &&
       ov.content === undefined &&
+      ov.chips === undefined &&
       ov.fontFamily === undefined &&
       ov.screenshotSrc === undefined &&
       ov.imageSrc === undefined &&
@@ -271,6 +272,7 @@ function isEmptyOverride(ov: ElementLocaleOverride | undefined): boolean {
   return (
     !ov ||
     (ov.content === undefined &&
+      ov.chips === undefined &&
       ov.fontFamily === undefined &&
       ov.screenshotSrc === undefined &&
       ov.imageSrc === undefined &&
