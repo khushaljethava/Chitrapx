@@ -7,6 +7,7 @@ import { runExport } from "./export.ts";
 import { runAppIcons } from "./icons/index.ts";
 import { runLogo } from "./icons/logo.ts";
 import { runMockup } from "./mockup.ts";
+import { runCollage } from "./collage.ts";
 import { createWriteStream } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
@@ -80,7 +81,7 @@ export const handlers: Record<JobType, JobHandler> = {
   ai_reference: (input, job) => runAiReference(input, job, aiDeps()),
   app_icons: (input, job) => runAppIcons(input, job, bundleDeps),
   logo_starter: (input, job) => runLogo(input, job, bundleDeps),
-  collage: async () => { throw new FatalJobError("not_implemented"); },
+  collage: (input, job) => runCollage(input, job, bundleDeps),
   mockup: (input, job) => runMockup(input, job, bundleDeps),
 };
 

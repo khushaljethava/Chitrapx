@@ -7,6 +7,7 @@ import { db, schema, type JobType } from "@chitrapx/db";
 import { mockupDoc, type Crop } from "@chitrapx/document";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { bundleDeps } from "../src/handlers.ts";
+import { runCollage } from "../src/collage.ts";
 import { runMockup } from "../src/mockup.ts";
 import { runJob } from "../src/runJob.ts";
 import { storage } from "../src/storage.ts";
@@ -41,6 +42,22 @@ async function pixel(png: Buffer, x: number, y: number) {
   const i = (y * info.width + x) * info.channels;
   return { r: data[i]!, g: data[i + 1]!, b: data[i + 2]!, a: data[i + 3]! };
 }
+
+describe("framed collage", () => {
+  it("draws every screenshot inside the device and lays the devices out in a grid", async () => {
+    const { ws, assetId, sha256 } = await workspaceWithShot();
+    const built = mockupDoc([{ src: `asset:${assetId}` }, { src: `asset:${assetId}` }], { deviceType: "iphone-15", margin: 0 });
+    const images = [{ assetId, sha256 }, { assetId, sha256 }];
+    const jobId = await queuedJob(ws, "collage", { assetIds: [assetId, crypto.randomUUID()], images, padding: 40, background: { from: "#0000ff" }, frame: { deviceType: "iphone-15" }, ...built });
+    await runJob(jobId, (input, job) => runCollage(input, job, bundleDeps));
+    const crop = built.crops[0]!;
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { cols: 2, rows: 1, width: 2 * crop.width + 3 * 40, height: crop.height + 2 * 40 } });
+    const png = await storage().download(`${ws}/${jobId}.png`, EXPORTS_BUCKET);
+    expect(await pixel(png, 5, 5)).toMatchObject({ r: 0, g: 0, b: 255, a: 255 });
+    const screen = await pixel(png, 40 + Math.round(crop.width / 2), 40 + Math.round(crop.height / 2));
+    expect(Math.abs(screen.r - RED.r) + Math.abs(screen.g - RED.g) + Math.abs(screen.b - RED.b)).toBeLessThan(30);
+  });
+});
 
 describe("quick mockup", () => {
   it("renders the screenshot inside the device on a transparent background", async () => {

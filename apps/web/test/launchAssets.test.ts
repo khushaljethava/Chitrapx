@@ -6,7 +6,7 @@ import { balance, db, launchSource, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import { createApp } from "@/server/apps.ts";
-import { enqueueAppIcons, enqueueLogo, enqueueMockup } from "@/server/launchAssets.ts";
+import { enqueueAppIcons, enqueueCollage, enqueueLogo, enqueueMockup } from "@/server/launchAssets.ts";
 
 let boss: PgBoss;
 beforeAll(async () => {
@@ -98,6 +98,49 @@ describe("quick mockup enqueue", () => {
     const shot = await asset(ctx, app.id, { width: 1000, height: 1000 });
     await db.insert(schema.jobs).values(Array.from({ length: 30 }, () => ({ workspaceId: ctx.workspaceId, type: "mockup", creditsReserved: 0 })));
     await expect(enqueueMockup(ctx, boss, { assetId: shot.id, deviceType: "iphone-15", fit: "fill" })).rejects.toMatchObject({ status: 429 });
+  });
+});
+
+describe("collage enqueue", () => {
+  it("reserves one credit and keeps the chosen order with each source's hash", async () => {
+    const ctx = await ctxWith(3);
+    const app = await createApp(ctx, { name: "Collage" });
+    const [a, b, c] = [await asset(ctx, app.id), await asset(ctx, app.id, { kind: "screenshot" }), await asset(ctx, app.id)];
+    await enqueueCollage(ctx, boss, { assetIds: [c.id, a.id, b.id], padding: 12, background: { from: "#FFFFFF", to: "#000000" } });
+    expect(await balance(db, ctx.workspaceId)).toBe(2);
+    const [job] = await jobsOf(ctx);
+    expect(job).toMatchObject({ type: "collage", input: { padding: 12, background: { from: "#ffffff", to: "#000000" },
+      images: [{ assetId: c.id, sha256: c.sha256 }, { assetId: a.id, sha256: a.sha256 }, { assetId: b.id, sha256: b.sha256 }] } });
+    expect(launchSource(job!)).toBeNull(); // unframed: no document, no Chromium
+  });
+
+  it("with a frame, builds one mockup board per screenshot", async () => {
+    const ctx = await ctxWith(3);
+    const app = await createApp(ctx, { name: "Collage" });
+    const shots = [await asset(ctx, app.id, { width: 1170, height: 2532 }), await asset(ctx, app.id, { width: 1170, height: 2532 })];
+    await enqueueCollage(ctx, boss, { assetIds: shots.map((s) => s.id), frame: { deviceType: "iphone-15" } });
+    const [job] = await jobsOf(ctx);
+    const src = launchSource(job!);
+    expect(src!.doc.groups[0]!.boards.map((b) => (b.elements[0] as unknown as { screenshotSrc: string }).screenshotSrc)).toEqual(shots.map((s) => `asset:${s.id}`));
+    expect(src!.doc.groups[0]!.boards[0]!.backgroundColor).toBe("transparent");
+    await expect(enqueueCollage(ctx, boss, { assetIds: [shots[0]!.id, (await asset(ctx, app.id, { width: 1000, height: 1000 })).id], frame: { deviceType: "iphone-15" } }))
+      .rejects.toMatchObject({ code: "fit_required" });
+  });
+
+  it("rejects too few, too many, repeated, recordings and oversized images before reserving", async () => {
+    const ctx = await ctxWith(3);
+    const app = await createApp(ctx, { name: "Collage" });
+    const ok = await asset(ctx, app.id);
+    const many = [];
+    for (let i = 0; i < 13; i++) many.push(await asset(ctx, app.id)); // one at a time: the shared pooler limits connections
+    await expect(enqueueCollage(ctx, boss, { assetIds: [ok.id] })).rejects.toThrow();
+    await expect(enqueueCollage(ctx, boss, { assetIds: many.map((m) => m.id) })).rejects.toThrow();
+    await expect(enqueueCollage(ctx, boss, { assetIds: [ok.id, ok.id] })).rejects.toThrow();
+    await expect(enqueueCollage(ctx, boss, { assetIds: [ok.id, (await asset(ctx, app.id, { kind: "recording" })).id] })).rejects.toMatchObject({ code: "not_an_image" });
+    await expect(enqueueCollage(ctx, boss, { assetIds: [ok.id, (await asset(ctx, app.id, { width: 8001, height: 100 })).id] })).rejects.toMatchObject({ code: "image_too_large" });
+    await expect(enqueueCollage(ctx, boss, { assetIds: [ok.id, (await asset(ctx, app.id, { bytes: 11 * 1024 * 1024 })).id] })).rejects.toMatchObject({ code: "too_large" });
+    expect(await balance(db, ctx.workspaceId)).toBe(3);
+    expect(await jobsOf(ctx)).toEqual([]);
   });
 });
 

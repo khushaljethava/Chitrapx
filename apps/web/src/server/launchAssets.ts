@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import type { PgBoss } from "pg-boss";
 import { db, reserveAndEnqueue, schema, withTx } from "@chitrapx/db";
-import { appIconsRequest, LAUNCH_SOURCE_MAX_BYTES, LOGO_SEED_MAX, logoRequest, MIN_ICON_SOURCE, mockupDoc, mockupRequest, needsFitChoice } from "@chitrapx/document";
+import { appIconsRequest, COLLAGE_SOURCE_MAX_EDGE, collageRequest, LAUNCH_SOURCE_MAX_BYTES, LOGO_SEED_MAX, logoRequest, MIN_ICON_SOURCE, mockupDoc, mockupRequest, needsFitChoice } from "@chitrapx/document";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { HttpError, notFound } from "./http.ts";
@@ -46,6 +46,28 @@ export async function enqueueMockup(ctx: Ctx, boss: PgBoss, raw: unknown): Promi
     await assertFreeQuota(tx, ctx.workspaceId);
     return reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "mockup", input: { ...body, ...built } });
   });
+}
+
+/**
+ * collage (1 credit): 2 to 12 images in a grid, in the order given. Every source is checked here,
+ * before anything is reserved. With a frame, the mockup document of all of them rides along.
+ */
+export async function enqueueCollage(ctx: Ctx, boss: PgBoss, raw: unknown): Promise<{ jobId: string }> {
+  const body = collageRequest.parse(raw ?? {});
+  const sources = [];
+  for (const id of body.assetIds) {
+    const a = await launchImage(ctx, id);
+    if (Math.max(a.width, a.height) > COLLAGE_SOURCE_MAX_EDGE) throw new HttpError(400, "image_too_large", `Images can be up to ${COLLAGE_SOURCE_MAX_EDGE} px on the long side`);
+    sources.push(a);
+  }
+  const images = sources.map((a) => ({ assetId: a.id, sha256: a.sha256 }));
+  let framed = {};
+  if (body.frame) {
+    const { deviceType, fit } = body.frame;
+    if (!fit && sources.some((a) => needsFitChoice(deviceType, a.width, a.height))) throw fitRequired();
+    framed = mockupDoc(sources.map((a) => ({ src: `asset:${a.id}`, fit })), { deviceType, margin: 0 });
+  }
+  return withTx((tx) => reserveAndEnqueue(tx, boss, { workspaceId: ctx.workspaceId, type: "collage", input: { ...body, images, ...framed } }));
 }
 
 /** logo_starter (free, hourly allowance): a seeded 1024 logo stored as an image of the app. Returns the seed used. */

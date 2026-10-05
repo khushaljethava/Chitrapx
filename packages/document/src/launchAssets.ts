@@ -54,6 +54,30 @@ export type MockupRequest = z.infer<typeof mockupRequest>;
 /** The mockup job also carries the document the web app built (read through launchSource) and the area to keep. */
 export const mockupInput = mockupRequest.extend({ doc: z.unknown(), selection: z.unknown(), crops: z.array(cropSchema).length(1) });
 
+export const COLLAGE_MIN = 2;
+export const COLLAGE_MAX = 12;
+/** Longest side of one collage source; the output is capped separately (MAX_COLLAGE_EDGE in the worker). */
+export const COLLAGE_SOURCE_MAX_EDGE = 8000;
+
+export const collageRequest = z.object({
+  assetIds: z.array(z.uuid()).min(COLLAGE_MIN, "Pick at least 2 screenshots").max(COLLAGE_MAX, "Pick at most 12 screenshots")
+    .refine((ids) => new Set(ids).size === ids.length, "Each screenshot can appear once"),
+  /** Pixels between and around the cells; omitted means launch's heuristic (3% of a cell, more for bigger grids). */
+  padding: z.number().int().min(0).max(2000).optional(),
+  /** One colour, or two as a top-to-bottom gradient. */
+  background: z.object({ from: hex, to: hex.optional() }).strict().default({ from: "#f4f4f5" }),
+  frame: z.object({ deviceType: z.enum(MOCKUP_DEVICE_IDS), fit: z.enum(MOCKUP_FITS).optional() }).strict().optional(),
+}).strict();
+export type CollageRequest = z.infer<typeof collageRequest>;
+/** The collage job reads the sources' hashes in order and, when framed, the mockup document of all of them. */
+export const collageInput = collageRequest.extend({
+  images: z.array(z.object({ assetId: z.uuid(), sha256: z.string().regex(SHA256) })).min(COLLAGE_MIN).max(COLLAGE_MAX),
+  doc: z.unknown().optional(),
+  selection: z.unknown().optional(),
+  crops: z.array(cropSchema).optional(),
+});
+export type CollageInput = z.infer<typeof collageInput>;
+
 const seed = z.number().int().min(0).max(LOGO_SEED_MAX);
 export const logoRequest = z.object({ appId: z.uuid(), text: z.string().max(40).optional(), seed: seed.optional() }).strict();
 export const logoInput = z.object({ appId: z.uuid(), text: z.string().max(40).default(""), seed });
