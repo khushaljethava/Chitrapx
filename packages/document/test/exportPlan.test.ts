@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { defaultSelection, exportBatches, exportPlan, presetSelection, resolveGroup, retarget, sourcesFor, suggestedSelection } from "../src/index.ts";
+import { checkExportable, defaultSelection, exportBatches, exportPlan, presetSelection, resolveGroup, retarget, sourcesFor, storeReadiness, suggestedSelection } from "../src/index.ts";
 import { board, device, doc, group } from "./fixtures.ts";
 
 const threeD = (id: string) => ({ ...device(id, 0), styleType: "3d-right" }) as unknown as ReturnType<typeof device>;
@@ -111,5 +111,15 @@ describe("presets", () => {
   it("suggests the required sets for the project's platforms, all languages", () => {
     const both = { ...doc([group([board("b1", [])]), android()]), localization: { baseLocale: "en-US", locales: [{ code: "de-DE" }] } };
     expect(suggestedSelection(both)).toEqual({ targets: ["iphone-6.9", "android-phone", "play-feature"], locales: ["en-US", "de-DE"] });
+  });
+});
+
+describe("CarPlay boards", () => {
+  it("export into the iPhone slot; no new store target", () => {
+    const d = doc([group([board("b1", [{ ...device("cp", 100), deviceType: "carplay", size: { width: 1160, height: 696 } } as never])])]);
+    const plan = exportPlan(d, { targets: ["iphone-6.9"], locales: ["en-US"] });
+    expect(plan.map((p) => [p.targetId, p.width, p.height])).toEqual([["iphone-6.9", 1290, 2796]]);
+    expect(checkExportable(d, { targets: ["iphone-6.9"], locales: ["en-US"] }).ok).toBe(true);
+    expect(storeReadiness(plan, d).filter((i) => i.severity === "error")).toEqual([]);
   });
 });

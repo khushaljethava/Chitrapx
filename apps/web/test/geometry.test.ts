@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aabb, resizeBox, rotationFromPointer, snapMove, type Box } from "@/editor/geometry.ts";
+import { aabb, fitLandscape, resizeBox, rotationFromPointer, snapMove, type Box } from "@/editor/geometry.ts";
 
 const box = (x: number, y: number, w: number, h: number, rotation = 0): Box => ({ x, y, w, h, rotation });
 const close = (a: number, b: number) => expect(Math.abs(a - b)).toBeLessThan(1e-6);
@@ -73,5 +73,11 @@ describe("snapMove", () => {
     expect(r.dx).toBe(-3); // left 603 -> other's right 600
     const far = snapMove(box(700, 1300, 50, 50), [other], 1290, 2796, 8);
     expect(far).toEqual({ dx: 0, dy: 0, guides: { x: [], y: [] } });
+  });
+});
+
+describe("fitLandscape", () => {
+  it("fits a landscape frame to 90% of a portrait board's width, centred", () => {
+    expect(fitLandscape({ width: 1290, height: 2796 }, 800 / 480)).toEqual({ position: { x: 64.5, y: 1049.7 }, size: { width: 1161, height: 696.6 } });
   });
 });

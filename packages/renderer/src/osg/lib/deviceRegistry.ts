@@ -2,7 +2,7 @@
 import type { ArtboardElement, ArtboardState, DeviceFrameElementProps, DeviceType } from '@chitrapx/document';
 
 export type DevicePlatform = 'ios' | 'android' | 'neutral';
-export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'custom';
+export type DeviceCategory = 'phone' | 'tablet' | 'watch' | 'desktop' | 'vehicle' | 'custom';
 export type SwapPlatform = 'ios' | 'android';
 
 export interface DeviceScreenGeometry {
@@ -66,6 +66,10 @@ export const DEVICE_REGISTRY: Record<DeviceType, DeviceDescriptor> = {
   // watch, platform swaps leave Mac mockups as-is.
   'macbook': { id: 'macbook', label: 'MacBook', platform: 'ios', category: 'desktop', nativeAspect: 100 / 57.9, screen: { paddingPercent: { top: 2, right: 10, bottom: 5.9, left: 10 }, radiusFactor: 0.008 } },
   'imac': { id: 'imac', label: 'iMac', platform: 'ios', category: 'desktop', nativeAspect: 100 / 74.2, screen: { paddingPercent: { top: 1.5, right: 1.5, bottom: 18.1, left: 1.5 }, radiusFactor: 0.012 } },
+  // CarPlay head unit (Apple's "Standard" 800x480 simulator preset). It has no store slot of its
+  // own: the shot ships at an iPhone size, so it lives on iPhone boards. Ported from
+  // app-store-screenshots (MIT) CarPlayScreen. No counterpart: swaps leave it alone.
+  'carplay': { id: 'carplay', label: 'CarPlay', platform: 'ios', category: 'vehicle', nativeAspect: 800 / 480, screen: { paddingPercent: { top: 1.6, right: 1.6, bottom: 1.6, left: 1.6 }, radiusFactor: 0.014 } },
   'custom': { id: 'custom', label: 'Custom Mockup', platform: 'neutral', category: 'custom', nativeAspect: 9 / 16 },
 };
 
@@ -92,6 +96,7 @@ export const DEVICE_PICKER_GROUPS: ReadonlyArray<{
     { label: 'iPad', platform: 'ios', category: 'tablet' },
     { label: 'Apple Watch', platform: 'ios', category: 'watch' },
     { label: 'Mac', platform: 'ios', category: 'desktop' },
+    { label: 'Vehicle', platform: 'ios', category: 'vehicle' },
     { label: 'Android', platform: 'android', category: null },
     { label: 'Other', platform: 'neutral', category: null },
   ] as const

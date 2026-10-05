@@ -5,6 +5,7 @@ import { applyMark, clearMark, docFontFamilies, MAX_BOARD_EDGE, rangeStyle, stat
 import type { ArtboardElement, DeviceFrameElementProps, ElementLocaleOverride, ImageElementProps, ShapeElementProps, StylePatch, TextElementProps } from "@chitrapx/document";
 import { useEditorAssets } from "../assets.tsx";
 import { findElement, type Ref } from "../commands.ts";
+import { fitLandscape } from "../geometry.ts";
 import { marksFor, stylingNotCarried } from "../richTextModel.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
 import { ApplyToBoards, ApplyToLocales } from "./ApplyToAll.tsx";
@@ -16,11 +17,26 @@ import { RichTextToolbar } from "./RichTextToolbar.tsx";
 import { AssetPicker, brandSwatches, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
 
 const WEIGHTS = [["300", "Light"], ["400", "Regular"], ["500", "Medium"], ["600", "Semibold"], ["700", "Bold"], ["800", "Extra bold"], ["900", "Black"]] as const;
-const DEVICES = [
-  ["iphone-17-pro-max", "iPhone 17 Pro Max"], ["iphone-15", "iPhone 15"], ["iphone-15-pro", "iPhone 15 Pro"], ["iphone-x", "iPhone X"],
-  ["android-punch-hole", "Android"], ["ipad-pro-13", "iPad Pro 13"], ["ipad-11", "iPad 11"], ["tablet-10", "Android tablet"],
-  ["macbook", "MacBook"], ["imac", "iMac"], ["apple-watch", "Apple Watch"],
+const DEVICE_GROUPS = [
+  { label: "iPhone", options: [["iphone-17-pro-max", "iPhone 17 Pro Max"], ["iphone-15", "iPhone 15"], ["iphone-15-pro", "iPhone 15 Pro"], ["iphone-x", "iPhone X"]] },
+  { label: "iPad", options: [["ipad-pro-13", "iPad Pro 13"], ["ipad-11", "iPad 11"]] },
+  { label: "Android", options: [["android-punch-hole", "Android"], ["tablet-10", "Android tablet"]] },
+  { label: "Mac and watch", options: [["macbook", "MacBook"], ["imac", "iMac"], ["apple-watch", "Apple Watch"]] },
+  { label: "Vehicle", options: [["carplay", "CarPlay"]] },
 ] as const;
+const DEVICES = DEVICE_GROUPS.flatMap((g): ReadonlyArray<readonly [string, string]> => g.options);
+
+function DeviceSelect({ id, value, onChange }: { id: string; value: string; onChange: (v: string) => void }) {
+  const known = DEVICES.some(([v]) => v === value);
+  return (
+    <Row label="Model" htmlFor={id}>
+      <select id={id} className="input" value={value} onChange={(e) => onChange(e.target.value)}>
+        {!known && <option value={value}>{value}</option>}
+        {DEVICE_GROUPS.map((g) => <optgroup key={g.label} label={g.label}>{g.options.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</optgroup>)}
+      </select>
+    </Row>
+  );
+}
 const STYLES = [["normal", "Flat"], ["3d-left", "3D, facing left"], ["3d-right", "3D, facing right"]] as const;
 const POSES = (["classic", "front", "upright", "side", "tilted", "reclined", "laying", "floating", "drifting", "leaning", "soaring", "isometric"] as const).map((p) => [p, p[0]!.toUpperCase() + p.slice(1)] as const);
 /** Every element type's fields, optional: the inspector shows only the ones that apply. */
@@ -45,10 +61,6 @@ function TimeField({ value, onChange }: { value: string; onChange: (v: string) =
 
 /** Sizes the document accepts: at least 8 px, at most the largest board edge. */
 const clampEdge = (v: number) => Math.min(MAX_BOARD_EDGE, Math.max(8, v));
-
-/** Options plus the current value when a template uses something outside the list, so it still shows. */
-const withCurrent = (options: ReadonlyArray<readonly [string, string]>, value: string): ReadonlyArray<readonly [string, string]> =>
-  options.some(([v]) => v === value) ? options : [[value, value], ...options];
 
 const ANIMATIONS = [["none", "None (automatic)"], ["fade", "Fade"], ["slide-up", "Slide up"], ["slide-down", "Slide down"],
   ["slide-left", "Slide left"], ["slide-right", "Slide right"], ["scale-up", "Scale up"], ["pop", "Pop"]] as const;
@@ -108,6 +120,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
     ? s.doc.groups.find((g) => g.id === refr.groupId)?.boards.find((b) => b.id === refr.boardId)?.localized?.[s.locale]?.[refr.elementId] : undefined);
   const localized = locale !== base && refr.boardId !== null;
   const doc = useEditor((s) => s.doc);
+  const boardSize = useEditor((s) => s.doc.groups.find((g) => g.id === refr.groupId)?.boards.find((b) => b.id === refr.boardId)?.size);
   const used = useMemo(() => docFontFamilies(doc), [doc]);
   const { fonts, refreshFonts, extras } = useEditorAssets();
   const [uploadingFont, setUploadingFont] = useState(false);
@@ -204,7 +217,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
 
       {el.type === "device" && (
         <>
-          <SelectField id="i-device" label="Model" value={a.deviceType ?? "iphone-15"} options={withCurrent(DEVICES, a.deviceType ?? "iphone-15")} onChange={(v) => set({ deviceType: v })} />
+          <DeviceSelect id="i-device" value={a.deviceType ?? "iphone-15"}
+            onChange={(v) => set(v === "carplay" && a.deviceType !== "carplay" && boardSize ? { deviceType: v, ...fitLandscape(boardSize, 800 / 480) } : { deviceType: v })} />
           <SelectField id="i-style" label="Style" value={(a.styleType ?? "normal") as "normal"} options={STYLES} onChange={(v) => set({ styleType: v, ...(v !== "normal" && !a.pose3d ? { pose3d: "front" } : {}) })} />
           {a.styleType?.startsWith("3d") ? (
             <div className="grid grid-cols-2 gap-2">
@@ -249,7 +263,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
 
       {el.type === "video-device" && (
         <>
-          <SelectField id="i-vdevice" label="Model" value={a.deviceType ?? "iphone-17-pro-max"} options={withCurrent(DEVICES, a.deviceType ?? "iphone-17-pro-max")} onChange={(v) => set({ deviceType: v })} />
+          <DeviceSelect id="i-vdevice" value={a.deviceType ?? "iphone-17-pro-max"} onChange={(v) => set({ deviceType: v })} />
           <AssetPicker label="Screen recording" assets={assets.filter((x) => x.kind === "recording")}
             value={(el as unknown as { videoSrc?: string }).videoSrc}
             onPick={(src) => set({ videoSrc: src, posterSrc: src ? `${src}#poster` : undefined } as never)} />

@@ -73,3 +73,10 @@ export function snapMove(moving: Box, others: Box[], boardW: number, boardH: num
   const sy = best(lines(m.top, m.bottom), targetsY);
   return { dx: sx?.d ?? 0, dy: sy?.d ?? 0, guides: { x: sx ? [sx.at] : [], y: sy ? [sy.at] : [] } };
 }
+
+/** A frame of `aspect` (width/height) at `widthPct` of the board's width, centred: how a landscape frame sits on a portrait board. */
+export function fitLandscape(board: { width: number; height: number }, aspect: number, widthPct = 0.9) {
+  const width = Math.round(board.width * widthPct * 10) / 10;
+  const height = Math.round((width / aspect) * 10) / 10;
+  return { position: { x: Math.round(((board.width - width) / 2) * 10) / 10, y: Math.round(((board.height - height) / 2) * 10) / 10 }, size: { width, height } };
+}

@@ -442,3 +442,14 @@ describe("rich text (SP10)", () => {
     compareGolden("rich-text-gradient.png", await singleBoardPng(ws, appId, migrate(doc)));
   }, 180_000);
 });
+
+describe("CarPlay (SP10)", () => {
+  it("a CarPlay frame on an iPhone board matches its golden", async () => {
+    const doc = await templateDoc("amoura-dating");
+    const b = doc.groups[0]!.boards[0]!;
+    const dev = b.elements.find((e) => e.type === "device") as Record<string, unknown>;
+    Object.assign(dev, { deviceType: "carplay", styleType: "normal", rotation: 0, position: { x: 64.5, y: 1049.7 }, size: { width: 1161, height: 696.6 }, scale: 1 });
+    const { ws, appId } = await workspaceWithApp();
+    compareGolden("carplay.png", await singleBoardPng(ws, appId, doc));
+  }, 180_000);
+});

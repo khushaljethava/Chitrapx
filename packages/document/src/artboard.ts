@@ -186,6 +186,7 @@ export type DeviceType =
   | 'desktop'
   | 'macbook'
   | 'imac'
+  | 'carplay'
   | 'custom';
 
 export type DeviceStyleType =

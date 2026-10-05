@@ -17,6 +17,8 @@ import { getDeviceDescriptor } from '../lib/deviceRegistry';
 // below so per-element colour overrides work without prop drilling.
 
 export interface FlatDeviceChrome {
+  /** Replaces the default soft drop shadow (CarPlay's deeper shadow plus a hairline rim). */
+  frameShadow?: string;
   /** CSS border-radius for the device body. */
   outerBorderRadius: string;
   /** Default body colour (element.frameColor overrides it). */
@@ -308,6 +310,13 @@ export function getFlatDeviceChrome(deviceType: DeviceType, effectiveWidth: numb
       chrome.chassis = imacChassis(px);
       break;
     }
+    case 'carplay':
+      // Proportional radii (horizontal / vertical), as in the reference frame.
+      chrome.outerBorderRadius = '2.2% / 3.6%';
+      chrome.screenBorderRadius = '1.4% / 2.3%';
+      chrome.bodyColor = '#0B0B0D';
+      chrome.frameShadow = '0 20px 60px rgba(0,0,0,0.40), inset 0 0 0 1px rgba(255,255,255,0.07)';
+      break;
     case 'apple-watch':
     case 'custom':
       break;
@@ -367,7 +376,7 @@ export function getFlatFrameStyles(
     width: '100%',
     height: '100%',
     // A drop shadow behind a see-through or hollow frame reads as a dark slab
-    boxShadow: hasChassis || isOutline || frameAlpha < 1 ? 'none' : '0 4px 12px rgba(0,0,0,0.3)',
+    boxShadow: hasChassis || isOutline || frameAlpha < 1 ? 'none' : chrome.frameShadow ?? '0 4px 12px rgba(0,0,0,0.3)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
