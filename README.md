@@ -52,4 +52,6 @@ Three pieces, all reading the same environment variables (see `.env.example`).
 
 **SP8 (sizes and export)** needs no migration. Deploy the worker first, then web; export jobs already queued by the old worker or old browser tabs still run (web also creates the queues it sends to, idempotently).
 
+**SP11 (localization and AI copy)** adds migrations 0010 (app brief, glossary) and 0011 (competitor reference images). Run `pnpm db:migrate`, then deploy the worker (it handles the new `ai_chips` and `ai_reference` jobs), then web.
+
 Health check: `GET /api/health` returns `{ "db": "ok", "queue": "ok" }` or HTTP 503.

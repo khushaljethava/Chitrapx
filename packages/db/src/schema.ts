@@ -10,7 +10,7 @@ export const planEnum = pgEnum("plan", ["free", "pro", "studio"]);
 export const roleEnum = pgEnum("member_role", ["owner", "member"]);
 export const platformEnum = pgEnum("platform_hint", ["ios", "android", "both"]);
 export const projectKindEnum = pgEnum("project_kind", ["screenshots", "video", "social"]);
-export const assetKindEnum = pgEnum("asset_kind", ["screenshot", "recording", "image", "font", "export", "thumbnail"]);
+export const assetKindEnum = pgEnum("asset_kind", ["screenshot", "recording", "image", "font", "export", "thumbnail", "reference"]);
 export const jobStatusEnum = pgEnum("job_status", ["queued", "running", "done", "failed"]);
 export const ledgerReasonEnum = pgEnum("ledger_reason", ["plan_grant", "purchase", "reserve", "settle", "refund", "adjust"]);
 export const paymentStatusEnum = pgEnum("payment_status", ["created", "paid", "failed"]);
@@ -167,6 +167,19 @@ export const screenInsights = pgTable("screen_insights", {
   model: text("model").notNull(),
   createdAt: createdAt(),
 }, (t) => [unique("screen_insights_ws_sha_uq").on(t.workspaceId, t.sha256)]);
+
+/**
+ * SP11: one analysis per competitor reference image. Keyed by the asset, so deleting the image (or its app) deletes
+ * the analysis, and nothing is shared across apps or workspaces.
+ */
+export const referenceInsights = pgTable("reference_insights", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  assetId: uuid("asset_id").notNull().unique().references(() => assets.id, { onDelete: "cascade" }),
+  insight: jsonb("insight").notNull(),
+  model: text("model").notNull(),
+  createdAt: createdAt(),
+});
 
 /** One row per Razorpay order for a credit pack; amount and credits are ours, never the client's. */
 export const payments = pgTable("payments", {

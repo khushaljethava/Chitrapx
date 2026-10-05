@@ -1,25 +1,28 @@
 import { createHash, randomUUID } from "node:crypto";
-import { and, desc, eq, ne } from "drizzle-orm";
+import { and, asc, count, desc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
+import { MAX_REFERENCES_PER_APP } from "@chitrapx/document";
 import { STAGING_PREFIX } from "@chitrapx/storage";
 import { ACCEPTED, checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx } from "@chitrapx/db";
 import { getApp } from "./apps.ts";
 import type { Ctx } from "./context.ts";
 import { assertFontQuota, bytesInUse, faceExists, faceTaken, findWorkspaceFont } from "./fonts.ts";
-import { badRequest, HttpError } from "./http.ts";
+import { badRequest, HttpError, notFound } from "./http.ts";
 import type { ObjectStorage } from "./storage.ts";
 
 export { UPLOAD_LIMITS };
 
-const uploadKind = z.enum(["screenshot", "image", "recording", "font"]);
+const uploadKind = z.enum(["screenshot", "image", "recording", "font", "reference"]);
 type UploadKind = z.infer<typeof uploadKind>;
 const sha256 = z.string().regex(/^[a-f0-9]{64}$/);
 // Fonts belong to the workspace (no appId); everything else to an app. The client's mime is ignored for fonts.
 const signInput = z.object({
   appId: z.uuid().optional(), kind: uploadKind, size: z.number().int().positive(), mime: z.string().max(200).default(""), sha256,
   embedRights: z.boolean().optional(),
+  analysisRights: z.boolean().optional(),
 });
-const completeInput = z.object({ appId: z.uuid().optional(), kind: uploadKind, sha256, uploadId: z.uuid() });
+// analysisRights again on complete: the kind is the client's word, so a screenshot sign cannot be completed as a reference (F2).
+const completeInput = z.object({ appId: z.uuid().optional(), kind: uploadKind, sha256, uploadId: z.uuid(), analysisRights: z.boolean().optional() });
 const FONT_ERRORS = {
   font_restricted: "This font's licence does not allow embedding.",
   font_unreadable: "This file could not be read as a font.",
@@ -42,11 +45,28 @@ async function findAsset(ctx: Ctx, hash: string, appId?: string) {
   return asset;
 }
 
-/** Adds an asset row for `appId` that reuses bytes this workspace already validated. */
-async function linkExisting(ctx: Ctx, appId: string, from: Asset): Promise<Asset> {
+/** Adds an asset row for `appId` that reuses bytes this workspace already validated. A competitor reference keeps its own role. */
+async function linkExisting(ctx: Ctx, appId: string, from: Asset, kind: UploadKind): Promise<Asset> {
   const { id: _id, createdAt: _c, ...copy } = from;
-  await db.insert(schema.assets).values({ ...copy, appId }).onConflictDoNothing();
+  const role = kind === "reference" || from.kind === "reference" ? { kind, meta: null } : {};
+  await db.insert(schema.assets).values({ ...copy, appId, ...role }).onConflictDoNothing();
   return (await findAsset(ctx, from.sha256, appId))!;
+}
+
+const rightsRequired = () => new HttpError(400, "analysis_rights_required", "Confirm you have the right to analyse these images");
+
+/** One file is either on the competitor board or one of the app's own uploads, never both. */
+function assertSameRole(existing: Asset, kind: UploadKind) {
+  if ((existing.kind === "reference") === (kind === "reference")) return;
+  throw new HttpError(409, "asset_kind_conflict", existing.kind === "reference" ? "This image is already on the competitor board" : "This image is already one of this app's uploads");
+}
+
+/** SP11: a competitor board holds at most ten images. */
+async function assertReferenceRoom(ctx: Ctx, appId: string) {
+  const [{ n }] = (await db.select({ n: count() }).from(schema.assets).where(and(
+    eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), eq(schema.assets.kind, "reference"),
+  ))) as [{ n: number }];
+  if (n >= MAX_REFERENCES_PER_APP) throw new HttpError(409, "reference_limit", `A competitor board holds up to ${MAX_REFERENCES_PER_APP} images`);
 }
 
 export async function signUpload(ctx: Ctx, storage: ObjectStorage, raw: unknown):
@@ -56,13 +76,17 @@ export async function signUpload(ctx: Ctx, storage: ObjectStorage, raw: unknown)
   if (!input.appId) throw badRequest("app_required");
   const appId = input.appId;
   await getApp(ctx, appId);
+  if (input.kind === "reference" && input.analysisRights !== true) {
+    throw rightsRequired();
+  }
   if (input.size > UPLOAD_LIMITS[input.kind]) throw tooLarge(input.kind);
   if (!ACCEPTED[input.kind].includes(input.mime)) throw badRequest("unsupported_type");
 
   const mine = await findAsset(ctx, input.sha256, appId);
-  if (mine) return { existing: mine };
+  if (mine) { assertSameRole(mine, input.kind); return { existing: mine }; }
+  if (input.kind === "reference") await assertReferenceRoom(ctx, appId);
   const sibling = await findAsset(ctx, input.sha256);
-  if (sibling) return { existing: await linkExisting(ctx, appId, sibling) };
+  if (sibling) return { existing: await linkExisting(ctx, appId, sibling, input.kind) };
 
   const uploadId = randomUUID();
   return { uploadId, ...(await storage.presignPut(stagingPath(ctx, uploadId), { contentType: input.mime, contentLength: input.size })) };
@@ -100,18 +124,20 @@ export async function completeUpload(ctx: Ctx, storage: ObjectStorage, raw: unkn
   if (!input.appId) throw badRequest("app_required");
   const appId = input.appId;
   await getApp(ctx, appId);
+  if (input.kind === "reference" && input.analysisRights !== true) throw rightsRequired();
   const staging = stagingPath(ctx, input.uploadId);
   const discard = () => storage.remove(staging).catch(() => {});
 
   const mine = await findAsset(ctx, input.sha256, appId);
-  if (mine) { await discard(); return mine; }
+  if (mine) { await discard(); assertSameRole(mine, input.kind); return mine; }
+  if (input.kind === "reference") await assertReferenceRoom(ctx, appId).catch(async (err) => { await discard(); throw err; });
 
   const { head: headBytes, size } = await readStaged(storage, staging, input.kind, input.sha256);
   const sniffed = await sniffAsset(input.kind, headBytes);
   if (!sniffed.ok) { await discard(); throw badRequest(sniffed.code); }
 
   const sibling = await findAsset(ctx, input.sha256);
-  if (sibling) { await discard(); return linkExisting(ctx, appId, sibling); }
+  if (sibling) { await discard(); return linkExisting(ctx, appId, sibling, input.kind); }
 
   const path = finalPath(ctx, input.sha256);
   await storage.remove(path).catch(() => {}); // an unreferenced leftover, e.g. from a deleted app
@@ -177,7 +203,7 @@ async function completeFont(ctx: Ctx, storage: ObjectStorage, input: z.infer<typ
 export async function listAssets(ctx: Ctx, storage: ObjectStorage, appId: string): Promise<Array<Asset & { url: string; videoUrl?: string }>> {
   await getApp(ctx, appId);
   const rows = await db.select().from(schema.assets)
-    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId)))
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), ne(schema.assets.kind, "reference")))
     .orderBy(desc(schema.assets.createdAt));
   const paths = rows.flatMap((r) => {
     const base = finalPath(ctx, r.sha256);
@@ -191,4 +217,27 @@ export async function listAssets(ctx: Ctx, storage: ObjectStorage, appId: string
     if (!r.meta?.ready) return { ...r, url: "" };
     return { ...r, url: urls[k++] ?? "", videoUrl: urls[k++] ?? "" };
   });
+}
+
+/** The app's competitor board: signed image URLs and each image's analysis (null until analysed). */
+export async function listReferences(ctx: Ctx, storage: ObjectStorage, appId: string): Promise<Array<Asset & { url: string; insight: unknown }>> {
+  await getApp(ctx, appId);
+  const rows = await db.select({ asset: schema.assets, insight: schema.referenceInsights.insight }).from(schema.assets)
+    .leftJoin(schema.referenceInsights, eq(schema.referenceInsights.assetId, schema.assets.id))
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.appId, appId), eq(schema.assets.kind, "reference")))
+    .orderBy(asc(schema.assets.createdAt));
+  const urls = await storage.signedUrls(rows.map((r) => finalPath(ctx, r.asset.sha256)));
+  return rows.map((r, i) => ({ ...r.asset, url: urls[i] ?? "", insight: r.insight ?? null }));
+}
+
+/** Removes one competitor image. Its analysis goes with the row (on delete cascade); its bytes go too unless another row uses them. */
+export async function deleteReference(ctx: Ctx, storage: ObjectStorage, appId: string, assetId: string): Promise<void> {
+  await getApp(ctx, appId);
+  if (!z.uuid().safeParse(assetId).success) throw notFound();
+  const [gone] = await db.delete(schema.assets).where(and(eq(schema.assets.id, assetId), eq(schema.assets.workspaceId, ctx.workspaceId),
+    eq(schema.assets.appId, appId), eq(schema.assets.kind, "reference"))).returning();
+  if (!gone) throw notFound();
+  const [still] = await db.select({ id: schema.assets.id }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.sha256, gone.sha256))).limit(1);
+  if (!still) await storage.remove(finalPath(ctx, gone.sha256)).catch(() => {});
 }

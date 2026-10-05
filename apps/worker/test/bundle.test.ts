@@ -61,6 +61,15 @@ describe("project_bundle", () => {
     expect(job.status).toBe("failed");
     expect(job.error).toMatch(/^asset_missing/);
   });
+
+  it("never packs a competitor reference image: a document pointing at one fails as asset_missing", async () => {
+    const p = await projectWithAsset();
+    await db.update(schema.assets).set({ kind: "reference" }).where(eq(schema.assets.id, p.assetId));
+    await runJob(p.jobId, (input, job) => runBundle(input, job, p.deps));
+    const job = await jobRow(p.jobId);
+    expect(job.status).toBe("failed");
+    expect(job.error).toMatch(/^asset_missing/);
+  });
 });
 
 const docWith = (src: string) => ({ schemaVersion: 1, kind: "screenshots", localization: { baseLocale: "en-US", locales: [] },

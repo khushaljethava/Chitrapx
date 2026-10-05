@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { pool } from "../src/client.ts";
 import { asUser, createUser, makeWorkspace } from "./helpers.ts";
 
-type Ids = { user: string; ws: string; app: string; project: string };
+type Ids = { user: string; ws: string; app: string; project: string; ref2: string };
 
 async function seedWorkspace(): Promise<Ids> {
   const user = (await createUser()).id;
@@ -17,7 +17,11 @@ async function seedWorkspace(): Promise<Ids> {
   await pool.query("insert into jobs (workspace_id, type, credits_reserved) values ($1, 'noop', 1)", [ws]);
   await pool.query("insert into credit_ledger (workspace_id, delta, reason) values ($1, 50, 'plan_grant')", [ws]);
   await pool.query("insert into screen_insights (workspace_id, sha256, insight, model) values ($1, $2, '{}', 'm')", [ws, randomUUID()]);
-  return { user, ws, app, project };
+  const refAsset = "insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'reference', 'p', 'image/png', 1, $3) returning id";
+  const ref = (await pool.query(refAsset, [ws, app, randomUUID()])).rows[0].id;
+  const ref2 = (await pool.query(refAsset, [ws, app, randomUUID()])).rows[0].id;
+  await pool.query("insert into reference_insights (workspace_id, asset_id, insight, model) values ($1, $2, '{}', 'm')", [ws, ref]);
+  return { user, ws, app, project, ref2 };
 }
 
 let a: Ids;
@@ -35,6 +39,7 @@ const cases: Case[] = [
   { table: "assets", where: (b) => `workspace_id = '${b.ws}'`, set: "mime = 'x'", insert: (b) => ["insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'image', 'p', 'image/png', 1, $3)", [b.ws, b.app, randomUUID()]] },
   { table: "jobs", where: (b) => `workspace_id = '${b.ws}'`, set: "attempts = 9", insert: (b) => ["insert into jobs (workspace_id, type, credits_reserved) values ($1, 'noop', 1)", [b.ws]] },
   { table: "screen_insights", where: (b) => `workspace_id = '${b.ws}'`, set: "model = 'x'", insert: (b) => ["insert into screen_insights (workspace_id, sha256, insight, model) values ($1, $2, '{}', 'm')", [b.ws, randomUUID()]] },
+  { table: "reference_insights", where: (b) => `workspace_id = '${b.ws}'`, set: "model = 'x'", insert: (b) => ["insert into reference_insights (workspace_id, asset_id, insight, model) values ($1, $2, '{}', 'm')", [b.ws, b.ref2]] },
   { table: "credit_ledger", where: (b) => `workspace_id = '${b.ws}'`, set: "delta = 0", insert: (b) => ["insert into credit_ledger (workspace_id, delta, reason) values ($1, 1000, 'adjust')", [b.ws]] },
 ];
 
@@ -59,6 +64,11 @@ describe("RLS isolates workspaces", () => {
     expect(r.rows).toHaveLength(1);
   });
 
+  it("A can read its own competitor analyses (F13)", async () => {
+    const r = await asUser(a.user, (db) => db.execute(sql`select id from reference_insights where workspace_id = ${a.ws}`));
+    expect(r.rows).toHaveLength(1);
+  });
+
   it("A cannot write credits or jobs even for its own workspace", async () => {
     await expect(asUser(a.user, (_db, c) => c.query("insert into credit_ledger (workspace_id, delta, reason) values ($1, 1000, 'adjust')", [a.ws]))).rejects.toThrow();
     await expect(asUser(a.user, (_db, c) => c.query("insert into jobs (workspace_id, type, credits_reserved) values ($1, 'noop', 0)", [a.ws]))).rejects.toThrow();
@@ -78,6 +88,7 @@ describe("RLS: users cannot write their own workspace's rows either (all writes 
     ["projects", (a) => ["insert into projects (workspace_id, app_id, name, kind, doc) values ($1, $2, 'x', 'screenshots', '{}')", [a.ws, a.app]]],
     ["projects pointing at B's app", (a) => ["insert into projects (workspace_id, app_id, name, kind, doc) values ($1, $2, 'x', 'screenshots', '{}')", [a.ws, b.app]]],
     ["project_versions", (a) => ["insert into project_versions (workspace_id, project_id, revision, doc) values ($1, $2, 9, '{}')", [a.ws, a.project]]],
+    ["reference_insights (F13)", (a) => ["insert into reference_insights (workspace_id, asset_id, insight, model) values ($1, $2, '{}', 'm')", [a.ws, a.ref2]]],
     ["assets with a planted storage path", (a) => ["insert into assets (workspace_id, app_id, kind, storage_path, mime, bytes, sha256) values ($1, $2, 'image', $3, 'image/png', 1, $4)", [a.ws, a.app, `${b.ws}/x`, randomUUID()]]],
   ];
   for (const [name, insert] of ownInserts) {

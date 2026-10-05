@@ -20,6 +20,9 @@ export const screenInsightSchema = z.object({
   dominantColors: z.array(z.string()).describe("Up to 4 dominant colours as #RRGGBB"),
   textOnScreen: z.string().describe("Important text visible in the screenshot, verbatim"),
 });
+
+/** SP11: competitor images per app's reference board; also the most `ai_reference` charges for at once. */
+export const MAX_REFERENCES_PER_APP = 10;
 export type ScreenInsight = z.infer<typeof screenInsightSchema>;
 
 export const templateChoiceSchema = z.object({

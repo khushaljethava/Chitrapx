@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, count, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import { strFromU8, strToU8, zipSync } from "fflate";
 import { z } from "zod";
 import { checkFont, db, fontFamilyFor, FontRejected, HEAD_BYTES, lockWorkspace, PLANS, PRICES, reserveAndEnqueue, schema, sniffAsset, sniffFontType, UPLOAD_LIMITS, withTx, type Db, type Tx } from "@chitrapx/db";
@@ -45,7 +45,7 @@ export async function runBundle(_input: unknown, job: JobContext, deps: BundleDe
   const badId = ids.find((id) => !z.uuid().safeParse(id).success);
   if (badId !== undefined) throw new FatalJobError(`asset_missing:${badId}`);
   const assets = ids.length ? await db.select().from(schema.assets)
-    .where(and(eq(schema.assets.workspaceId, job.workspaceId), inArray(schema.assets.id, ids))) : [];
+    .where(and(eq(schema.assets.workspaceId, job.workspaceId), inArray(schema.assets.id, ids), ne(schema.assets.kind, "reference"))) : [];
   const byId = new Map(assets.map((a) => [a.id, a]));
   const families = docFontFamilies(doc);
   const fonts = families.length ? await db.select().from(schema.assets).where(and(

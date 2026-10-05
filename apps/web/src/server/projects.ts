@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, inArray, ne, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
 import { assetIdFromSrc, emptyDoc, fillScreenshots, MAX_DOC_BYTES, migrate, projectKinds, retarget, type ChitrapxDoc, type TargetId } from "@chitrapx/document";
@@ -102,7 +102,7 @@ export async function assetUrlMap(ctx: Ctx, storage: ObjectStorage, doc: Chitrap
   const ids = docAssetIds(doc).filter((id) => z.uuid().safeParse(id).success);
   if (!ids.length) return {};
   const rows = await db.select({ id: schema.assets.id, sha256: schema.assets.sha256, kind: schema.assets.kind, meta: schema.assets.meta }).from(schema.assets)
-    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids)));
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), inArray(schema.assets.id, ids), ne(schema.assets.kind, "reference")));
   const entries: Array<[string, string]> = [];
   for (const r of rows) {
     const base = `${ctx.workspaceId}/${r.sha256}`;

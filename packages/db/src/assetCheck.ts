@@ -2,19 +2,20 @@ import { fileTypeFromBuffer } from "file-type";
 import { imageSize } from "image-size";
 import type { FontFormat } from "@chitrapx/document";
 
-export type AssetKind = "screenshot" | "image" | "recording" | "font";
+export type AssetKind = "screenshot" | "image" | "recording" | "font" | "reference";
 
 const MB = 1024 * 1024;
-export const UPLOAD_LIMITS = { screenshot: 25 * MB, image: 25 * MB, recording: 500 * MB, font: 10 * MB } as const;
+export const UPLOAD_LIMITS = { screenshot: 25 * MB, image: 25 * MB, recording: 500 * MB, font: 10 * MB, reference: 25 * MB } as const;
 // ponytail: SVG stays out until it is sanitized.
 export const ACCEPTED: Record<AssetKind, readonly string[]> = {
   screenshot: ["image/png", "image/jpeg", "image/webp"],
   image: ["image/png", "image/jpeg", "image/webp"],
   recording: ["video/mp4", "video/quicktime", "video/x-m4v"],
   font: ["font/ttf", "font/otf", "font/woff", "font/woff2"],
+  reference: ["image/png", "image/jpeg", "image/webp"],
 };
 /** Bytes kept for type sniffing and image dimensions (JPEG headers can sit after a large EXIF block). Fonts are parsed whole. */
-export const HEAD_BYTES: Record<AssetKind, number> = { screenshot: 512 * 1024, image: 512 * 1024, recording: 64 * 1024, font: UPLOAD_LIMITS.font };
+export const HEAD_BYTES: Record<AssetKind, number> = { screenshot: 512 * 1024, image: 512 * 1024, recording: 64 * 1024, font: UPLOAD_LIMITS.font, reference: 512 * 1024 };
 
 /** A font's real format from its first four bytes; the client's MIME type and file name are never used. */
 export function sniffFontType(head: Uint8Array): { mime: string; format: FontFormat } | null {
