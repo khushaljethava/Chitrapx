@@ -192,7 +192,7 @@ export function Canvas() {
           const b = boxOf(it.el, it.offset);
           return p.x >= b.x && p.x <= b.x + b.w && p.y >= b.y && p.y <= b.y + b.h;
         });
-        void files.then((list) => intake.dropFiles(list, { boardId: board.id, x: p.x - i * boardW, y: p.y, device: device?.ref }));
+        void files.then((list) => intake.dropFiles(list, { groupId, boardId: board.id, x: p.x - i * boardW, y: p.y, device: device?.ref }));
       }}>
       <div className="p-8" style={{ width: boardW * group.boards.length * zoom + 64 }}>
         <div className="relative" style={{ width: boardW * group.boards.length * zoom, height: boardH * zoom }}>

@@ -238,6 +238,24 @@ describe("applyLayoutPreset", () => {
   });
 });
 
+describe("applyLayoutPreset fallback", () => {
+  it("skips locked and hidden elements when nothing is targeted", () => {
+    const base = doc();
+    const els = base.groups[0]!.boards[0]!.elements;
+    els[0] = el("a", 0, { locked: true });
+    els[1] = el("b", 200, { hidden: true });
+    const d1 = applyCommand(base, { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "text-top" });
+    expect(findElement(d1, r("a"))!.position).toEqual({ x: 0, y: 10 });
+    expect(findElement(d1, r("b"))!.position).toEqual({ x: 200, y: 10 });
+    expect(findElement(d1, r("c"))!.position.y).toBeCloseTo(2796 * 0.06);
+  });
+  it("returns the same document when every candidate is locked", () => {
+    const base = doc();
+    base.groups[0]!.boards[0]!.elements = [el("a", 0, { locked: true })];
+    expect(applyCommand(base, { type: "applyLayoutPreset", groupId: "g", boardId: "b1", preset: "text-top" })).toBe(base);
+  });
+});
+
 describe("applyLayoutPreset (device)", () => {
   it("phone-tilt rotates and sizes a targeted device", () => {
     const base = doc();
@@ -268,6 +286,14 @@ describe("apply to all", () => {
     const d1 = applyCommand(doc(), { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
     const d2 = applyCommand(d1, { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
     expect(d2).toBe(d1);
+  });
+  it("leaves locked counterparts unchanged and returns the same document when only they differ", () => {
+    const base = doc();
+    base.groups[0]!.boards[1]!.elements = [el("d", 0, { locked: true })];
+    base.groups[0]!.boards[0]!.elements[0]!.position = { x: 70, y: 80 };
+    const d = applyCommand(base, { type: "applyToAllBoards", groupId: "g", sourceRef: r("a") });
+    expect(findElement(d, r("d", "b2"))!.position).toEqual({ x: 0, y: 10 });
+    expect(d).toBe(base);
   });
   it("re-attaches layout in every language and keeps the translated text", () => {
     let d = applyCommand(doc(), { type: "setOverride", ref: r("a"), locale: "de-DE", props: { content: "Hallo", position: { x: 9, y: 9 }, detached: ["position", "fontSize"], fontSize: 12 } as never });

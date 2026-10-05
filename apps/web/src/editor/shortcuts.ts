@@ -6,13 +6,21 @@ import type { EditorStore } from "./store.ts";
 import { duplicateSelection } from "./ui/Inspector.tsx";
 
 export const isTypingTarget = (t: EventTarget | null) =>
-  t instanceof HTMLElement && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
+  typeof HTMLElement !== "undefined" && t instanceof HTMLElement && (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName));
+
+/** True when another widget owns this key: a handled event, a keyboard drag in the layers panel, or a modal dialog. */
+export function shouldIgnoreKey(e: Pick<KeyboardEvent, "defaultPrevented" | "target">): boolean {
+  if (e.defaultPrevented || isTypingTarget(e.target)) return true;
+  const t = e.target as Element | null;
+  if (t?.closest?.('[aria-roledescription="sortable"][aria-pressed="true"]')) return true; // dnd-kit keyboard drag in progress
+  return !!t?.closest?.('[aria-modal="true"]');
+}
 
 /** Editor shortcuts; ignored while a form field has focus so typing never removes or nudges an element. */
 export function useShortcuts(store: EditorStore) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (isTypingTarget(e.target)) return;
+      if (shouldIgnoreKey(e)) return;
       const s = store.getState();
       const mod = e.metaKey || e.ctrlKey;
       const key = e.key.toLowerCase();

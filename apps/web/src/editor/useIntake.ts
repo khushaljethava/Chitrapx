@@ -8,7 +8,7 @@ import type { Ref } from "./commands.ts";
 import { useEditorStore } from "./context.tsx";
 import { acceptImages } from "./intake.ts";
 
-export type DropAt = { boardId: string; x: number; y: number; device?: Ref };
+export type DropAt = { groupId: string; boardId: string; x: number; y: number; device?: Ref };
 type Sizes = Map<string, { width: number; height: number }>;
 
 /** Uploads dropped or picked images and places them: into a device, as images, or as new boards. */
@@ -43,9 +43,19 @@ export function useIntake() {
     return ids;
   }
 
+  const NOT_PLACED = "Images were uploaded to your library but could not be placed: the board changed. Add them from the Images panel.";
+
+  /** The board a pending drop targets, or undefined (with a message) when it is gone, the group changed or the store is locked. */
+  function targetBoard(at: DropAt) {
+    const s = store.getState();
+    const board = s.locked || s.activeGroupId !== at.groupId ? undefined : s.doc.groups.find((g) => g.id === at.groupId)?.boards.find((b) => b.id === at.boardId);
+    if (!board) setErrors([NOT_PLACED]);
+    return board;
+  }
+
   function addImages(ids: string[], at: DropAt) {
     const s = store.getState();
-    const board = s.doc.groups.find((g) => g.id === s.activeGroupId)?.boards.find((b) => b.id === at.boardId);
+    const board = targetBoard(at);
     if (!board) return;
     const w = board.size.width * 0.5;
     const cx = Math.min(board.size.width, Math.max(0, at.x));
@@ -55,13 +65,15 @@ export function useIntake() {
       const h = (w * sz.height) / sz.width;
       const element = { id: crypto.randomUUID(), type: "image", name: "Screenshot", imageSrc: `asset:${id}`, objectFit: "contain",
         position: { x: cx - w / 2 + n * 40, y: cy - h / 2 + n * 40 }, size: { width: w, height: h }, rotation: 0, scale: 1 } as unknown as ArtboardElement;
-      s.apply({ type: "addElement", groupId: s.activeGroupId, boardId: at.boardId, element });
+      s.apply({ type: "addElement", groupId: at.groupId, boardId: at.boardId, element });
     });
   }
 
-  function addBoards(ids: string[], sourceBoardId: string) {
+  function addBoards(ids: string[], at: { groupId: string; boardId: string }) {
     const s = store.getState();
-    s.apply({ type: "addBoardsFromAssets", groupId: s.activeGroupId, sourceBoardId, assetIds: ids, newBoardIds: ids.map(() => crypto.randomUUID()) });
+    if (!targetBoard({ ...at, x: 0, y: 0 })) return;
+    const sourceBoardId = at.boardId;
+    s.apply({ type: "addBoardsFromAssets", groupId: at.groupId, sourceBoardId, assetIds: ids, newBoardIds: ids.map(() => crypto.randomUUID()) });
   }
 
   /** One upload or choice at a time; returns false (with a message) when busy. */
@@ -82,6 +94,7 @@ export function useIntake() {
     const ids = await upload(files);
     if (!ids.length) return;
     const s = store.getState();
+    if (s.locked && ids.length === 1) { setErrors([NOT_PLACED]); return; }
     if (ids.length === 1 && at.device) {
       const base = s.doc.localization.baseLocale;
       s.apply({ type: "setScreenshot", ref: at.device, src: `asset:${ids[0]}`, locale: s.locale !== base ? s.locale : undefined });
@@ -92,16 +105,16 @@ export function useIntake() {
   async function importBoards(files: File[]) {
     if (!claim()) return;
     try {
+      const { activeGroupId: groupId, activeBoardId: boardId } = store.getState(); // captured before the upload
       const ids = await upload(files);
-      const boardId = store.getState().activeBoardId;
-      if (ids.length && boardId) addBoards(ids, boardId);
+      if (ids.length && boardId) addBoards(ids, { groupId, boardId });
     } catch (err) { setErrors([(err as Error).message]); setProgress(""); }
     finally { busy.current = false; }
   }
 
   function choose(mode: "here" | "boards" | "cancel") {
     if (pending && mode === "here") addImages(pending.assetIds, pending.at);
-    if (pending && mode === "boards") addBoards(pending.assetIds, pending.at.boardId);
+    if (pending && mode === "boards") addBoards(pending.assetIds, pending.at);
     setPending(null);
   }
 

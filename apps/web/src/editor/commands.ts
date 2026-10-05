@@ -261,7 +261,7 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
           if (b === src) continue;
           const id = matchElements(src as ArtboardState, b as ArtboardState).get(el.id);
           const t = b.elements.find((e) => e.id === id) as Record<string, unknown> | undefined;
-          if (!t) continue;
+          if (!t || t.locked) continue; // locked counterparts stay as they are
           for (const k of LAYOUT_KEYS) put(t, k, el[k] ?? (k === "scale" ? 1 : 0));
           if (el.type === "device" && t.type === "device" && el.screenshotRect) put(t, "screenshotRect", el.screenshotRect);
         }
@@ -290,7 +290,7 @@ export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
         if (!b) return;
         const fits = (e: ArtboardElement) => (presetKind(cmd.preset) === "text" ? e.type === "text" : e.type === "device" || e.type === "video-device");
         const chosen = cmd.elementIds?.length ? b.elements.filter((e) => cmd.elementIds!.includes(e.id) && fits(e as ArtboardElement)) : [];
-        const targets = chosen.length ? chosen : b.elements.filter((e) => fits(e as ArtboardElement)).slice(0, 1);
+        const targets = chosen.length ? chosen : b.elements.filter((e) => fits(e as ArtboardElement) && !e.locked && !e.hidden).slice(0, 1);
         for (const e of targets) {
           // Write only what differs, so re-applying a preset leaves the document (and undo stack) untouched.
           const next = layoutFor(cmd.preset, b.size, e);
