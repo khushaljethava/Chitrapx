@@ -10,4 +10,4 @@ export * from "./renderSig.ts";
 export * from "./exportSource.ts";
 export * from "./assetCheck.ts";
 export * from "./fontParse.ts";
-export type { FontMeta } from "./schema.ts";
+export type { CommunityAsset, FontMeta } from "./schema.ts";
