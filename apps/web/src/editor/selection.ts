@@ -8,7 +8,7 @@ function unique(refs: Ref[]): Ref[] {
 }
 
 /**
- * What a canvas click on `refs` selects: each clicked element plus the unlocked members of its
+ * What a canvas click on `refs` selects: each clicked element plus the unlocked, visible members of its
  * element group in the same list. `single` (alt-click) selects only what was clicked.
  */
 export function expandToGroups(doc: ChitrapxDoc, refs: Ref[], opts: { single?: boolean } = {}): Ref[] {
@@ -18,7 +18,7 @@ export function expandToGroups(doc: ChitrapxDoc, refs: Ref[], opts: { single?: b
     const els = elementsOf(doc, r.groupId, r.boardId);
     const el = els?.find((e) => e.id === r.elementId);
     if (!els || !el?.groupId) { out.push(r); continue; }
-    for (const m of els) if (m.groupId === el.groupId && (!m.locked || m.id === el.id)) out.push({ ...r, elementId: m.id });
+    for (const m of els) if (m.groupId === el.groupId && ((!m.locked && !m.hidden) || m.id === el.id)) out.push({ ...r, elementId: m.id });
   }
   return unique(out);
 }

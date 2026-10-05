@@ -22,6 +22,13 @@ describe("selection", () => {
   it("ungrouped elements select alone, without duplicates", () => {
     expect(expandToGroups(doc, [r("d"), r("d")]).map((x) => x.elementId)).toEqual(["d"]);
   });
+  it("a click on a group skips hidden members, like ⌘A (the clicked one is always kept)", () => {
+    const withHidden = structuredClone(doc);
+    const els = withHidden.groups[0]!.boards[0]!.elements as unknown as Array<Record<string, unknown>>;
+    els[1]!.hidden = true; // b
+    expect(expandToGroups(withHidden, [r("a")]).map((x) => x.elementId)).toEqual(["a"]);
+    expect(expandToGroups(withHidden, [r("b")]).map((x) => x.elementId)).toEqual(["a", "b"]);
+  });
   it("selectableRefs drops locked, hidden and missing elements", () => {
     expect(selectableRefs(doc, [r("a"), r("c"), r("h"), r("zz")]).map((x) => x.elementId)).toEqual(["a"]);
   });

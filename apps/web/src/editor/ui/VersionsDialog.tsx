@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ChitrapxDoc } from "@chitrapx/document";
+import { migrate, type ChitrapxDoc } from "@chitrapx/document";
 import { BoardView, type RenderExtras, type ResolveSrc } from "@chitrapx/renderer";
 import { useDialog } from "@/components/useDialog.ts";
 import { api, ApiError } from "@/server/api.ts";
 import { useEditor, useEditorStore } from "../context.tsx";
+import type { SaveStatus } from "../save.ts";
 
 type Version = { id: string; revision: number; kind: "auto" | "export" | "restore" | "named"; label: string | null; createdAt: string; author: string | null };
 const KIND_LABEL = { auto: "Auto-save", export: "Before export", restore: "Before restore", named: "" } as const;
@@ -18,8 +19,8 @@ function ago(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict, resolveSrc, extras }: {
-  onClose: () => void; flush: () => Promise<boolean>;
+export function VersionsDialog({ onClose, saveStatus, flush, adoptServerDoc, reportConflict, resolveSrc, extras }: {
+  onClose: () => void; saveStatus: SaveStatus; flush: () => Promise<boolean>;
   adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; resolveSrc: ResolveSrc; extras: RenderExtras;
 }) {
   const store = useEditorStore();
@@ -30,6 +31,9 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  /** Set when a restore is blocked by a save the server keeps rejecting: offer to drop the local edits. */
+  const [stuck, setStuck] = useState<Version | null>(null);
+  const previewSeq = useRef(0);
   const dialogRef = useRef<HTMLDivElement>(null);
   const { onBackdrop } = useDialog(dialogRef, { onClose, canClose: !busy });
 
@@ -38,8 +42,11 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
 
   async function open(v: Version) {
     setError("");
-    try { setPreview({ v, doc: (await api<{ doc: ChitrapxDoc }>(`/api/projects/${projectId}/versions/${v.id}`)).doc }); }
-    catch { setError("Could not open this version."); }
+    const seq = ++previewSeq.current;
+    try {
+      const { doc } = await api<{ doc: ChitrapxDoc }>(`/api/projects/${projectId}/versions/${v.id}`);
+      if (seq === previewSeq.current) setPreview({ v, doc }); // a slower, older request never replaces a newer one
+    } catch { if (seq === previewSeq.current) setError("Could not open this version."); }
   }
   async function saveNamed() {
     setBusy(true); setError("");
@@ -50,11 +57,19 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
     } catch (err) { setError(err instanceof ApiError ? err.message : "Could not save the version."); }
     finally { setBusy(false); }
   }
-  async function restore(v: Version) {
-    setBusy(true); setError("");
+  async function restore(v: Version, discard = false) {
+    setBusy(true); setError(""); setStuck(null);
     let locked = false;
     try {
-      if (!(await flush())) { setError("Save your changes first."); return; }
+      if (discard) {
+        // Autosave keeps failing (e.g. a 4xx): load what the server has, dropping the unsaved edits, then restore.
+        const project = await api<{ doc: unknown; revision: number }>(`/api/projects/${projectId}`);
+        adoptServerDoc(migrate(project.doc), project.revision);
+      } else if (!(await flush())) {
+        setError("Save your changes first.");
+        if (saveStatus === "error") setStuck(v);
+        return;
+      }
       // No edits or autosaves may slip in between the save above and adopting the restored document.
       store.getState().setLocked(true); locked = true;
       const out = await api<{ revision: number; doc: ChitrapxDoc }>(`/api/projects/${projectId}/versions/${v.id}/restore`, "POST", { revision: store.getState().revision });
@@ -87,6 +102,11 @@ export function VersionsDialog({ onClose, flush, adoptServerDoc, reportConflict,
             <button className="btn" disabled={busy || !name.trim()}>Save version</button>
           </form>
           {error && <p role="alert" className="error">{error}</p>}
+          {stuck && (
+            <button type="button" className="btn-ghost text-sm text-red-600" disabled={busy} onClick={() => restore(stuck, true)}>
+              Discard unsaved changes and restore
+            </button>
+          )}
           {versions === null ? <p className="text-sm text-neutral-500">Loading</p> : versions.length === 0 ? <p className="text-sm text-neutral-500">No versions yet.</p> : (
             <ul className="max-h-96 divide-y divide-neutral-200 overflow-y-auto text-sm dark:divide-neutral-800">
               {versions.map((v) => (

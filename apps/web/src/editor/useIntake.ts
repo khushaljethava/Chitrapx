@@ -60,13 +60,14 @@ export function useIntake() {
     const w = board.size.width * 0.5;
     const cx = Math.min(board.size.width, Math.max(0, at.x));
     const cy = Math.min(board.size.height, Math.max(0, at.y));
-    ids.forEach((id, n) => {
+    const elements = ids.map((id, n) => {
       const sz = sizes.current.get(id) ?? { width: 1000, height: 2000 };
       const h = (w * sz.height) / sz.width;
-      const element = { id: crypto.randomUUID(), type: "image", name: "Screenshot", imageSrc: `asset:${id}`, objectFit: "contain",
+      return { id: crypto.randomUUID(), type: "image", name: "Screenshot", imageSrc: `asset:${id}`, objectFit: "contain",
         position: { x: cx - w / 2 + n * 40, y: cy - h / 2 + n * 40 }, size: { width: w, height: h }, rotation: 0, scale: 1 } as unknown as ArtboardElement;
-      s.apply({ type: "addElement", groupId: at.groupId, boardId: at.boardId, element });
     });
+    // One command, so adding N images is one undo step.
+    s.apply({ type: "addElements", groupId: at.groupId, boardId: at.boardId, elements });
   }
 
   function addBoards(ids: string[], at: { groupId: string; boardId: string }) {

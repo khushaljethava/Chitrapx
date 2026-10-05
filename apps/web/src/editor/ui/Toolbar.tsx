@@ -81,7 +81,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
       {translating && <TranslationsTable name={name} glossary={glossary} onGlossary={setGlossary} onClose={() => setTranslating(false)} />}
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>
-      {history && <VersionsDialog onClose={() => setHistory(false)} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} extras={extras} />}
+      {history && <VersionsDialog onClose={() => setHistory(false)} saveStatus={status} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} resolveSrc={resolveSrc} extras={extras} />}
       <button type="button" className="btn py-1.5" onClick={() => setExporting(true)}>Export</button>
       {exporting && (
         <ExportDialog projectId={projectId} doc={doc} onClose={() => setExporting(false)} beforeExport={flush} checks={checks}
