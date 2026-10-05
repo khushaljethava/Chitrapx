@@ -1,7 +1,7 @@
-import { produce } from "immer";
+import { produce, type Draft } from "immer";
 import { z } from "zod";
 import type { ArtboardElement, TextElementProps } from "./artboard.ts";
-import type { ChitrapxDoc } from "./doc.ts";
+import type { BoardGroup, ChitrapxDoc } from "./doc.ts";
 import type { ChipsElementProps } from "./artboard.ts";
 import { CHIP_MAX_CHARS, chipId, chipsSource, normalizeChipOverride } from "./chips.ts";
 import { fillScreenshots } from "./fill.ts";
@@ -26,6 +26,7 @@ export const templateChoiceSchema = z.object({
   templateSlug: z.string(),
   screenshotOrder: z.array(z.number().int()).describe("Screenshot indices in the order they should appear, best first"),
   reasoning: z.string(),
+  featureGraphicSlug: z.string().optional().describe("Only when asked: the Google Play feature graphic template slug"),
 });
 export type TemplateChoice = z.infer<typeof templateChoiceSchema>;
 
@@ -34,6 +35,8 @@ export type SlotText = z.infer<typeof slotText>;
 
 export const slotCopySchema = z.object({
   boards: z.array(z.object({ boardIndex: z.number().int(), texts: z.array(slotText) })),
+  featureGraphic: z.array(slotText).optional().describe("Only when asked: text for the feature graphic's slots"),
+  features: z.array(z.string()).optional().describe("Only when asked: 4 to 6 feature chips, most important first"),
 });
 export type SlotCopy = z.infer<typeof slotCopySchema>;
 
@@ -117,6 +120,31 @@ export function applyDesign(template: ChitrapxDoc, plan: { screenshotOrder: numb
       }
     }
   });
+}
+
+/**
+ * SP11: appends the feature graphic template's size to `doc` with its copy written in. Every id is prefixed "fg-",
+ * so they never meet the main template's ids (texts are translated by element id across sizes). No-op when the
+ * document already has a feature graphic.
+ */
+export function withFeatureGraphic(doc: ChitrapxDoc, fg: ChitrapxDoc, texts: SlotText[]): ChitrapxDoc {
+  const src = fg.groups.find((g) => g.target === "play-feature");
+  if (!src || doc.groups.some((g) => g.target === "play-feature")) return doc;
+  const byId = new Map(texts.map((t) => [t.id, t.text.trim()]));
+  const copy = JSON.parse(JSON.stringify(src)) as BoardGroup;
+  const group: BoardGroup = {
+    ...copy, id: `fg-${copy.id}`, spanElements: [],
+    boards: copy.boards.map(({ localized: _l, ...b }) => ({
+      ...b, id: `fg-${b.id}`,
+      elements: b.elements.map((e) => {
+        const out = { ...e, id: `fg-${e.id}` } as ArtboardElement;
+        const text = byId.get(e.id);
+        if (text && out.type === "text") setContent(out as TextElementProps, text.slice(0, budget((out as TextElementProps).content ?? "")));
+        return out;
+      }),
+    })),
+  };
+  return produce(doc, (d) => { d.groups.push(group as Draft<BoardGroup>); });
 }
 
 /** Sets base text for every element with that id, on every board of every size; chip ids set one chip. */

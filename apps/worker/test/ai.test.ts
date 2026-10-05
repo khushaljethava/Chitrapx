@@ -28,11 +28,11 @@ function fakeModel(answer: (req: StructuredRequest<unknown>) => unknown) {
 }
 const insight = { summary: "Log a brew", feature: "Brew logging", uiElements: ["timer"], mood: "calm", dominantColors: ["#336699"], textOnScreen: "Brew" };
 
-async function setup(screenshots = 3, credits = 30) {
+async function setup(screenshots = 3, credits = 30, platformHint: "ios" | "android" | "both" = "ios") {
   const user = await createUser();
   const ws = await makeWorkspace(user.id, "pro");
   await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: credits, reason: "adjust" });
-  const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Bloom", description: "Coffee recipes" }).returning();
+  const [app] = await db.insert(schema.apps).values({ workspaceId: ws, name: "Bloom", description: "Coffee recipes", platformHint }).returning();
   const assets = [];
   for (let i = 0; i < screenshots; i++) {
     const sha = crypto.randomUUID().replace(/-/g, "").padEnd(64, "0");
@@ -299,6 +299,62 @@ describe("ai_chips (SP11)", () => {
     await runJob(jobId, (input, job) => runAiChips(input, job, deps(model)));
     expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
     expect(chipsIn((await projectRow(s.project.id)).doc as ChitrapxDoc)).toEqual(chipsIn(before));
+    expect(await balance(db, s.ws)).toBe(30);
+  });
+});
+
+describe("AI design for Google Play (SP11)", () => {
+  it("an app on Play also gets a feature graphic with 4 to 6 chips, its ids kept apart from the main set", async () => {
+    const s = await setup(3, 30, "android");
+    const slots = await amouraSlots();
+    const { model, calls } = fakeModel((req) => {
+      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "fits", featureGraphicSlug: "fg-habit-tracker" };
+      return {
+        boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })),
+        featureGraphic: [{ id: "t108", text: "Brew better" }, { id: "t109", text: "Recipes for every bean" }],
+        features: ["Brew timer", "Recipes", "Bean log", "Brew timer", "Grind guide", "A very long feature name"],
+      };
+    });
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+
+    expect(await jobRow(jobId)).toMatchObject({ status: "done", output: { featureGraphicSlug: "fg-habit-tracker" } });
+    const doc = (await projectRow(s.project.id)).doc as ChitrapxDoc;
+    expect(doc.groups.map((g) => g.target)).toEqual(["iphone-6.9", "play-feature"]);
+    const fg = doc.groups[1]!;
+    expect(fg.id).toBe("fg-fg-habit-tracker-play-feature");
+    expect(fg.boards[0]!.elements.every((e) => e.id.startsWith("fg-"))).toBe(true);
+    expect((fg.boards[0]!.elements.find((e) => e.id === "fg-t108") as unknown as { content: string }).content).toBe("Brew better");
+    expect((fg.boards[0]!.elements.find((e) => e.type === "chips") as unknown as { chips: string[] }).chips).toEqual(["Brew timer", "Recipes", "Bean log", "Grind guide"]);
+    const pick = calls.find((c) => c.cachedContext)!;
+    expect((pick.content[0] as { text: string }).text).toContain("fg-habit-tracker");
+    const copy = calls.find((c) => c.model !== "claude-haiku-4-5" && !c.cachedContext)!;
+    expect((copy.content[0] as { text: string }).text).toContain('id "t108"');
+    expect(await balance(db, s.ws)).toBe(20);
+  });
+
+  it("an iOS-only app gets no feature graphic and is not asked for chips", async () => {
+    const s = await setup(3);
+    const slots = await amouraSlots();
+    const { model, calls } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+      ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "" }
+      : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })) }));
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect(((await projectRow(s.project.id)).doc as ChitrapxDoc).groups).toHaveLength(1);
+    expect(calls.every((c) => !(c.content[0] as { text?: string }).text?.includes('"features"'))).toBe(true);
+  });
+
+  it("too few usable chips for a Play app fails and refunds", async () => {
+    const s = await setup(2, 30, "both");
+    const slots = await amouraSlots();
+    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+      ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "" }
+      : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: "ok" })) })), features: ["Timer"] }));
+    const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
+    await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
+    expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
     expect(await balance(db, s.ws)).toBe(30);
   });
 });

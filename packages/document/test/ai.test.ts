@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyDesign, applyTexts, applyTranslations, hash32, textSlots, type ChitrapxDoc } from "../src/index.ts";
+import { applyChips, applyDesign, applyTexts, applyTranslations, hash32, textSlots, withFeatureGraphic, type ChitrapxDoc } from "../src/index.ts";
 import { board, device, doc, group, text } from "./fixtures.ts";
 
 const tpl = () => doc([group([
@@ -113,5 +113,23 @@ describe("AI text keeps styling on the right letters (SP10 review I1, I2)", () =
     d.groups[0]!.boards[0]!.localized = { "de-DE": { t: { content: "Gewohnheiten", origin: "auto", marks: [{ start: 0, end: 12, italic: true }] } } };
     const out = applyTranslations(d, "de-DE", [{ id: "t", text: "Neue Routinen" }]);
     expect(out.groups[0]!.boards[0]!.localized!["de-DE"]!.t).not.toHaveProperty("marks");
+  });
+});
+
+describe("feature graphic for Play (SP11)", () => {
+  const fg = () => doc([{ id: "fgx", target: "play-feature", spanElements: [], boards: [board("fb", [
+    { ...text("t1", 0, 0), content: "Sample" } as never,
+    { id: "c", type: "chips", chips: ["A", "B"], fontSize: 6, fontFamily: "Inter", color: "#fff", fillColor: "#000", position: { x: 0, y: 0 }, size: { width: 400, height: 90 }, rotation: 0, scale: 1 } as never,
+  ], 1024, 500)] }]);
+
+  it("appends the feature graphic size with prefixed ids and its own copy, once", () => {
+    const out = withFeatureGraphic(tpl(), fg(), [{ id: "t1", text: "  Brew better  " }, { id: "ghost", text: "x" }]);
+    const g = out.groups.at(-1)!;
+    expect(g).toMatchObject({ id: "fg-fgx", target: "play-feature" });
+    expect(g.boards[0]!.id).toBe("fg-fb");
+    expect(g.boards[0]!.elements.map((e) => e.id)).toEqual(["fg-t1", "fg-c"]);
+    expect((g.boards[0]!.elements[0] as unknown as { content: string }).content).toBe("Brew better");
+    expect(withFeatureGraphic(out, fg(), [])).toBe(out);
+    expect(applyChips(out, ["Timer", "Recipes", "Log", "Guide"]).groups.at(-1)!.boards[0]!.elements[1]).toMatchObject({ chips: ["Timer", "Recipes", "Log", "Guide"] });
   });
 });

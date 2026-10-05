@@ -4,7 +4,7 @@ import { and, asc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { db, PRICES, schema, withTx, type Db } from "@chitrapx/db";
 import {
-  aiChips, allTexts, applyChips, applyDesign, applyTranslations, CHIP_MIN, chipsPlanSchema, hasChips, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
+  aiChips, allTexts, applyChips, applyDesign, applyTranslations, CHIP_MIN, chipsPlanSchema, hasChips, withFeatureGraphic, LOCALE_CODE, migrate, PRESET_KEYS, textsIn, repairOrder, screenInsightSchema, screenshotsPerBoard, slotCopySchema,
   templateChoiceSchema, textSlots, TONES, translationsSchema, variantsSchema,
   type CatalogEntry, type ChitrapxDoc, type ScreenInsight,
 } from "@chitrapx/document";
@@ -82,7 +82,7 @@ async function insightsFor(job: JobContext, assets: Array<{ sha256: string }>, d
 
 const designInput = z.object({ appId: z.uuid(), brief: z.string().max(4000).optional(), preset: z.enum(PRESET_KEYS).optional() });
 
-/** Screenshots in, finished screenshot set out: analyse, pick a template, write the copy, apply. */
+/** Screenshots in, finished screenshot set out: analyse, pick a template, write the copy, apply. Apps on Play also get a feature graphic with chips. */
 export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   const input = designInput.safeParse(raw);
   if (!input.success) throw new FatalJobError("invalid_input");
@@ -95,10 +95,13 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   const usage: Usage[] = [];
   const insights = await insightsFor(job, assets, deps, usage);
   const brief = appBrief(app, { brief: input.data.brief, preset: input.data.preset });
+  // Feature graphic candidates: only templates with a chips element, so the chips always have a home.
+  const fgSlugs = app.platformHint === "ios" ? [] : catalog()
+    .filter((c) => c.category === "play-feature-graphic" && c.boards.some((b) => (b.chips ?? 0) > 0)).map((c) => c.slug);
 
   const pick = await deps.model.generate({
     model: MODELS.writer, system: PICK_SYSTEM, cachedContext: catalogContext(catalog()), schema: templateChoiceSchema, effort: "medium",
-    content: [{ type: "text", text: pickPrompt(brief, insights) }],
+    content: [{ type: "text", text: pickPrompt(brief, insights, fgSlugs) }],
   });
   usage.push(pick.usage);
   const [template] = await db.select().from(schema.templates)
@@ -107,19 +110,33 @@ export async function runAiDesign(raw: unknown, job: JobContext, deps: AiDeps) {
   const templateDoc = migrate(template.doc);
   const order = repairOrder(pick.data.screenshotOrder, assets.length);
 
+  let fgDoc: ChitrapxDoc | null = null;
+  let fgSlug: string | undefined;
+  if (fgSlugs.length && !templateDoc.groups.some((g) => g.target === "play-feature")) {
+    fgSlug = fgSlugs.includes(pick.data.featureGraphicSlug ?? "") ? pick.data.featureGraphicSlug! : fgSlugs[0]!;
+    const [fg] = await db.select().from(schema.templates).where(and(eq(schema.templates.slug, fgSlug), eq(schema.templates.kind, "screenshots")));
+    if (fg) fgDoc = migrate(fg.doc); else fgSlug = undefined;
+  }
+  const wantChips = !!fgDoc || hasChips(templateDoc);
+
   const copy = await deps.model.generate({
     model: MODELS.writer, system: COPY_SYSTEM, schema: slotCopySchema, effort: "medium",
-    content: [{ type: "text", text: copyPrompt(brief, insights, order, screenshotsPerBoard(templateDoc, assets.length), textSlots(templateDoc)) }],
+    content: [{ type: "text", text: copyPrompt(brief, insights, order, screenshotsPerBoard(templateDoc, assets.length), textSlots(templateDoc),
+      { featureGraphic: fgDoc ? textSlots(fgDoc)[0] : undefined, features: wantChips }) }],
   });
   usage.push(copy.usage);
   // Charging for a template full of sample copy would be wrong: most slots must be written.
   const slotIds = new Set(textSlots(templateDoc).flat().map((x) => x.id));
   const written = new Set(copy.data.boards.flatMap((b) => b.texts.map((x) => x.id)).filter((id) => slotIds.has(id)));
   if (slotIds.size && written.size < slotIds.size * MIN_COVERAGE) throw new FatalJobError("ai_incomplete");
+  const chips = aiChips(copy.data.features ?? []);
+  if (wantChips && chips.length < CHIP_MIN) throw new FatalJobError("ai_incomplete");
 
-  const designed = { ...applyDesign(templateDoc, { screenshotOrder: order, boards: copy.data.boards }, assets.map((a) => a.id)), brand: { appId: app.id } };
-  await updateProjectDoc(job, () => designed);
-  return { actual: PRICES.ai_design, output: { templateSlug: template.slug, reasoning: pick.data.reasoning, usage: sumUsage(usage) } };
+  let designed = applyDesign(templateDoc, { screenshotOrder: order, boards: copy.data.boards }, assets.map((a) => a.id));
+  if (fgDoc) designed = withFeatureGraphic(designed, fgDoc, copy.data.featureGraphic ?? []);
+  if (wantChips) designed = applyChips(designed, chips);
+  await updateProjectDoc(job, () => ({ ...designed, brand: { appId: app.id } }));
+  return { actual: PRICES.ai_design, output: { templateSlug: template.slug, featureGraphicSlug: fgSlug, reasoning: pick.data.reasoning, usage: sumUsage(usage) } };
 }
 
 const translateInput = z.object({

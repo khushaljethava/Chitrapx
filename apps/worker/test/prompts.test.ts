@@ -47,4 +47,13 @@ describe("prompt builders (SP11)", () => {
     expect(p).toContain('"Brew better"');
     expect(p).toContain('Example chips for this vertical (style only): "Sleep tracking"');
   });
+  it("asks for a feature graphic and chips only when given them", () => {
+    expect(pickPrompt(app, [], ["fg-habit-tracker", "fg-travel-explore"])).toContain("Choose featureGraphicSlug from these feature graphic templates: fg-habit-tracker, fg-travel-explore");
+    expect(pickPrompt(app, [])).not.toContain("featureGraphicSlug");
+    const slot = { id: "t108", role: "Text", text: "Build better habits", maxChars: 40 };
+    const p = copyPrompt(app, [], [], [], [], { featureGraphic: [slot], features: true });
+    expect(p).toContain('Google Play feature graphic (1024x500). Answer in "featureGraphic":\n  - id "t108"');
+    expect(p).toContain('Also answer "features": 4 to 6 feature chips');
+    expect(copyPrompt(app, [], [], [], [])).not.toContain('"features"');
+  });
 });
