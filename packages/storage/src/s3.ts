@@ -17,6 +17,15 @@ export function s3Client(config: StorageConfig): S3Client {
   });
 }
 
+/**
+ * The origin signed URLs for `bucket` point at; the export browser allow-lists it. Read from a real
+ * presigned URL (signing is local, no request), so dotted bucket names and regional endpoints match exactly.
+ */
+export async function storageOrigin(bucket: Bucket = "uploads", config: StorageConfig = storageConfig()): Promise<string> {
+  const url = await getSignedUrl(s3Client(config), new GetObjectCommand({ Bucket: config.buckets[bucket], Key: "origin-probe" }), { expiresIn: 60 });
+  return new URL(url).origin;
+}
+
 const isMissing = (err: unknown) => {
   const e = err as { name?: string; $metadata?: { httpStatusCode?: number } };
   return e?.name === "NoSuchKey" || e?.name === "NotFound" || e?.$metadata?.httpStatusCode === 404;

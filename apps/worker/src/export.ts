@@ -18,8 +18,8 @@ export function exportUrlAllowed(url: string, origins: string[]): boolean {
   return origins.includes(u.origin);
 }
 
-export function exportOrigins(): string[] {
-  return [process.env.WEB_ORIGIN ?? "http://localhost:3000", storageOrigin("uploads"), "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
+export async function exportOrigins(): Promise<string[]> {
+  return [process.env.WEB_ORIGIN ?? "http://localhost:3000", await storageOrigin("uploads"), "https://fonts.googleapis.com", "https://fonts.gstatic.com"]
     .map((o) => new URL(o).origin);
 }
 
@@ -42,7 +42,7 @@ export async function runExport(input: unknown, job: JobContext, kind: "zip" | "
   const check = checkExportable(src.doc, src.selection);
   if (!check.ok) throw new FatalJobError(check.code);
   const plan = check.plan;
-  const origins = exportOrigins();
+  const origins = await exportOrigins();
 
   const files: Record<string, Uint8Array> = {};
   const post: FileIssue[] = [];

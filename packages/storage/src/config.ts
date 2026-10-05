@@ -25,14 +25,3 @@ export function storageConfig(env: Record<string, string | undefined> = process.
     forcePathStyle: env.S3_FORCE_PATH_STYLE === "true",
   };
 }
-
-/** The origin signed URLs for `bucket` point at; the export browser allow-lists it. */
-export function storageOrigin(bucket: Bucket = "uploads", config: StorageConfig = storageConfig()): string {
-  if (config.endpoint) {
-    const u = new URL(config.endpoint);
-    return config.forcePathStyle ? u.origin : `${u.protocol}//${config.buckets[bucket]}.${u.host}`;
-  }
-  return config.forcePathStyle
-    ? `https://s3.${config.region}.amazonaws.com`
-    : `https://${config.buckets[bucket]}.s3.${config.region}.amazonaws.com`;
-}
