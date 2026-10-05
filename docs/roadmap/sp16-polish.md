@@ -171,3 +171,14 @@
 4. 16.5 version pruning: needs a migration; do it before the feed multiplies stored docs.
 5. 16.3 analytics with consent, together with the CSP work (start report-only, then enforce).
 6. 16.4 community feed last: largest, depends on CSP, rate limiting, staff role and moderation decisions from the open questions. Ship in stages: schema and RLS, publish and import with a staff-only flag, then public feed, then reports and auto-hide.
+
+## Carried over from SP9 review (deferred)
+
+Note: SP9 already shipped version pruning (keep last 50 automatic + all named, protect versions used by queued/running exports), so 16.5 version pruning shrinks to the named-version cap below.
+
+- **Restore when saving is stuck:** if autosave keeps failing with a 4xx (doc too large, invalid value), Versions → Restore says "Save your changes first" and there is no way out. Offer "Discard unsaved changes and restore". `apps/web/src/editor/ui/VersionsDialog.tsx:54`
+- **One undo step for multi-image add:** "Add here as images" with N files applies N `addElement` commands. Add an `addElements` command. `apps/web/src/editor/useIntake.ts`
+- **Group click and hidden members:** clicking a group selects its hidden members too (as Figma does), so Delete/⌘D affect them, unlike ⌘A. Decide and align. `apps/web/src/editor/selection.ts:21`
+- **No-op notice for ⌘G:** grouping fewer than 2 elements (or across lists) silently does nothing; the SP9 spec §7 asks for a notice.
+- **Named-version cap:** named versions are never pruned and unthrottled; past 100 rows the oldest drop out of the list (`LIST_LIMIT`, `apps/web/src/server/versions.ts:11`). Cap per project or list named separately.
+- **Small SP9 leftovers:** commit layer rename on blur (currently discards); VersionsDialog focus trap and ordering guard on preview fetches; `readJsonLimited` error says "project too large" on the versions routes; status-bar golden covers only iOS/dark/solid (battery cropped by template bleed); add a real-browser test of a keyboard drag in the layers panel.
