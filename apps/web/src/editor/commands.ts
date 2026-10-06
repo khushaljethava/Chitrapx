@@ -2,6 +2,7 @@ import { produce, type Draft } from "immer";
 import {
   applyStyle, applyTexts, CHIP_MAX, CHIP_MAX_CHARS, hash32, layoutFor, matchElements, LAYOUT_KEYS, normalizeMarks, presetKind, remapMarks, remapChipOverride, retarget, writeTranslations, type ChipsElementProps, type TextMark, type TranslationWrite, type LayoutPreset, type ArtboardElement, type ArtboardState, type BoardGroup, type ChitrapxDoc, type ElementLocaleOverride, type TargetId,
 } from "@chitrapx/document";
+import { applyPatch, type PatchOp } from "./sync/patch.ts";
 
 /** An element: on a board, or a span element of its group when `boardId` is null (strip coordinates). */
 export type Ref = { groupId: string; boardId: string | null; elementId: string };
@@ -42,7 +43,9 @@ export type Command =
   | { type: "ungroupElements"; refs: Ref[] }
   | { type: "renameGroup"; groupId: string; boardId: string | null; elementGroupId: string; name: string }
   | { type: "setTexts"; texts: Array<{ id: string; text: string }> }
-  | { type: "applyStyle"; groupId: string; styleId: string; fits?: Record<string, { size: { width: number; height: number }; position: { x: number; y: number } }> };
+  | { type: "applyStyle"; groupId: string; styleId: string; fits?: Record<string, { size: { width: number; height: number }; position: { x: number; y: number } }> }
+  /** SP15: a structural patch (sync/patch.ts). Undo and redo in live co-editing, and unsaved solo edits handed to live mode (`force`). */
+  | { type: "patch"; ops: PatchOp[]; force?: boolean };
 
 const FULL_SCREEN = { left: 0, top: 0, width: 100, height: 100 };
 
@@ -70,6 +73,7 @@ const findBoard = (d: Draft<ChitrapxDoc>, groupId: string, boardId: string) =>
 
 /** The only way the document changes. Pure: returns a new document (structurally shared), never mutates. */
 export function applyCommand(doc: ChitrapxDoc, cmd: Command): ChitrapxDoc {
+  if (cmd.type === "patch") return applyPatch(doc, cmd.ops, { force: cmd.force });
   if (cmd.type === "setTranslations") return writeTranslations(doc, cmd.writes);
   if (cmd.type === "setTexts") return applyTexts(doc, cmd.texts);
   if (cmd.type === "applyStyle") {
