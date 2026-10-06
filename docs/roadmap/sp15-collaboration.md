@@ -1,6 +1,6 @@
 # SP15: Collaboration
 
-**Status:** Not started
+**Status:** 15.1, 15.2 and 15.4 built (spec `docs/superpowers/specs/2026-10-06-sp15-roles-share-comments-design.md`); 15.3 on a separate branch
 **Goal:** Users can share a project by link, invite teammates with roles that respect plan seat limits, edit the same project live with presence and cursors, and leave comments on boards.
 **Depends on:** SP9 (version restore, and a stable command model: live sync and comment anchors both depend on `Command` and the doc schema not churning; restore must also be safe when other people are connected).
 **Gap source:** open-screenshot-generator (MIT) has live editing, share-by-link and project versions. None of the other five repos has collaboration: a search of PixelDeck, launch, app-store-screenshots, appshots and storeshots for collab, invite, yjs and presence found nothing relevant. Comments and roles have no reference code; they are Chitrapx-original.

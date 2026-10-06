@@ -5,6 +5,9 @@ What changed in Chitrapx, newest first. Each release heading reads `## [version]
 ## [Unreleased]
 
 ### Added
+- Teams: invite people by link as admin, editor or viewer, within your plan's seats, and switch between workspaces
+- Share a read-only link to a project; signed-in visitors can copy it into their own workspace
+- Comments on boards and elements, with replies, resolve, @mentions and in-app notifications
 - A notice when a new version is live, with a Refresh button that saves your work first
 - This changelog, and a privacy page
 - Optional, cookieless usage counts, asked for once and changeable from Cookie settings
