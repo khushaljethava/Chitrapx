@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { balance, db } from "@chitrapx/db";
+import { NotificationsBell } from "@/components/Comments.tsx";
 import { CreditsBadge } from "@/components/CreditsBadge.tsx";
 import { SiteFooter } from "@/components/SiteFooter.tsx";
 import { AccessRemoved, WorkspaceSwitcher } from "@/components/Workspaces.tsx";
@@ -19,6 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <WorkspaceSwitcher current={ctx.workspaceId} workspaces={workspaces.map(({ id, name, role }) => ({ id, name, role }))} />
           </div>
           <div className="flex items-center gap-3">
+            <NotificationsBell />
             <Link href="/dashboard/team" className="text-sm hover:underline">Team</Link>
             <Link href="/dashboard/community" className="text-sm hover:underline">Community</Link>
             <Link href="/dashboard/billing" title="Plan and credits"><CreditsBadge balance={credits} /></Link>

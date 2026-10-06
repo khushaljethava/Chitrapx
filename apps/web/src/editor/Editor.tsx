@@ -18,7 +18,9 @@ import { DocJobProvider } from "./docJobs.tsx";
 import { Toolbar } from "./ui/Toolbar.tsx";
 import type { PickerAsset } from "./ui/fields.tsx";
 
-export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations, glossary }: {
+export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations, glossary, children }: {
+  /** SP15: rendered inside the editor context (the comments panel). */
+  children?: React.ReactNode;
   appId: string;
   project: { id: string; name: string; doc: ChitrapxDoc; revision: number };
   assets: PickerAsset[];
@@ -49,6 +51,7 @@ export function Editor({ appId, project, assets, assetUrls, fonts, extras, openT
       </DocJobProvider>
       </EditorAssetsProvider>
       {conflict && <ConflictDialog source={conflict.source} onTheirs={loadTheirs} onMine={keepMine} />}
+      {children}
     </EditorContext.Provider>
   );
 }
