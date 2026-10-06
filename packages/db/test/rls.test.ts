@@ -165,3 +165,39 @@ describe("RLS: community feed and analytics (SP16, migration 0013)", () => {
     await expect(asUser(a.user, (_db, c) => c.query("insert into analytics_events (name) values ('x')"))).rejects.toThrow();
   });
 });
+
+describe("RLS: live co-editing command log and channel topics (SP15, migration 0015)", () => {
+  const insert = "insert into project_commands (project_id, seq, workspace_id, client_id, client_seq, user_id, command) values ($1, $2, $3, $4, $5, $6, $7)";
+  const row = (ids: Ids, seq: number) => [ids.project, seq, ids.ws, randomUUID(), 1, ids.user, JSON.stringify({ type: "setMirrorRtl", on: true })];
+  beforeAll(async () => {
+    await pool.query(insert, row(a, 1));
+    await pool.query(insert, row(b, 1));
+  });
+
+  it("A cannot read, insert, update or delete B's commands", async () => {
+    const read = await asUser(a.user, (db) => db.execute(sql`select 1 from project_commands where workspace_id = ${b.ws}`));
+    expect(read.rows).toHaveLength(0);
+    await expect(asUser(a.user, (_db, c) => c.query(insert, row(b, 2)))).rejects.toThrow();
+    const upd = await asUser(a.user, (db) => db.execute(sql`update project_commands set client_seq = 9 where workspace_id = ${b.ws}`));
+    expect(upd.rowCount ?? 0).toBe(0);
+    const del = await asUser(a.user, (db) => db.execute(sql`delete from project_commands where workspace_id = ${b.ws}`));
+    expect(del.rowCount ?? 0).toBe(0);
+  });
+
+  it("A reads its own project's log but cannot append to it (commands go through the server)", async () => {
+    const read = await asUser(a.user, (db) => db.execute(sql`select seq from project_commands where project_id = ${a.project}`));
+    expect(read.rows).toHaveLength(1);
+    await expect(asUser(a.user, (_db, c) => c.query(insert, row(a, 2)))).rejects.toThrow();
+  });
+
+  it("can_use_project_topic admits members to both of their project's topics and nobody else", async () => {
+    const can = async (topic: string) => (await asUser(a.user, (db) => db.execute<{ ok: boolean }>(sql`select public.can_use_project_topic(${topic}) as ok`))).rows[0]!.ok;
+    expect(await can(`project:${a.project}`)).toBe(true);
+    expect(await can(`project-live:${a.project}`)).toBe(true);
+    expect(await can(`project:${b.project}`)).toBe(false);
+    expect(await can(`project-live:${b.project}`)).toBe(false);
+    expect(await can(`comments:${a.project}`)).toBe(false);
+    expect(await can("project:not-a-uuid")).toBe(false);
+    expect(await can(`project:${a.project}:x`)).toBe(false);
+  });
+});
