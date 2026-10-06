@@ -5,9 +5,11 @@ import { initials, type PeerPresence } from "../live/presence.ts";
 const SHOWN = 5;
 
 /** Who else is in the project (SP15): an avatar stack in each person's colour, a Live badge, and sync notices. */
-export function PresenceBar({ peers, live, notice, onDismiss }: { peers: PeerPresence[]; live: boolean; notice: string; onDismiss(): void }) {
-  // One avatar per person, even with several tabs open.
-  const people = [...new Map(peers.map((p) => [p.userId, p])).values()];
+export function PresenceBar({ peers, live, notice, onDismiss, selfId }: {
+  peers: PeerPresence[]; live: boolean; notice: string; onDismiss(): void; selfId?: string;
+}) {
+  // One avatar per person, even with several tabs open; my own other tabs still make the editor live, but show no avatar.
+  const people = [...new Map(peers.filter((p) => p.userId !== selfId).map((p) => [p.userId, p])).values()];
   if (!people.length && !live && !notice) return null;
   return (
     <div className="flex items-center gap-2">
