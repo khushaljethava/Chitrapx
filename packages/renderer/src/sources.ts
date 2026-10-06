@@ -1,4 +1,4 @@
-import type { ArtboardElement, ArtboardState } from "@chitrapx/document";
+import { stockUrl, type ArtboardElement, type ArtboardState } from "@chitrapx/document";
 
 /** Maps a document source (`asset:<id>`, https, data:) to a URL the browser can load; null if unavailable. */
 export type ResolveSrc = (src: string) => string | null;
@@ -9,7 +9,8 @@ const ELEMENT_SRC_KEYS = ["screenshotSrc", "imageSrc", "posterSrc", "customFrame
 export function resolveBoardSources(board: ArtboardState, resolveSrc: ResolveSrc, missing: Set<string>): ArtboardState {
   const fix = (src: unknown): string | undefined => {
     if (typeof src !== "string" || !src) return undefined;
-    const url = resolveSrc(src);
+    // Stock template photos are app files, the same for every workspace: resolved here, once, for every caller.
+    const url = src.startsWith("stock:") ? stockUrl(src) : resolveSrc(src);
     if (!url) missing.add(src);
     return url ?? undefined;
   };

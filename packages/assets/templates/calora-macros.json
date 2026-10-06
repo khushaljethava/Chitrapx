@@ -676,6 +676,44 @@
         "fontWeight": "600",
         "textAlign": "left",
         "lineHeight": 1.12
+       },
+       {
+        "id": "cm_img_34",
+        "type": "image",
+        "name": "Monstera plant",
+        "position": {
+         "x": -246,
+         "y": 2337
+        },
+        "size": {
+         "width": 733,
+         "height": 555
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-monstera.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "cm_img_35",
+        "type": "image",
+        "name": "Berry pile",
+        "position": {
+         "x": 893,
+         "y": 2403
+        },
+        "size": {
+         "width": 475,
+         "height": 465
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-berry-bowl.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#BFDCF2",
@@ -1203,6 +1241,25 @@
         "lineHeight": 1.12
        },
        {
+        "id": "cm_img_61",
+        "type": "image",
+        "name": "Oatmeal bowl",
+        "position": {
+         "x": -69,
+         "y": 2332
+        },
+        "size": {
+         "width": 518,
+         "height": 569
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-oatmeal-bowl.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
         "id": "cm_svg_62",
         "type": "shape",
         "position": {
@@ -1472,6 +1529,44 @@
         "fontWeight": "800",
         "textAlign": "center",
         "lineHeight": 1.12
+       },
+       {
+        "id": "cm_img_74",
+        "type": "image",
+        "name": "Kettlebell",
+        "position": {
+         "x": -128,
+         "y": 2351
+        },
+        "size": {
+         "width": 437,
+         "height": 557
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-kettlebell.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "cm_img_75",
+        "type": "image",
+        "name": "Dumbbell",
+        "position": {
+         "x": 917,
+         "y": 2524
+        },
+        "size": {
+         "width": 616,
+         "height": 439
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-dumbbell.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#F6EDDC",
@@ -1740,6 +1835,25 @@
         "lineHeight": 1.12
        },
        {
+        "id": "cm_img_88",
+        "type": "image",
+        "name": "Kettlebell",
+        "position": {
+         "x": -141,
+         "y": 2259
+        },
+        "size": {
+         "width": 502,
+         "height": 640
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-kettlebell.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
         "id": "cm_svg_89",
         "type": "shape",
         "position": {
@@ -1968,6 +2082,44 @@
          "width": 100,
          "height": 100
         }
+       },
+       {
+        "id": "cm_img_99",
+        "type": "image",
+        "name": "Berry pile",
+        "position": {
+         "x": -81,
+         "y": 2439
+        },
+        "size": {
+         "width": 443,
+         "height": 434
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-berry-bowl.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "cm_img_100",
+        "type": "image",
+        "name": "Protein shaker",
+        "position": {
+         "x": 952,
+         "y": 2228
+        },
+        "size": {
+         "width": 397,
+         "height": 645
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:calora-smoothie-bottle.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#BFDCF2",

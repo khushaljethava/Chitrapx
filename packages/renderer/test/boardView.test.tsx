@@ -1,7 +1,7 @@
 import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import type { ArtboardElement, ChitrapxDoc } from "@chitrapx/document";
-import { BoardView, boardFor, fontFamiliesOf, googleFontsHref } from "../src/index.ts";
+import { BoardView, boardFor, fontFamiliesOf, googleFontsHref, placeholderLayout, placeholderScreen } from "../src/index.ts";
 
 const text = (id: string, content: string, x = 100): ArtboardElement => ({
   id, type: "text", name: id, position: { x, y: 100 }, size: { width: 800, height: 200 }, rotation: 0, scale: 1,
@@ -58,6 +58,44 @@ describe("BoardView", () => {
     const { missing, board } = boardFor(makeDoc(), "g", 0, "en-US", () => null);
     expect(missing).toEqual(expect.arrayContaining(["asset:a1", "asset:span-shot"]));
     expect((board.elements.find((e) => e.id === "d1") as unknown as { screenshotSrc?: string }).screenshotSrc).toBeUndefined();
+  });
+
+  it("resolves stock template photos to app files without asking the caller, and rejects bad names", () => {
+    const doc = makeDoc();
+    doc.groups[0]!.boards[0]!.elements.push({ id: "p", type: "image", name: "p", position: { x: 0, y: 0 }, size: { width: 9, height: 9 }, rotation: 0, scale: 1, imageSrc: "stock:calora-monstera.png" } as unknown as ArtboardElement,
+      { id: "q", type: "image", name: "q", position: { x: 0, y: 0 }, size: { width: 9, height: 9 }, rotation: 0, scale: 1, imageSrc: "stock:../x.png" } as unknown as ArtboardElement);
+    const asked: string[] = [];
+    const { board, missing } = boardFor(doc, "g", 0, "en-US", (s) => { asked.push(s); return resolve(s); });
+    const img = (id: string) => (board.elements.find((e) => e.id === id) as unknown as { imageSrc?: string }).imageSrc;
+    expect(img("p")).toBe("/stock/calora-monstera.png");
+    expect(img("q")).toBeUndefined();
+    expect(missing).toContain("stock:../x.png");
+    expect(asked.some((s) => s.startsWith("stock:"))).toBe(false);
+  });
+
+  it("fills empty screens with a placeholder only when asked, leaving real screenshots and exports alone", () => {
+    const src = (b: ReturnType<typeof boardFor>["board"], id: string) => (b.elements.find((e) => e.id === id) as unknown as { screenshotSrc?: string }).screenshotSrc;
+    const preview = boardFor(makeDoc(), "g", 1, "en-US", resolve, { placeholders: true }).board;
+    expect(src(preview, "d2")).toMatch(/^data:image\/svg\+xml/);
+    expect(src(boardFor(makeDoc(), "g", 1, "en-US", resolve, { placeholders: true }).board, "d2")).toBe(src(preview, "d2")); // stable
+    expect(src(boardFor(makeDoc(), "g", 0, "en-US", resolve, { placeholders: true }).board, "d1")).toBe("https://cdn.test/a1.png");
+    expect(src(boardFor(makeDoc(), "g", 1, "en-US", resolve).board, "d2")).toBeUndefined(); // export path
+    const { container } = render(<BoardView doc={makeDoc()} groupId="g" boardIndex={1} locale="en-US" scale={0.25} resolveSrc={resolve} placeholders />);
+    expect(container.querySelector("[data-empty-screen]")).toBeNull();
+  });
+});
+
+describe("placeholder screens", () => {
+  it("picks a layout by screen shape and draws valid SVG", () => {
+    expect(placeholderLayout("x", 1600, 1000)).toBe("desktop");
+    expect(placeholderLayout("x", 390, 460)).toBe("watch");
+    const seen = new Set(Array.from({ length: 40 }, (_, i) => placeholderLayout(`el-${i}`, 390, 844)));
+    expect(seen).toEqual(new Set(["list", "feed", "grid", "chat", "dashboard"]));
+    for (const [w, h] of [[390, 844], [1600, 1000], [390, 460], [834, 1194]]) {
+      const svg = decodeURIComponent(placeholderScreen("s", w!, h!).split(",")[1]!);
+      expect(new DOMParser().parseFromString(svg, "image/svg+xml").querySelector("parsererror")).toBeNull();
+      expect(svg).not.toMatch(/NaN|undefined/);
+    }
   });
 });
 

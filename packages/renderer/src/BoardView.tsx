@@ -15,12 +15,14 @@ export type BoardViewProps = {
   resolveSrc: ResolveSrc;
   /** Workspace data beyond the document (uploaded fonts). */
   extras?: RenderExtras;
+  /** Draw a generic app screen in empty devices (template previews only; never for export). */
+  placeholders?: boolean;
 };
 
 /** One board exactly as it exports, at `scale`. Props only: no stores, no fetching. */
-export function BoardView({ doc, groupId, boardIndex, locale, scale, resolveSrc, extras }: BoardViewProps) {
-  const { board } = useMemo(() => boardFor(doc, groupId, boardIndex, locale, resolveSrc, { palette: extras?.palette }),
-    [doc, groupId, boardIndex, locale, resolveSrc, extras?.palette]);
+export function BoardView({ doc, groupId, boardIndex, locale, scale, resolveSrc, extras, placeholders }: BoardViewProps) {
+  const { board } = useMemo(() => boardFor(doc, groupId, boardIndex, locale, resolveSrc, { palette: extras?.palette, placeholders }),
+    [doc, groupId, boardIndex, locale, resolveSrc, extras?.palette, placeholders]);
   return (
     <>
       <BoardFonts boards={[board]} faces={extras?.faces} />

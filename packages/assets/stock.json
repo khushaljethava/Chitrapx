@@ -1,0 +1,104 @@
+[
+ {
+  "file": "calora-dumbbell.webp",
+  "width": 1057,
+  "height": 753,
+  "source": "pexels",
+  "sourceId": "38721834",
+  "sourceUrl": "https://www.pexels.com/photo/iron-dumbbell-on-white-background-for-fitness-use-38721834/",
+  "photographer": "Zacharias Korsalka",
+  "photographerUrl": "https://www.pexels.com/@zacharias-korsalka-21691965",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as100729629.png"
+  ]
+ },
+ {
+  "file": "calora-monstera.webp",
+  "width": 1200,
+  "height": 908,
+  "source": "pexels",
+  "sourceId": "8790105",
+  "sourceUrl": "https://www.pexels.com/photo/green-plant-on-white-pot-8790105/",
+  "photographer": "Sutee Vichaporn",
+  "photographerUrl": "https://www.pexels.com/@sutee-vichaporn-73721216",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as456828278.png"
+  ]
+ },
+ {
+  "file": "calora-oatmeal-bowl.webp",
+  "width": 806,
+  "height": 885,
+  "source": "pexels",
+  "sourceId": "4725744",
+  "sourceUrl": "https://www.pexels.com/photo/oatmeal-with-fresh-fruits-in-a-bowl-with-spoon-4725744/",
+  "photographer": "Polina Tankilevitch",
+  "photographerUrl": "https://www.pexels.com/@polina-tankilevitch",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as180087870.png"
+  ]
+ },
+ {
+  "file": "calora-berry-bowl.webp",
+  "width": 907,
+  "height": 888,
+  "source": "pexels",
+  "sourceId": "5945651",
+  "sourceUrl": "https://www.pexels.com/photo/fresh-raspberries-and-blueberries-in-bowl-5945651/",
+  "photographer": "Any Lane",
+  "photographerUrl": "https://www.pexels.com/@any-lane",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as438421128.png"
+  ]
+ },
+ {
+  "file": "calora-kettlebell.webp",
+  "width": 549,
+  "height": 700,
+  "source": "pexels",
+  "sourceId": "6455928",
+  "sourceUrl": "https://www.pexels.com/photo/violet-metal-kettlebell-on-black-background-6455928/",
+  "photographer": "Julia Larson",
+  "photographerUrl": "https://www.pexels.com/@julia-larson",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); bottom 7% trimmed to drop the floor shadow; resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as710579480.png"
+  ]
+ },
+ {
+  "file": "calora-smoothie-bottle.webp",
+  "width": 509,
+  "height": 826,
+  "source": "pexels",
+  "sourceId": "4443477",
+  "sourceUrl": "https://www.pexels.com/photo/strawberries-on-the-table-4443477/",
+  "photographer": "Polina Tankilevitch",
+  "photographerUrl": "https://www.pexels.com/@polina-tankilevitch",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); cropped to the bottle and loose raspberries removed; resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "calora-as177966215.png"
+  ]
+ }
+]

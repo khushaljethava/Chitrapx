@@ -47,7 +47,7 @@ export function TemplateGallery({ appId, templates, categories, screenshotCount 
           return (
             <li key={t.slug} className="card flex flex-col gap-3">
               <div className="flex h-56 items-center justify-center">
-                <BoardThumb doc={t.preview} groupId={g.id} boardIndex={0} locale={null} height={g.boards[0]!.size.width > g.boards[0]!.size.height ? 140 : 220} resolveSrc={passthroughSrc} />
+                <BoardThumb doc={t.preview} groupId={g.id} boardIndex={0} locale={null} height={g.boards[0]!.size.width > g.boards[0]!.size.height ? 140 : 220} resolveSrc={passthroughSrc} placeholders />
               </div>
               <div className="flex-1">
                 <h3 className="font-medium">{t.name}</h3>
