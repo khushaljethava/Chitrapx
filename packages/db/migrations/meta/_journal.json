@@ -92,6 +92,13 @@
       "when": 1791222593464,
       "tag": "0013_sp16_community_analytics",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791262602059,
+      "tag": "0014_sp15_collaboration",
+      "breakpoints": true
     }
   ]
 }

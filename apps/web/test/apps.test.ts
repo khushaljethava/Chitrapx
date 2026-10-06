@@ -7,7 +7,7 @@ import type { Ctx } from "@/server/context.ts";
 
 async function ctxFor(plan: Ctx["plan"] = "free"): Promise<Ctx> {
   const user = await createUser();
-  return { userId: user.id, workspaceId: await makeWorkspace(user.id, plan), plan };
+  return { userId: user.id, workspaceId: await makeWorkspace(user.id, plan), plan, role: "owner" };
 }
 const status = (p: Promise<unknown>) => p.then(() => 200, (e: { status?: number; name?: string }) => e.status ?? (e.name === "ZodError" ? 400 : 500));
 

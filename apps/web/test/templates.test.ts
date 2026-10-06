@@ -14,7 +14,7 @@ const storage = { signedUrls: async (paths: string[]) => paths.map((p) => `signe
 async function setup() {
   await seedTemplates();
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro", role: "owner" };
   const app = await createApp(ctx, { name: "Bloom" });
   return { ctx, app };
 }

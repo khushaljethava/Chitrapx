@@ -13,7 +13,7 @@ import { getVersion, listVersions, NAMED_VERSIONS_MAX, pruneVersions, restoreVer
 async function setup() {
   await seedTemplates();
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id), plan: "pro", role: "owner" };
   const app = await createApp(ctx, { name: "A" });
   const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
   return { ctx, p: await getProject(ctx, p.id) };

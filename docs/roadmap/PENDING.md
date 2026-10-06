@@ -13,7 +13,7 @@ Three sub-projects remain: SP12 is next, then SP15; SP16 can go in any time. SP1
 | SP10 | Typography and style (plus S3 storage) | Done, merged 2026-10-05 | `main` (`db97254`) |
 | SP11 | Localization and AI copy | Done, merged 2026-10-05 (migrations 0010, 0011 applied to the dev database) | `main` (`ed2004a`) |
 | SP12 | Launch assets | Built on a branch, awaiting review (no migration) | spec `docs/superpowers/specs/2026-10-06-sp12-launch-assets-design.md` |
-| SP15 | Collaboration | Not started | roadmap only |
+| SP15 | Collaboration | 15.1, 15.2, 15.4 built; needs migration 0014 applied after merge; 15.3 separate | spec `docs/superpowers/specs/2026-10-06-sp15-roles-share-comments-design.md` |
 | SP16 | Polish | Built; needs migration 0013 applied after merge | SP16 branch |
 | SP13 | Developer automation (API, CLI, MCP) | Dropped | — |
 | SP14 | Store publishing and sync | Dropped | — |
@@ -97,3 +97,11 @@ Built and merged; these were left for later.
 - [ ] Run `apps/worker/test-e2e/polish.test.ts` with the web app up.
 - [ ] Watch the report-only CSP in the browser console, then switch `proxy.ts` to the enforcing header.
 - [ ] Deferred SP9 items: the ⌘G no-op notice (`editor/shortcuts.ts`), status-bar goldens for other platforms, a real-browser keyboard-drag test in the layers panel.
+
+## SP15 follow-ups (roles, share links, comments)
+
+- [ ] Apply migration `0014_sp15_collaboration` after merging (member_role becomes owner/admin/editor/viewer; existing `member` rows become `editor`; new tables `workspace_invites`, `project_shares`, `project_comments`, `notifications` with read-only RLS). Renumber its journal entry if another branch also took 0014; 15.3's migration goes after it.
+- [ ] Wire 15.3's command route to `requireContext("edit")` and its presence/read routes to `requireContext()`; replace the comments poll with its Realtime channel.
+- [ ] Run `apps/worker/test-e2e/collaboration.test.ts` with the web app up.
+- [ ] Deferred: comment pins drawn on the canvas (anchors are stored), a comment count on project cards, seat add-ons, email delivery of invites and mentions.
+

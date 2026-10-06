@@ -11,4 +11,4 @@ export const GET = route(async (req: Request) => {
 
 /** Share a project: { projectId, title, description, category, license: true } */
 export const POST = route(async (req: Request) =>
-  Response.json(await publishPost(await requireContext(), appStorage(), await readJsonLimited(req, 4096, "Request too large")), { status: 201 }));
+  Response.json(await publishPost(await requireContext("share"), appStorage(), await readJsonLimited(req, 4096, "Request too large")), { status: 201 }));

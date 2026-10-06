@@ -6,9 +6,9 @@ type P = { params: Promise<{ projectId: string }> };
 
 export const GET = route(async (_req: Request, { params }: P) => getProject(await requireContext(), (await params).projectId));
 export const PATCH = route(async (req: Request, { params }: P) => {
-  const ctx = await requireContext();
+  const ctx = await requireContext("edit");
   return updateProject(ctx, (await params).projectId, await readJson(req));
 });
 export const DELETE = route(async (_req: Request, { params }: P) => {
-  await deleteProject(await requireContext(), (await params).projectId);
+  await deleteProject(await requireContext("edit"), (await params).projectId);
 });

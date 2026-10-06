@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { pool } from "../src/client.ts";
 import { asUser, createUser, makeWorkspace } from "./helpers.ts";
 
-type Ids = { user: string; ws: string; app: string; project: string; ref2: string };
+type Ids = { user: string; ws: string; app: string; project: string; ref2: string; comment: string };
 
 async function seedWorkspace(): Promise<Ids> {
   const user = (await createUser()).id;
@@ -21,7 +21,12 @@ async function seedWorkspace(): Promise<Ids> {
   const ref = (await pool.query(refAsset, [ws, app, randomUUID()])).rows[0].id;
   const ref2 = (await pool.query(refAsset, [ws, app, randomUUID()])).rows[0].id;
   await pool.query("insert into reference_insights (workspace_id, asset_id, insight, model) values ($1, $2, '{}', 'm')", [ws, ref]);
-  return { user, ws, app, project, ref2 };
+  // SP15 (migration 0014)
+  await pool.query("insert into workspace_invites (workspace_id, email, role, token_hash, expires_at) values ($1, 'x@y.z', 'editor', $2, now() + interval '7 days')", [ws, randomUUID()]);
+  await pool.query("insert into project_shares (workspace_id, project_id, slug) values ($1, $2, $3)", [ws, project, randomUUID()]);
+  const comment = (await pool.query("insert into project_comments (workspace_id, project_id, board_id, body, author_id) values ($1, $2, 'b1', 'hi', $3) returning id", [ws, project, user])).rows[0].id;
+  await pool.query("insert into notifications (workspace_id, user_id, kind, project_id, comment_id) values ($1, $2, 'reply', $3, $4)", [ws, user, project, comment]);
+  return { user, ws, app, project, ref2, comment };
 }
 
 let a: Ids;
@@ -31,7 +36,7 @@ beforeAll(async () => { a = await seedWorkspace(); b = await seedWorkspace(); })
 type Case = { table: string; where: (b: Ids) => string; set: string; insert: (b: Ids) => [string, unknown[]] };
 const cases: Case[] = [
   { table: "workspaces", where: (b) => `id = '${b.ws}'`, set: "name = 'x'", insert: () => ["insert into workspaces (name, slug) values ('x', $1)", [randomUUID()]] },
-  { table: "memberships", where: (b) => `workspace_id = '${b.ws}'`, set: "role = 'member'", insert: (b) => ["insert into memberships (workspace_id, user_id) values ($1, $2)", [b.ws, a.user]] },
+  { table: "memberships", where: (b) => `workspace_id = '${b.ws}'`, set: "role = 'viewer'", insert: (b) => ["insert into memberships (workspace_id, user_id) values ($1, $2)", [b.ws, a.user]] },
   { table: "profiles", where: (b) => `id = '${b.user}'`, set: "name = 'x'", insert: (b) => ["insert into profiles (id) values ($1)", [b.user]] },
   { table: "apps", where: (b) => `workspace_id = '${b.ws}'`, set: "name = 'x'", insert: (b) => ["insert into apps (workspace_id, name) values ($1, 'x')", [b.ws]] },
   { table: "projects", where: (b) => `workspace_id = '${b.ws}'`, set: "name = 'x'", insert: (b) => ["insert into projects (workspace_id, app_id, name, kind, doc) values ($1, $2, 'x', 'screenshots', '{}')", [b.ws, b.app]] },
@@ -41,6 +46,10 @@ const cases: Case[] = [
   { table: "screen_insights", where: (b) => `workspace_id = '${b.ws}'`, set: "model = 'x'", insert: (b) => ["insert into screen_insights (workspace_id, sha256, insight, model) values ($1, $2, '{}', 'm')", [b.ws, randomUUID()]] },
   { table: "reference_insights", where: (b) => `workspace_id = '${b.ws}'`, set: "model = 'x'", insert: (b) => ["insert into reference_insights (workspace_id, asset_id, insight, model) values ($1, $2, '{}', 'm')", [b.ws, b.ref2]] },
   { table: "credit_ledger", where: (b) => `workspace_id = '${b.ws}'`, set: "delta = 0", insert: (b) => ["insert into credit_ledger (workspace_id, delta, reason) values ($1, 1000, 'adjust')", [b.ws]] },
+  { table: "workspace_invites", where: (b) => `workspace_id = '${b.ws}'`, set: "role = 'admin'", insert: (b) => ["insert into workspace_invites (workspace_id, email, role, token_hash, expires_at) values ($1, 'a@b.c', 'admin', $2, now())", [b.ws, randomUUID()]] },
+  { table: "project_shares", where: (b) => `workspace_id = '${b.ws}'`, set: "revoked_at = now()", insert: (b) => ["insert into project_shares (workspace_id, project_id, slug) values ($1, $2, $3)", [b.ws, b.project, randomUUID()]] },
+  { table: "project_comments", where: (b) => `workspace_id = '${b.ws}'`, set: "body = 'x'", insert: (b) => ["insert into project_comments (workspace_id, project_id, board_id, body, author_id) values ($1, $2, 'b1', 'x', $3)", [b.ws, b.project, a.user]] },
+  { table: "notifications", where: (b) => `user_id = '${b.user}'`, set: "read_at = now()", insert: (b) => ["insert into notifications (workspace_id, user_id, kind, project_id, comment_id) values ($1, $2, 'mention', $3, $4)", [b.ws, b.user, b.project, b.comment]] },
 ];
 
 describe("RLS isolates workspaces", () => {
@@ -163,5 +172,63 @@ describe("RLS: community feed and analytics (SP16, migration 0013)", () => {
       expect(rows.rows).toHaveLength(0);
     }
     await expect(asUser(a.user, (_db, c) => c.query("insert into analytics_events (name) values ('x')"))).rejects.toThrow();
+  });
+});
+
+describe("RLS: roles, invites, shares, comments and notifications (SP15, migration 0014)", () => {
+  const join = (ws: string, user: string, role: string) => pool.query("insert into memberships (workspace_id, user_id, role) values ($1, $2, $3)", [ws, user, role]);
+  const count = async (user: string, query: string) => (await asUser(user, (db) => db.execute(sql.raw(query)))).rows.length;
+
+  it("members read their workspace's shares and comments; anon reads no shares", async () => {
+    const viewer = (await createUser()).id;
+    await join(a.ws, viewer, "viewer");
+    expect(await count(viewer, `select 1 from project_shares where workspace_id = '${a.ws}'`)).toBe(1);
+    expect(await count(viewer, `select 1 from project_comments where workspace_id = '${a.ws}'`)).toBe(1);
+    const client = await pool.connect();
+    try {
+      await client.query("begin");
+      await client.query("set local role anon");
+      const r = await client.query("select 1 from project_shares").catch(() => ({ rows: [] }));
+      expect(r.rows).toHaveLength(0);
+    } finally {
+      await client.query("rollback");
+      client.release();
+    }
+  });
+
+  it("invites are readable by the owner and admins, never by editors or viewers", async () => {
+    const [admin, editor, viewer] = [(await createUser()).id, (await createUser()).id, (await createUser()).id];
+    await join(a.ws, admin, "admin");
+    await join(a.ws, editor, "editor");
+    await join(a.ws, viewer, "viewer");
+    const q = `select 1 from workspace_invites where workspace_id = '${a.ws}'`;
+    expect(await count(a.user, q)).toBe(1);
+    expect(await count(admin, q)).toBe(1);
+    expect(await count(editor, q)).toBe(0);
+    expect(await count(viewer, q)).toBe(0);
+  });
+
+  it("notifications are readable by their recipient only, even inside one workspace", async () => {
+    const teammate = (await createUser()).id;
+    await join(a.ws, teammate, "editor");
+    expect(await count(teammate, `select 1 from notifications where workspace_id = '${a.ws}'`)).toBe(0);
+    expect(await count(a.user, `select 1 from notifications where workspace_id = '${a.ws}'`)).toBe(1);
+  });
+
+  it("a user in two workspaces reads both and nothing of a third", async () => {
+    const both = (await createUser()).id;
+    await join(a.ws, both, "editor");
+    await join(b.ws, both, "viewer");
+    const third = await seedWorkspace();
+    expect(await count(both, `select 1 from projects where workspace_id in ('${a.ws}', '${b.ws}')`)).toBe(2);
+    expect(await count(both, `select 1 from projects where workspace_id = '${third.ws}'`)).toBe(0);
+    expect(await count(both, `select 1 from project_comments where workspace_id = '${third.ws}'`)).toBe(0);
+  });
+
+  it("member_role_in returns the caller's role and is not callable by anon", async () => {
+    const r = await asUser(a.user, (db) => db.execute(sql`select member_role_in(${a.ws}::uuid) as role`));
+    expect((r.rows[0] as { role: string }).role).toBe("owner");
+    const other = await asUser(a.user, (db) => db.execute(sql`select member_role_in(${b.ws}::uuid) as role`));
+    expect((other.rows[0] as { role: string | null }).role).toBeNull();
   });
 });

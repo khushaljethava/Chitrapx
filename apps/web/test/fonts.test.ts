@@ -15,7 +15,7 @@ const code = (p: Promise<unknown>) => p.then(() => "ok", (e: { code?: string }) 
 
 async function setup() {
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro", role: "owner" };
   return { ctx, storage: memoryStorage() };
 }
 type S = Awaited<ReturnType<typeof setup>>;

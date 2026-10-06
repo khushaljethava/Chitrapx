@@ -20,7 +20,7 @@ async function ctxWith(credits: number): Promise<Ctx> {
   const user = await createUser();
   const ws = await makeWorkspace(user.id);
   if (credits) await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: credits, reason: "adjust" });
-  return { userId: user.id, workspaceId: ws, plan: "free" };
+  return { userId: user.id, workspaceId: ws, plan: "free", role: "owner" };
 }
 
 type AssetOpts = { kind?: "screenshot" | "image" | "recording"; width?: number; height?: number; bytes?: number };

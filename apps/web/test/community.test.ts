@@ -18,7 +18,7 @@ const storage = memoryStorage();
 
 async function user(): Promise<Ctx & { appId: string }> {
   const u = await createUser();
-  const ctx: Ctx = { userId: u.id, workspaceId: await makeWorkspace(u.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: u.id, workspaceId: await makeWorkspace(u.id, "pro"), plan: "pro", role: "owner" };
   const app = await createApp(ctx, { name: "App" });
   return { ...ctx, appId: app.id };
 }

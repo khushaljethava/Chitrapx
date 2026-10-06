@@ -57,7 +57,7 @@ function visibleTo(ctx: Ctx, staff = false): SQL {
 const SRC_KEY = (k: string) => k.endsWith("Src") || k === "backgroundImage";
 
 /** Calls `fn` for every image source in the document, overrides included; `fn` may return a replacement. */
-function mapSources(doc: unknown, fn: (src: string) => string): unknown {
+export function mapSources(doc: unknown, fn: (src: string) => string): unknown {
   if (Array.isArray(doc)) return doc.map((v) => mapSources(v, fn));
   if (!doc || typeof doc !== "object") return doc;
   return Object.fromEntries(Object.entries(doc).map(([k, v]) => [k, typeof v === "string" && SRC_KEY(k) && v !== "" ? fn(v) : mapSources(v, fn)]));

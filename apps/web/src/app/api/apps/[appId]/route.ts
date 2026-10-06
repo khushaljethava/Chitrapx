@@ -5,9 +5,9 @@ import { readJson, route } from "@/server/http.ts";
 type P = { params: Promise<{ appId: string }> };
 
 export const PATCH = route(async (req: Request, { params }: P) => {
-  const ctx = await requireContext();
+  const ctx = await requireContext("edit");
   return updateApp(ctx, (await params).appId, await readJson(req));
 });
 export const DELETE = route(async (_req: Request, { params }: P) => {
-  await deleteApp(await requireContext(), (await params).appId);
+  await deleteApp(await requireContext("edit"), (await params).appId);
 });

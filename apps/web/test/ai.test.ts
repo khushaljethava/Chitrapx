@@ -21,7 +21,7 @@ afterAll(async () => { await boss.stop({ graceful: false }); });
 
 async function setup(credits: number, shots = 1) {
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro", role: "owner" };
   if (credits) await db.insert(schema.creditLedger).values({ workspaceId: ctx.workspaceId, delta: credits, reason: "adjust" });
   const app = await createApp(ctx, { name: "Bloom" });
   for (let i = 0; i < shots; i++) {
