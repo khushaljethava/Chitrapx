@@ -48,6 +48,13 @@ export async function contextFor(user: SessionUser, chosen: string | undefined):
   return { userId: user.id, workspaceId: pick.id, plan: pick.plan, role: pick.role };
 }
 
+/** Route handlers only: makes `workspaceId` current, or (null) goes back to the oldest membership. */
+export async function setCurrentWorkspace(workspaceId: string | null): Promise<void> {
+  const jar = await cookies();
+  if (!workspaceId) jar.delete(WS_COOKIE);
+  else jar.set(WS_COOKIE, workspaceId, { httpOnly: true, sameSite: "lax", path: "/", maxAge: 365 * 24 * 60 * 60, secure: process.env.NODE_ENV === "production" });
+}
+
 /** The workspace chosen with the switcher, if any. */
 export async function chosenWorkspace(): Promise<string | undefined> {
   return (await cookies()).get(WS_COOKIE)?.value || undefined;
