@@ -14,8 +14,8 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras, transparent
   /** SP12 mockups and collage frames: no page colour behind the boards, so a transparent board stays transparent. */
   transparent?: boolean;
 }) {
-  // Auto-shrink measures text with whatever face is loaded. The first pass runs before the faces arrive,
-  // so once they have loaded the sizes are measured again before anything is captured.
+  // Auto-shrink measures text in the DOM with whatever face is loaded. The server has no DOM, and React
+  // never patches a hydration mismatch, so boards are drawn only in the browser, once the faces are in.
   const [fontsLoaded, setFontsLoaded] = useState(false);
   const boards = useMemo(() => {
     void fontsLoaded; // re-measure once the faces are in
@@ -34,8 +34,19 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras, transparent
   useEffect(() => {
     if (fontsLoaded) return;
     let cancelled = false;
-    const families = fontUsesOf(boards.map((b) => b.board)).map((u) => u.family);
-    Promise.all(families.map((f) => document.fonts.load(`16px "${f}"`).catch(() => [])))
+    // Each face at its own weight and style, with the boards' own text: web fonts are split into
+    // unicode-range subsets (Arabic, Hebrew, CJK), and a bare load fetches only the Latin regular face.
+    const text = boards.flatMap((b) => b.board.elements.flatMap((e) => {
+      const el = e as { content?: string; chips?: string[] };
+      return [el.content ?? "", ...(el.chips ?? [])];
+    })).join(" ");
+    const faces = fontUsesOf(boards.map((b) => b.board))
+      .flatMap((u) => u.faces.map((f) => `${f.italic ? "italic " : ""}${f.weight} 16px "${u.family}"`));
+    // The faces are declared by BoardFonts' stylesheet: it has to be parsed before load() can find them.
+    const sheets = [...document.querySelectorAll<HTMLLinkElement>('link[rel="stylesheet"]')].filter((l) => !l.sheet)
+      .map((l) => new Promise((done) => { l.addEventListener("load", done, { once: true }); l.addEventListener("error", done, { once: true }); }));
+    Promise.all(sheets)
+      .then(() => Promise.all(faces.map((font) => document.fonts.load(font, text || undefined).catch(() => []))))
       .then(() => document.fonts.ready)
       .then(() => { if (!cancelled) { clearLocaleFontSizeCache(); setFontsLoaded(true); } });
     return () => { cancelled = true; };
@@ -57,7 +68,7 @@ export function RenderSheet({ doc, plan, indices, assetUrls, extras, transparent
       {/* The Next.js dev indicator would otherwise be captured into exported PNGs. */}
       <style>{`nextjs-portal{display:none!important}${transparent ? "html,body{background:transparent!important}" : ""}`}</style>
       <BoardFonts boards={boards.map((b) => b.board)} faces={extras?.faces} />
-      {boards.map(({ i, board }) => (
+      {fontsLoaded && boards.map(({ i, board }) => (
         <div key={i} data-item={i} style={{ width: board.size.width, height: board.size.height, overflow: "hidden" }}>
           <StaticArtboard artboard={board} scale={1} />
         </div>
