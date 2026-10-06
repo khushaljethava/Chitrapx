@@ -205,6 +205,24 @@
         "lineHeight": 1.35
        },
        {
+        "id": "i101",
+        "type": "image",
+        "name": "Google Play",
+        "position": {
+         "x": 60,
+         "y": 402
+        },
+        "size": {
+         "width": 190,
+         "height": 73.48066298342542
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:google-play-badge.png",
+        "imageAlt": "",
+        "objectFit": "contain"
+       },
+       {
         "id": "food-chips",
         "type": "chips",
         "name": "Feature chips",

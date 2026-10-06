@@ -26,7 +26,8 @@ export type StockPhoto = {
   /** Pixel size of the shipped file; restored elements take its proportions. */
   width: number;
   height: number;
-  source: "pexels" | "unsplash" | "pixabay" | "original";
+  /** "brand": a vendor's official badge, used unmodified under its brand guidelines. */
+  source: "pexels" | "unsplash" | "pixabay" | "original" | "brand";
   sourceId: string;
   sourceUrl: string;
   photographer: string;

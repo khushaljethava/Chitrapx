@@ -235,6 +235,24 @@
         "fontStyle": "normal",
         "textAlign": "left",
         "lineHeight": 1.35
+       },
+       {
+        "id": "i19",
+        "type": "image",
+        "name": "Google Play",
+        "position": {
+         "x": 60,
+         "y": 408
+        },
+        "size": {
+         "width": 190,
+         "height": 73.48066298342542
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:google-play-badge.png",
+        "imageAlt": "",
+        "objectFit": "contain"
        }
       ],
       "backgroundColor": "#2C4719",
