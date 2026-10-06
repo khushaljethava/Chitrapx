@@ -10,6 +10,8 @@ import { collectDroppedFiles, isFileDrag } from "../intake.ts";
 import { useIntake } from "../useIntake.ts";
 import { expandToGroups, selectableRefs } from "../selection.ts";
 import { resizeBox, rotationFromPointer, snapMove, type Box, type Handle } from "../geometry.ts";
+import { useLive } from "../live/context.tsx";
+import { RemoteOverlay } from "./RemoteOverlay.tsx";
 
 const SNAP_PX = 6;
 const HANDLES: Handle[] = ["nw", "n", "ne", "e", "se", "s", "sw", "w"];
@@ -38,6 +40,7 @@ export function Canvas() {
   const layer = useRef<HTMLDivElement>(null);
   const drag = useRef<Drag | null>(null);
   const [guides, setGuides] = useState<{ x: number[]; y: number[] }>({ x: [], y: [] });
+  const live = useLive();
 
   useEffect(() => {
     const clear = () => setFileOver(false);
@@ -210,7 +213,11 @@ export function Canvas() {
               </div>
             ))}
           </div>
-          <div ref={layer} className="absolute inset-0 touch-none" onPointerDown={onBackground} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+          <div ref={layer} className="absolute inset-0 touch-none" onPointerDown={onBackground} onPointerUp={onUp} onPointerCancel={onUp}
+            onPointerMove={(e) => {
+              onMove(e);
+              if (live?.peers.length) { const p = toStrip(e); live.sendCursor(groupId, p.x, p.y); } // SP15: others see this pointer
+            }}>
             {group.boards.slice(0, foldCount(group.target)).map((b, i) => (
               <span key={`fold-${b.id}`} className="pointer-events-none absolute -top-6 rounded bg-indigo-600 px-1.5 py-0.5 text-[10px] font-medium text-white" style={{ left: i * boardW * zoom }}
                 title="Shoppers see these boards in search results without scrolling">Seen first</span>
@@ -245,6 +252,7 @@ export function Canvas() {
             })()}
             {guides.x.map((x) => <div key={`gx${x}`} className="pointer-events-none absolute top-0 h-full w-px bg-pink-500" style={{ left: x * zoom }} />)}
             {guides.y.map((y) => <div key={`gy${y}`} className="pointer-events-none absolute left-0 h-px w-full bg-pink-500" style={{ top: y * zoom }} />)}
+            {!mirrored && <RemoteOverlay groupId={groupId} zoom={zoom} boxOf={(id) => { const it = items.find((x) => x.ref.elementId === id); return it ? boxOf(it.el, it.offset) : null; }} />}
           </div>
         </div>
       </div>

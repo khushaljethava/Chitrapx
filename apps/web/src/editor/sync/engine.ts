@@ -179,6 +179,14 @@ export class LiveSync {
   /** True when sending may continue at once (the batch was split or dropped). */
   private fail(err: unknown, batchLen: number): boolean {
     const status = err instanceof TransportError ? err.status : null;
+    if (batchLen && status === 403) {
+      // May read but not edit (a viewer): refuse these edits, keep receiving everyone else's.
+      const message = (err as Error).message || "You can view this project but not edit it";
+      this.reject(this.s.pending.slice(0, batchLen).map((p) => ({ clientSeq: p.clientSeq, error: message })));
+      this.emit(true);
+      this.setStatus({ state: "error", message });
+      return true;
+    }
     if (status === 401 || status === 403 || status === 404) {
       this.stop();
       this.setStatus({ state: "stopped", message: "You no longer have access to this project." });

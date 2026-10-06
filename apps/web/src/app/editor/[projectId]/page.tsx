@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Editor } from "@/editor/Editor.tsx";
-import { requireContext } from "@/server/context.ts";
+import { canSendCommands } from "@/server/commands.ts";
+import { currentUser, requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 import { assetUrlMap, getProject } from "@/server/projects.ts";
 import { appStorage } from "@/server/storage.ts";
@@ -16,7 +17,10 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
   const ctx = await requireContext();
   const project = await getProject(ctx, (await params).projectId).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
   const storage = appStorage();
-  const [docUrls, assets, fonts, app] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId)]);
+  const [docUrls, assets, fonts, app, user] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId), currentUser()]);
+  // SP15 presence: the name others see next to this editor's cursor.
+  const meta = (user?.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string };
+  const me = { userId: ctx.userId, name: meta.full_name || meta.name || user?.email || "Someone", avatarUrl: meta.avatar_url ?? null };
   // Everything the app has uploaded is pickable, so its URLs must resolve too.
   const assetUrls = {
     ...docUrls,
@@ -34,6 +38,8 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       extras={{ faces: facesOf(fonts), palette: brandPalette(app.brand) }}
       openTranslations={(await searchParams).translations === "1"}
       glossary={app.glossary}
+      me={me}
+      canEdit={canSendCommands(ctx)}
     />
   );
 }

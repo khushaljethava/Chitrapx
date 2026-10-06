@@ -130,6 +130,21 @@ describe("LiveSync with two clients", () => {
     expect(a!.sync.status.state).toBe("stopped");
   });
 
+  it("a read-only member's commands are refused (403) but other people's edits keep arriving", async () => {
+    const { server, clients: [viewer, editor] } = setup();
+    viewer!.net.status = 403;
+    viewer!.sync.local(color("#ff0000"));
+    expect(await viewer!.sync.flush()).toBe(true);
+    expect(viewer!.rejected).toHaveLength(1);
+    expect(viewer!.sync.status.state).toBe("error");
+    viewer!.net.status = undefined;
+    editor!.sync.local(color("#00ff00", "t2"));
+    await editor!.sync.flush();
+    server.hub.deliver("c0");
+    expect(el(viewer!.doc(), "t2")!.color).toBe("#00ff00");
+    expect(el(viewer!.doc(), "t1")!.color).toBe("#000000");
+  });
+
   it("reset adopts a server document after a doc job", async () => {
     const { server, clients: [a] } = setup(1);
     server.writeWhole((d) => applyCommand(d, color("#abcdef")));
