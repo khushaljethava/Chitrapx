@@ -1,13 +1,16 @@
 import { sql } from "drizzle-orm";
 import type { AppBriefFields, BrandToken } from "@chitrapx/document";
 import {
-  bigserial, index, integer, jsonb, pgEnum, pgTable, primaryKey, text, timestamp, unique, uuid,
+  bigserial, boolean, index, integer, jsonb, pgEnum, pgTable, primaryKey, real, text, timestamp, unique, uniqueIndex, uuid, type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 // Supabase-owned auth.users, referenced for FKs only; drizzle-kit skips it with entities.roles.provider = supabase.
 import { authUsers } from "drizzle-orm/supabase";
 
 export const planEnum = pgEnum("plan", ["free", "pro", "studio"]);
-export const roleEnum = pgEnum("member_role", ["owner", "member"]);
+/** SP15: ranked viewer < editor < admin < owner; permissions live in apps/web/src/server/authz.ts. */
+export const MEMBER_ROLES = ["owner", "admin", "editor", "viewer"] as const;
+export type MemberRole = (typeof MEMBER_ROLES)[number];
+export const roleEnum = pgEnum("member_role", MEMBER_ROLES);
 export const platformEnum = pgEnum("platform_hint", ["ios", "android", "both"]);
 export const projectKindEnum = pgEnum("project_kind", ["screenshots", "video", "social"]);
 export const assetKindEnum = pgEnum("asset_kind", ["screenshot", "recording", "image", "font", "export", "thumbnail", "reference"]);
@@ -69,9 +72,14 @@ export const workspaces = pgTable("workspaces", {
 export const memberships = pgTable("memberships", {
   workspaceId: workspaceRef(),
   userId: uuid("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
-  role: roleEnum("role").notNull().default("owner"),
+  role: roleEnum("role").notNull().default("viewer"),
   createdAt: createdAt(),
-}, (t) => [primaryKey({ columns: [t.workspaceId, t.userId] }), index("memberships_user_idx").on(t.userId)]);
+}, (t) => [
+  primaryKey({ columns: [t.workspaceId, t.userId] }),
+  index("memberships_user_idx").on(t.userId),
+  // SP15: exactly one owner per workspace; ownership moves only by transfer.
+  uniqueIndex("memberships_one_owner").on(t.workspaceId).where(sql`role = 'owner'`),
+]);
 
 export const apps = pgTable("apps", {
   id: id(),
@@ -296,3 +304,68 @@ export const analyticsEvents = pgTable("analytics_events", {
   props: jsonb("props").$type<Record<string, string>>().notNull().default({}),
   createdAt: createdAt(),
 }, (t) => [index("analytics_events_name_created_idx").on(t.name, t.createdAt)]);
+
+/**
+ * SP15: an invite link. Only the SHA-256 of the token is stored; the link is shown once to the inviter.
+ * Bound to `email`; single use (`accepted_at`); pending ones count toward the plan's seats.
+ */
+export const workspaceInvites = pgTable("workspace_invites", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  email: text("email").notNull(),
+  role: roleEnum("role").notNull(),
+  tokenHash: text("token_hash").notNull().unique(),
+  invitedBy: uuid("invited_by").references(() => authUsers.id, { onDelete: "set null" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  acceptedBy: uuid("accepted_by").references(() => authUsers.id, { onDelete: "set null" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [index("workspace_invites_workspace_idx").on(t.workspaceId)]);
+
+/** SP15: a read-only public link to a project. One active (not revoked) link per project. */
+export const projectShares = pgTable("project_shares", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull().unique(),
+  allowDuplicate: boolean("allow_duplicate").notNull().default(true),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  createdBy: uuid("created_by").references(() => authUsers.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+}, (t) => [uniqueIndex("project_shares_active_uq").on(t.projectId).where(sql`revoked_at is null`)]);
+
+/**
+ * SP15: a comment on a board (optionally an element and a point, in percent of the board). Replies set
+ * `parent_id` to the thread root. Not part of the document: never exported, rendered, shared or duplicated.
+ */
+export const projectComments = pgTable("project_comments", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  boardId: text("board_id").notNull(),
+  elementId: text("element_id"),
+  parentId: uuid("parent_id").references((): AnyPgColumn => projectComments.id, { onDelete: "cascade" }),
+  xPct: real("x_pct"),
+  yPct: real("y_pct"),
+  body: text("body").notNull(),
+  authorId: uuid("author_id").references(() => authUsers.id, { onDelete: "set null" }),
+  createdAt: createdAt(),
+  editedAt: timestamp("edited_at", { withTimezone: true }),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolvedBy: uuid("resolved_by").references(() => authUsers.id, { onDelete: "set null" }),
+}, (t) => [index("project_comments_project_board_idx").on(t.projectId, t.boardId), index("project_comments_parent_idx").on(t.parentId)]);
+
+/** SP15: in-app notifications (no email): a reply in your thread or an @mention. */
+export const notifications = pgTable("notifications", {
+  id: id(),
+  workspaceId: workspaceRef(),
+  userId: uuid("user_id").notNull().references(() => authUsers.id, { onDelete: "cascade" }),
+  actorId: uuid("actor_id").references(() => authUsers.id, { onDelete: "set null" }),
+  kind: text("kind").$type<"mention" | "reply">().notNull(),
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  commentId: uuid("comment_id").notNull().references(() => projectComments.id, { onDelete: "cascade" }),
+  createdAt: createdAt(),
+  readAt: timestamp("read_at", { withTimezone: true }),
+}, (t) => [index("notifications_user_created_idx").on(t.userId, t.createdAt.desc())]);
