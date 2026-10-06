@@ -1,3 +1,4 @@
+import { authorize } from "@/server/authz.ts";
 import { importPost, moderatePost, reportPost } from "@/server/community.ts";
 import { requireContext } from "@/server/context.ts";
 import { notFound, readJsonLimited, route } from "@/server/http.ts";
@@ -15,6 +16,8 @@ export const POST = route(async (req: Request, { params }: P) => {
   const { postId, action } = await params;
   const ctx = await requireContext();
   const body = await readJsonLimited(req, 4096, "Request too large");
+  // Importing creates a project in the workspace; reporting and staff moderation are per user.
+  if (action === "import") authorize(ctx, "edit");
   if (action === "import") return Response.json(await importPost(ctx, appStorage(), postId, body), { status: 201 });
   if (action === "report") return reportPost(ctx, postId, body);
   if (action === "moderate") return moderatePost(ctx, await isStaff(), postId, body);

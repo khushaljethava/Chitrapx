@@ -10,4 +10,4 @@ type P = { params: Promise<{ appId: string }> };
 export const GET = route(async (_req: Request, { params }: P) => listReferences(await requireContext(), appStorage(), (await params).appId));
 
 export const POST = route(async (_req: Request, { params }: P) =>
-  Response.json(await startReferenceAnalysis(await requireContext(), await getBoss(), (await params).appId), { status: 201 }));
+  Response.json(await startReferenceAnalysis(await requireContext("spend"), await getBoss(), (await params).appId), { status: 201 }));

@@ -4,6 +4,6 @@ import { readJson, route } from "@/server/http.ts";
 import { enqueueMockup } from "@/server/launchAssets.ts";
 
 export const POST = route(async (req: Request) => {
-  const ctx = await requireContext();
+  const ctx = await requireContext("spend");
   return Response.json(await enqueueMockup(ctx, await getBoss(), await readJson(req)), { status: 201 });
 });

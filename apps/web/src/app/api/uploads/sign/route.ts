@@ -6,7 +6,7 @@ import { appStorage } from "@/server/storage.ts";
 import { signUpload } from "@/server/uploads.ts";
 
 export const POST = route(async (req: Request) => {
-  const ctx = await requireContext();
+  const ctx = await requireContext("edit");
   const signed = await signUpload(ctx, appStorage(), await readJson(req));
   // A file already here may still need converting (it failed, or its first enqueue never happened).
   if ("existing" in signed) await queueRecordingProcessing(ctx, await getBoss(), signed.existing);
