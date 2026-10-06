@@ -112,6 +112,16 @@ Migration `0015_sp15_live_coediting.sql` is chained after 0013, because 0014 bel
 
 It is not applied to the shared database. Its tests run on a throwaway local Postgres.
 
+### Calls made while building
+
+- **`seq` is an `integer`**, not a `bigint`: it equals `projects.revision`, which is an integer.
+- **Each editor opens the two channels**, even when alone, so presence can tell it a peer arrived. That is one Realtime connection per open editor.
+- **A user's own second tab is a peer.** It switches both tabs to live, so two tabs never 409 each other again. The tab shows no avatar for oneself.
+- **A 409 while Realtime is connected** goes to live mode and merges by property instead of showing the dialog. This happens, for example, when a job started elsewhere rewrote the document. It needs the saved base to be known; a restored draft keeps the dialog.
+- **A 403 from the command API** (a viewer, once roles land) refuses those edits and keeps receiving everyone else's. A 401 or 404 stops the engine ("access removed").
+- **Cursors are sent in strip coordinates** (board index × width + x). These are equivalent to board coordinates because every client renders the same document.
+- **Avatars are initials** on the user's colour. Avatar images come from arbitrary OAuth hosts that the CSP does not list.
+
 ## Out of scope
 
 - Per-character text merging: text is whole-string last-writer-wins.

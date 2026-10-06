@@ -88,6 +88,8 @@ Note on the competitor architecture: open-screenshot-generator does live editing
 
 ### 15.3 Live co-editing (presence, cursors, real-time command sync, conflict handling)
 
+> **Built (2026-10-06, own branch; option C).** Spec `docs/superpowers/specs/2026-10-06-sp15-live-coediting-design.md`, plan and manual checks `docs/superpowers/plans/2026-10-06-sp15-live-coediting.md`. Migration `0015_sp15_live_coediting` is not applied yet (rechain after 0014).
+
 - **What it does:** Two or more members open the same project and see each other's avatars, cursors and selections; edits appear for everyone within about a second without save conflicts.
 - **Details:**
   - Presence: who is in the project, their colour, selected element/board, pointer position in board coordinates (throttle about 60 ms, as the competitor does); leaves after about 30 s of silence.

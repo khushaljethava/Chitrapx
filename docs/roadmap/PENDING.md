@@ -97,3 +97,14 @@ Built and merged; these were left for later.
 - [ ] Run `apps/worker/test-e2e/polish.test.ts` with the web app up.
 - [ ] Watch the report-only CSP in the browser console, then switch `proxy.ts` to the enforcing header.
 - [ ] Deferred SP9 items: the ⌘G no-op notice (`editor/shortcuts.ts`), status-bar goldens for other platforms, a real-browser keyboard-drag test in the layers panel.
+
+## SP15.3 live co-editing follow-ups
+
+Built on its own branch (spec `docs/superpowers/specs/2026-10-06-sp15-live-coediting-design.md`, plan with the manual check list `docs/superpowers/plans/2026-10-06-sp15-live-coediting.md`). 15.1, 15.2 and 15.4 are on another branch.
+
+- [ ] Rechain migration `0015_sp15_live_coediting` after merging the roles branch's 0014: regenerate `0015_snapshot.json` (its `prevId` must be 0014's id) and the journal entry, then apply it. It is not applied to the dev database.
+- [ ] Wire `canSendCommands(ctx)` in `apps/web/src/server/commands.ts` to the roles helper (editor or above); viewers then get presence only.
+- [ ] Supabase: Realtime private channels must be allowed (Project Settings, Realtime). Migration 0015 adds the `realtime.messages` policies; without them the editor simply stays in solo mode.
+- [ ] Run the twelve manual two-browser checks at the end of the SP15.3 plan, and `apps/worker/test-e2e/collab.test.ts` with the web app up.
+- [ ] Measure Realtime latency and message limits on the chosen plan (roadmap open question 9); drags send one command at the end plus a preview every 80 ms.
+- [ ] Later: compaction of `project_commands` (one row per coalesced command; a version every 100), a cap of about 10 editors, comments on the same channel (15.4).
