@@ -44,7 +44,7 @@ const sameRefs = (a: Ref[], b: Ref[]) => a.length === b.length && a.every((r, i)
 
 /** One command doing what `a` then `b` do, when the pair has an obvious merged form (checked by the caller). */
 function merge(a: Command, b: Command): Command | null {
-  if (a.type === "updateElement" && b.type === "updateElement" && sameRef(a.ref, b.ref)) return { ...b, props: { ...a.props, ...b.props } };
+  if (a.type === "updateElement" && b.type === "updateElement" && sameRef(a.ref, b.ref)) return { ...b, props: { ...a.props, ...b.props } as typeof b.props };
   if (a.type === "moveElements" && b.type === "moveElements" && sameRefs(a.refs, b.refs)) return { ...a, dx: a.dx + b.dx, dy: a.dy + b.dy };
   if (a.type === "setOverride" && b.type === "setOverride" && sameRef(a.ref, b.ref) && a.locale === b.locale) return { ...b, props: { ...a.props, ...b.props } };
   if (a.type === "updateBoard" && b.type === "updateBoard" && a.groupId === b.groupId && a.boardId === b.boardId) return { ...b, props: { ...a.props, ...b.props } };
