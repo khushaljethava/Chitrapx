@@ -100,5 +100,640 @@
   "replaces": [
    "calora-as177966215.png"
   ]
+ },
+ {
+  "file": "hand-coffee-cup.webp",
+  "width": 1031,
+  "height": 1200,
+  "source": "pexels",
+  "sourceId": "8532608",
+  "sourceUrl": "https://www.pexels.com/photo/person-holding-white-disposable-cup-8532608/",
+  "photographer": "Hanna Pad",
+  "photographerUrl": "https://www.pexels.com/@anna-nekrashevich",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Cropped to the cup and hand; Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "amoura-dating-as321711560.png"
+  ]
+ },
+ {
+  "file": "espresso-cups.webp",
+  "width": 929,
+  "height": 1200,
+  "source": "pexels",
+  "sourceId": "37004785",
+  "sourceUrl": "https://www.pexels.com/photo/top-view-of-espresso-cups-on-white-table-37004785/",
+  "photographer": "Merve.K",
+  "photographerUrl": "https://www.pexels.com/@merve-k-2150955253",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Cropped to the cups; Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); net bag at the edge removed; resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "amoura-dating-as265366403.png"
+  ]
+ },
+ {
+  "file": "hand-finger-up.webp",
+  "width": 441,
+  "height": 1200,
+  "source": "pexels",
+  "sourceId": "9017408",
+  "sourceUrl": "https://www.pexels.com/photo/hand-pointing-upwards-9017408/",
+  "photographer": "Kevin  Malik",
+  "photographerUrl": "https://www.pexels.com/@kevin-malik",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Cropped to the hand; Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "touch-as298911650.png"
+  ]
+ },
+ {
+  "file": "dog-paw-hand.webp",
+  "width": 1200,
+  "height": 375,
+  "source": "pexels",
+  "sourceId": "18851068",
+  "sourceUrl": "https://www.pexels.com/photo/close-up-of-a-person-holding-a-dogs-paw-18851068/",
+  "photographer": "Anastasia Lashkevich",
+  "photographerUrl": "https://www.pexels.com/@immortelleana",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Cropped to the paw and hand; Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "fg-paws-photo.png"
+  ]
+ },
+ {
+  "file": "hand-phone.webp",
+  "width": 906,
+  "height": 1200,
+  "source": "pexels",
+  "sourceId": "2207799",
+  "sourceUrl": "https://www.pexels.com/photo/iphone-6-with-black-screen-2207799/",
+  "photographer": "Gije Cho",
+  "photographerUrl": "https://www.pexels.com/@gije",
+  "license": "Pexels License",
+  "licenseUrl": "https://www.pexels.com/license/",
+  "retrieved": "2026-10-06",
+  "processing": "Background removed locally with BRIA RMBG-1.4 (CC BY-NC 4.0; commercial use needs a BRIA agreement); phone screen kept opaque; resized to at most 1200 px; saved as WebP",
+  "replaces": [
+   "touch-as451105828.png"
+  ],
+  "screen": {
+   "x": 0.4327,
+   "y": 0.0883,
+   "width": 0.4205,
+   "height": 0.56
+  }
+ },
+ {
+  "file": "scrapbook-grain.webp",
+  "width": 323,
+  "height": 700,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-grain",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-grain.png"
+  ]
+ },
+ {
+  "file": "scrapbook-page.webp",
+  "width": 1170,
+  "height": 1702,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-page",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-page.png"
+  ]
+ },
+ {
+  "file": "scrapbook-shadow.webp",
+  "width": 570,
+  "height": 1003,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-shadow",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-shadow.png"
+  ]
+ },
+ {
+  "file": "scrapbook-clip.webp",
+  "width": 192,
+  "height": 370,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-clip",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-clip.png"
+  ]
+ },
+ {
+  "file": "scrapbook-flower.webp",
+  "width": 560,
+  "height": 560,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-flower",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-flower.png"
+  ]
+ },
+ {
+  "file": "scrapbook-polaroid.webp",
+  "width": 660,
+  "height": 792,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-polaroid",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-polaroid.png"
+  ]
+ },
+ {
+  "file": "scrapbook-kraft.webp",
+  "width": 760,
+  "height": 542,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-kraft",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-scrap-kraft.png"
+  ]
+ },
+ {
+  "file": "scrapbook-strip.webp",
+  "width": 1540,
+  "height": 328,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-strip",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-scrap-strip.png"
+  ]
+ },
+ {
+  "file": "scrapbook-tab.webp",
+  "width": 480,
+  "height": 258,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-tab",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-scrap-tab.png"
+  ]
+ },
+ {
+  "file": "scrapbook-stickers.webp",
+  "width": 860,
+  "height": 1762,
+  "source": "original",
+  "sourceId": "gen-stock-art:scrapbook-stickers",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-stickersheet.png"
+  ]
+ },
+ {
+  "file": "washi-tape-mint.webp",
+  "width": 707,
+  "height": 200,
+  "source": "original",
+  "sourceId": "gen-stock-art:washi-tape-mint",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-tape-mint.png"
+  ]
+ },
+ {
+  "file": "washi-tape-straw.webp",
+  "width": 707,
+  "height": 200,
+  "source": "original",
+  "sourceId": "gen-stock-art:washi-tape-straw",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "scrappi-journal-tape-straw.png"
+  ]
+ },
+ {
+  "file": "night-sky-1.webp",
+  "width": 1290,
+  "height": 2796,
+  "source": "original",
+  "sourceId": "gen-stock-art:night-sky-1",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "somnia-sleep-sky-1.png"
+  ]
+ },
+ {
+  "file": "night-sky-2.webp",
+  "width": 1290,
+  "height": 2796,
+  "source": "original",
+  "sourceId": "gen-stock-art:night-sky-2",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "somnia-sleep-sky-2.png"
+  ]
+ },
+ {
+  "file": "night-sky-3.webp",
+  "width": 1290,
+  "height": 2796,
+  "source": "original",
+  "sourceId": "gen-stock-art:night-sky-3",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "somnia-sleep-sky-3.png"
+  ]
+ },
+ {
+  "file": "night-sky-4.webp",
+  "width": 1290,
+  "height": 2796,
+  "source": "original",
+  "sourceId": "gen-stock-art:night-sky-4",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "somnia-sleep-sky-4.png"
+  ]
+ },
+ {
+  "file": "night-sky-5.webp",
+  "width": 1290,
+  "height": 2796,
+  "source": "original",
+  "sourceId": "gen-stock-art:night-sky-5",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "somnia-sleep-sky-5.png"
+  ]
+ },
+ {
+  "file": "fade-green.webp",
+  "width": 1290,
+  "height": 700,
+  "source": "original",
+  "sourceId": "gen-stock-art:fade-green",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "breathora-bottom-fade.png"
+  ]
+ },
+ {
+  "file": "aurora-ribbon.webp",
+  "width": 3225,
+  "height": 1398,
+  "source": "original",
+  "sourceId": "gen-stock-art:aurora-ribbon",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-ribbon.png"
+  ]
+ },
+ {
+  "file": "grain-wash-dark.webp",
+  "width": 162,
+  "height": 701,
+  "source": "original",
+  "sourceId": "gen-stock-art:grain-wash-dark",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-grain.png"
+  ]
+ },
+ {
+  "file": "old-photo.webp",
+  "width": 780,
+  "height": 960,
+  "source": "original",
+  "sourceId": "gen-stock-art:old-photo",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-paper.png"
+  ]
+ },
+ {
+  "file": "beach-scene.webp",
+  "width": 760,
+  "height": 940,
+  "source": "original",
+  "sourceId": "gen-stock-art:beach-scene",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-beach-after.png"
+  ]
+ },
+ {
+  "file": "neon-tile-frame.webp",
+  "width": 640,
+  "height": 640,
+  "source": "original",
+  "sourceId": "gen-stock-art:neon-tile-frame",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-tile-frame.png"
+  ]
+ },
+ {
+  "file": "still-life-golden.webp",
+  "width": 840,
+  "height": 840,
+  "source": "original",
+  "sourceId": "gen-stock-art:still-life-golden",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-tile-golden.png"
+  ]
+ },
+ {
+  "file": "still-life-neon.webp",
+  "width": 840,
+  "height": 840,
+  "source": "original",
+  "sourceId": "gen-stock-art:still-life-neon",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-tile-neon.png"
+  ]
+ },
+ {
+  "file": "still-life-noir.webp",
+  "width": 840,
+  "height": 840,
+  "source": "original",
+  "sourceId": "gen-stock-art:still-life-noir",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-tile-noir.png"
+  ]
+ },
+ {
+  "file": "still-life-soft.webp",
+  "width": 840,
+  "height": 840,
+  "source": "original",
+  "sourceId": "gen-stock-art:still-life-soft",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "pixara-ai-tile-soft.png"
+  ]
+ },
+ {
+  "file": "screen-inbox.webp",
+  "width": 846,
+  "height": 1711,
+  "source": "original",
+  "sourceId": "gen-stock-art:screen-inbox",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "inboxly-screen-inbox.png"
+  ]
+ },
+ {
+  "file": "screen-feed-coral.webp",
+  "width": 692,
+  "height": 1448,
+  "source": "original",
+  "sourceId": "gen-stock-art:screen-feed-coral",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "app-feed-coral.png"
+  ]
+ },
+ {
+  "file": "resume-sidebar.webp",
+  "width": 810,
+  "height": 1140,
+  "source": "original",
+  "sourceId": "gen-stock-art:resume-sidebar",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "cvcraft-resume-a.png"
+  ]
+ },
+ {
+  "file": "resume-header.webp",
+  "width": 810,
+  "height": 1140,
+  "source": "original",
+  "sourceId": "gen-stock-art:resume-header",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "cvcraft-resume-b.png"
+  ]
+ },
+ {
+  "file": "resume-minimal.webp",
+  "width": 810,
+  "height": 1140,
+  "source": "original",
+  "sourceId": "gen-stock-art:resume-minimal",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "cvcraft-resume-c.png"
+  ]
+ },
+ {
+  "file": "screen-tv-remote.webp",
+  "width": 692,
+  "height": 1448,
+  "source": "original",
+  "sourceId": "gen-stock-art:screen-tv-remote",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "zapio-remote-screen-ui.png"
+  ]
+ },
+ {
+  "file": "screen-tv-home.webp",
+  "width": 1548,
+  "height": 879,
+  "source": "original",
+  "sourceId": "gen-stock-art:screen-tv-home",
+  "sourceUrl": "apps/worker/scripts/gen-stock-art.ts",
+  "photographer": "Chitrapx (drawn in code)",
+  "license": "Original work owned by Chitrapx",
+  "licenseUrl": "NOTICES.md",
+  "retrieved": "2026-10-06",
+  "processing": "Drawn as SVG in apps/worker/scripts/gen-stock-art.ts; rasterized to WebP",
+  "replaces": [
+   "zapio-remote-screen-tv.png"
+  ]
  }
 ]

@@ -39,4 +39,6 @@ export type StockPhoto = {
   processing: string;
   /** OSG artwork file names this photo stands in for in imported templates. */
   replaces: string[];
+  /** For a hand-held phone: where its screen sits in the file, as fractions, so a screen image laid over it lines up. */
+  screen?: { x: number; y: number; width: number; height: number };
 };

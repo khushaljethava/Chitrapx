@@ -215,6 +215,44 @@
         "lineHeight": 1.35
        },
        {
+        "id": "zr_img_9",
+        "type": "image",
+        "name": "Hand phone",
+        "position": {
+         "x": -410,
+         "y": 836
+        },
+        "size": {
+         "width": 1646,
+         "height": 2180
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:hand-phone.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "zr_img_10",
+        "type": "image",
+        "name": "Remote UI overlay",
+        "position": {
+         "x": 302,
+         "y": 1028
+        },
+        "size": {
+         "width": 692,
+         "height": 1221
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-tv-remote.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 96
+       },
+       {
         "id": "zr_shp_11",
         "type": "shape",
         "position": {
@@ -331,6 +369,25 @@
         "fillColor": "#171C28",
         "strokeColor": "transparent",
         "strokeWidth": 0
+       },
+       {
+        "id": "zr_img_16",
+        "type": "image",
+        "name": "TV screen",
+        "position": {
+         "x": 129,
+         "y": 457
+        },
+        "size": {
+         "width": 1032,
+         "height": 586
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-tv-home.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 20
        },
        {
         "id": "zr_shp_17",

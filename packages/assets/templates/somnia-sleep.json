@@ -30,6 +30,23 @@
       },
       "elements": [
        {
+        "id": "somnia-sky-1-1",
+        "type": "image",
+        "name": "sky-1",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:night-sky-1.webp",
+        "objectFit": "fill"
+       },
+       {
         "id": "somnia-b1-headline-1-2",
         "type": "text",
         "position": {
@@ -169,6 +186,23 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "somnia-sky-2-7",
+        "type": "image",
+        "name": "sky-2",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:night-sky-2.webp",
+        "objectFit": "fill"
+       },
        {
         "id": "somnia-b2-headline-8",
         "type": "text",
@@ -394,6 +428,23 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "somnia-sky-3-17",
+        "type": "image",
+        "name": "sky-3",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:night-sky-3.webp",
+        "objectFit": "fill"
+       },
        {
         "id": "somnia-b3-headline-18",
         "type": "text",
@@ -644,6 +695,23 @@
       },
       "elements": [
        {
+        "id": "somnia-sky-4-28",
+        "type": "image",
+        "name": "sky-4",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:night-sky-4.webp",
+        "objectFit": "fill"
+       },
+       {
         "id": "somnia-b4-headline-29",
         "type": "text",
         "position": {
@@ -847,6 +915,23 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "somnia-sky-5-37",
+        "type": "image",
+        "name": "sky-5",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:night-sky-5.webp",
+        "objectFit": "fill"
+       },
        {
         "id": "somnia-b5-laurel-l-38",
         "type": "shape",

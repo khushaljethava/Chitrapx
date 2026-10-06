@@ -70,6 +70,24 @@
         "fillOpacity": 0.07
        },
        {
+        "id": "i68",
+        "type": "image",
+        "name": "Paw & Hand",
+        "position": {
+         "x": 232,
+         "y": 24
+        },
+        "size": {
+         "width": 560,
+         "height": 373
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:dog-paw-hand.webp",
+        "imageAlt": "",
+        "objectFit": "contain"
+       },
+       {
         "id": "s69",
         "type": "shape",
         "position": {

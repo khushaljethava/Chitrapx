@@ -204,6 +204,25 @@
         "fillOpacity": 0.12
        },
        {
+        "id": "tpl_lt_ab1_back_screen",
+        "type": "image",
+        "name": "Back Screen",
+        "position": {
+         "x": 580,
+         "y": 1380
+        },
+        "size": {
+         "width": 620,
+         "height": 1420
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 48
+       },
+       {
         "id": "tpl_lt_ab1_front_shadow",
         "type": "shape",
         "position": {
@@ -223,6 +242,25 @@
         "strokeWidth": 0,
         "borderRadius": 48,
         "fillOpacity": 0.12
+       },
+       {
+        "id": "tpl_lt_ab1_front_screen",
+        "type": "image",
+        "name": "Front Screen",
+        "position": {
+         "x": 90,
+         "y": 1520
+        },
+        "size": {
+         "width": 640,
+         "height": 1300
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 48
        }
       ],
       "backgroundColor": "#E3E3EE",
@@ -262,6 +300,25 @@
         "fillOpacity": 0.12
        },
        {
+        "id": "tpl_lt_ab2_back_screen",
+        "type": "image",
+        "name": "Back Screen",
+        "position": {
+         "x": 85,
+         "y": 130
+        },
+        "size": {
+         "width": 760,
+         "height": 1535
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 52
+       },
+       {
         "id": "tpl_lt_ab2_front_shadow",
         "type": "shape",
         "position": {
@@ -281,6 +338,25 @@
         "strokeWidth": 0,
         "borderRadius": 52,
         "fillOpacity": 0.12
+       },
+       {
+        "id": "tpl_lt_ab2_front_screen",
+        "type": "image",
+        "name": "Front Screen",
+        "position": {
+         "x": 450,
+         "y": 830
+        },
+        "size": {
+         "width": 780,
+         "height": 1576
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 52
        }
       ],
       "backgroundColor": "#E3E3EE",
@@ -338,6 +414,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab3_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": -110
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        },
        {
         "id": "tpl_lt_ab3_text1",
@@ -483,6 +578,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab4_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": 1010
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        }
       ],
       "backgroundColor": "#6A62E1",
@@ -540,6 +654,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab5_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": -110
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        },
        {
         "id": "tpl_lt_ab5_text1",
@@ -685,6 +818,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab6_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": 1010
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        }
       ],
       "backgroundColor": "#F1512D",
@@ -742,6 +894,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab7_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": -110
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        },
        {
         "id": "tpl_lt_ab7_text1",
@@ -887,6 +1058,25 @@
         "strokeWidth": 0,
         "borderRadius": 56,
         "fillOpacity": 0.18
+       },
+       {
+        "id": "tpl_lt_ab8_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 195,
+         "y": 1010
+        },
+        "size": {
+         "width": 900,
+         "height": 1818
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 56
        }
       ],
       "backgroundColor": "#178B57",

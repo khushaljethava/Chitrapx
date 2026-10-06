@@ -216,6 +216,25 @@
         }
        },
        {
+        "id": "amoura-b1-hand-cup-9",
+        "type": "image",
+        "name": "b1-hand-cup",
+        "position": {
+         "x": -25,
+         "y": 2219
+        },
+        "size": {
+         "width": 611,
+         "height": 711
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:hand-coffee-cup.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
         "id": "amoura-b1-seam-burst-10",
         "type": "shape",
         "position": {
@@ -1307,6 +1326,25 @@
         "fontWeight": "600",
         "textAlign": "center",
         "lineHeight": 1.15
+       },
+       {
+        "id": "amoura-b4-cups-58",
+        "type": "image",
+        "name": "b4-cups",
+        "position": {
+         "x": 897,
+         "y": 2259
+        },
+        "size": {
+         "width": 466,
+         "height": 601
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:espresso-cups.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#F7EFE6",

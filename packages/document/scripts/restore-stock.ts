@@ -20,8 +20,9 @@ const stockDir = join(root, "apps/web/public/stock");
 type Lookup = (osgSrc: string) => StockPhoto | undefined;
 
 /**
- * The OSG box reshaped to the photo's proportions: same area, same bottom-centre point (these
- * decorations sit along a board edge), so a wide photo in a tall slot is not drawn tiny.
+ * The OSG box reshaped to the photo's proportions: same area, same bottom-centre point, so a wide
+ * photo in a tall slot is not drawn tiny. Only for "contain" decorations that run off the bottom of the
+ * board; anything placed mid-board (a finger pointing at a screen) keeps its exact box, photo fitted inside.
  */
 export function fitBox(el: ArtboardElement, photo: Pick<StockPhoto, "width" | "height">) {
   const { width: w, height: h } = el.size;
@@ -32,11 +33,33 @@ export function fitBox(el: ArtboardElement, photo: Pick<StockPhoto, "width" | "h
 }
 
 /**
+ * Moves a hand-held phone so its screen sits exactly under the screen image laid over it (the first
+ * image above it whose centre is inside it): the phone scales to the overlay's width, and the overlay
+ * is trimmed to the screen's height. Our photo's screen is not where OSG's was.
+ */
+export function alignScreen(board: ArtboardState, phone: ArtboardElement, photo: StockPhoto): void {
+  const s = photo.screen!;
+  const inside = (e: ArtboardElement) => {
+    const cx = e.position.x + e.size.width / 2, cy = e.position.y + e.size.height / 2;
+    return cx > phone.position.x && cx < phone.position.x + phone.size.width && cy > phone.position.y && cy < phone.position.y + phone.size.height;
+  };
+  const overlay = board.elements.slice(board.elements.indexOf(phone) + 1).find((e) => e.type === "image" && inside(e));
+  // OSG tilted some overlays a fraction of a degree to match its photo; ours is upright, so a slight tilt goes.
+  if (!overlay || phone.rotation || Math.abs(overlay.rotation ?? 0) > 3) return;
+  overlay.rotation = 0;
+  const k = overlay.size.width / (s.width * photo.width);
+  phone.size = { width: Math.round(photo.width * k), height: Math.round(photo.height * k) };
+  phone.position = { x: Math.round(overlay.position.x - s.x * photo.width * k), y: Math.round(overlay.position.y - s.y * photo.height * k) };
+  overlay.size = { ...overlay.size, height: Math.round(s.height * photo.height * k) };
+}
+
+/**
  * Re-inserts the dropped OSG image elements that have a stock replacement. Returns how many were added.
  * Each goes right after the nearest earlier OSG element still on the board, so stacking order holds.
  */
 export function restoreBoard(board: ArtboardState, osgBoard: ArtboardState, lookup: Lookup): number {
   let added = 0;
+  const phones: Array<{ el: ArtboardElement; photo: StockPhoto }> = [];
   osgBoard.elements.forEach((raw, i) => {
     const src = (raw as { imageSrc?: string }).imageSrc;
     const photo = raw.type === "image" && src ? lookup(src) : undefined;
@@ -47,9 +70,14 @@ export function restoreBoard(board: ArtboardState, osgBoard: ArtboardState, look
       if (k >= 0) { at = k + 1; break; }
     }
     const { mediaId: _drop, ...el } = raw as unknown as Record<string, unknown>;
-    board.elements.splice(at, 0, { ...el, ...fitBox(raw, photo), imageSrc: stockSrc(photo.file) } as unknown as ArtboardElement);
+    // Only "contain" shrinks a differently shaped photo; "cover" and "fill" boxes are exactly what the design wants.
+    const reshape = el.objectFit === "contain" && raw.position.y + raw.size.height >= board.size.height;
+    const restored = { ...el, ...(reshape && fitBox(raw, photo)), imageSrc: stockSrc(photo.file) } as unknown as ArtboardElement;
+    board.elements.splice(at, 0, restored);
+    if (photo.screen) phones.push({ el: restored, photo });
     added++;
   });
+  for (const { el, photo } of phones) alignScreen(board, el, photo);
   return added;
 }
 

@@ -354,6 +354,44 @@
         "opacity": 0.9
        },
        {
+        "id": "vw_b1_g",
+        "type": "image",
+        "name": "Hand phone",
+        "position": {
+         "x": -250,
+         "y": 1206
+        },
+        "size": {
+         "width": 1646,
+         "height": 2180
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:hand-phone.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "vw_b1_h",
+        "type": "image",
+        "name": "Screen overlay",
+        "position": {
+         "x": 462,
+         "y": 1398
+        },
+        "size": {
+         "width": 692,
+         "height": 1221
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-feed-coral.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 96
+       },
+       {
         "id": "vw_b1_i",
         "type": "shape",
         "position": {

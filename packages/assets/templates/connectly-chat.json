@@ -123,6 +123,25 @@
         "fillOpacity": 0.35
        },
        {
+        "id": "tpl_cc_ab1_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 110,
+         "y": 640
+        },
+        "size": {
+         "width": 1070,
+         "height": 2160
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
+       },
+       {
         "id": "tpl_cc_ab1_wordmark",
         "type": "text",
         "position": {
@@ -300,6 +319,25 @@
         "fillOpacity": 0.35
        },
        {
+        "id": "tpl_cc_ab2_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": 950
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
+       },
+       {
         "id": "tpl_cc_ab2_headline",
         "type": "text",
         "position": {
@@ -429,6 +467,25 @@
         "strokeWidth": 0,
         "borderRadius": 64,
         "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab3_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": -70
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
        },
        {
         "id": "tpl_cc_ab3_headline",
@@ -562,6 +619,25 @@
         "fillOpacity": 0.35
        },
        {
+        "id": "tpl_cc_ab4_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": 870
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
+       },
+       {
         "id": "tpl_cc_ab4_headline",
         "type": "text",
         "position": {
@@ -667,6 +743,25 @@
         "strokeWidth": 0,
         "borderRadius": 64,
         "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab5_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": -100
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
        },
        {
         "id": "tpl_cc_ab5_headline",
@@ -776,6 +871,25 @@
         "fillOpacity": 0.35
        },
        {
+        "id": "tpl_cc_ab6_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": 920
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
+       },
+       {
         "id": "tpl_cc_ab6_headline",
         "type": "text",
         "position": {
@@ -883,6 +997,25 @@
         "fillOpacity": 0.35
        },
        {
+        "id": "tpl_cc_ab7_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": -80
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
+       },
+       {
         "id": "tpl_cc_ab7_headline",
         "type": "text",
         "position": {
@@ -988,6 +1121,25 @@
         "strokeWidth": 0,
         "borderRadius": 64,
         "fillOpacity": 0.35
+       },
+       {
+        "id": "tpl_cc_ab8_screen",
+        "type": "image",
+        "name": "Skeleton Screen",
+        "position": {
+         "x": 175,
+         "y": 900
+        },
+        "size": {
+         "width": 940,
+         "height": 1900
+        },
+        "rotation": 25,
+        "scale": 1,
+        "imageSrc": "stock:screen-inbox.webp",
+        "imageAlt": "Skeleton app screen",
+        "objectFit": "cover",
+        "borderRadius": 64
        },
        {
         "id": "tpl_cc_ab8_headline",

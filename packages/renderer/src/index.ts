@@ -1,6 +1,6 @@
 export { BoardView, type BoardViewProps } from "./BoardView.tsx";
 export { boardFor } from "./board.ts";
-export { placeholderLayout, placeholderScreen, withPlaceholderScreens } from "./placeholder.ts";
+export { placeholderLayout, placeholderScreen, placeholderSvg, withPlaceholderScreens } from "./placeholder.ts";
 export { BoardFonts, customFontFaceCss, fontFamiliesOf, fontUsesOf, googleFontsHref, type FontFace, type FontUse } from "./fonts.tsx";
 export type { CustomFontFace, RenderExtras } from "./extras.ts";
 export { passthroughSrc, resolveBoardSources, type ResolveSrc } from "./sources.ts";

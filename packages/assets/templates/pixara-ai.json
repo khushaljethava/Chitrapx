@@ -30,6 +30,44 @@
       },
       "elements": [
        {
+        "id": "px_i_1",
+        "type": "image",
+        "name": "Aurora ribbon",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 6450,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:aurora-ribbon.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "px_i_2",
+        "type": "image",
+        "name": "Before grain wash",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 645,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:grain-wash-dark.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "px_t_3",
         "type": "text",
         "position": {
@@ -352,6 +390,25 @@
       },
       "elements": [
        {
+        "id": "px_i_17",
+        "type": "image",
+        "name": "Aurora ribbon",
+        "position": {
+         "x": -1290,
+         "y": 0
+        },
+        "size": {
+         "width": 6450,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:aurora-ribbon.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "px_t_18",
         "type": "text",
         "position": {
@@ -573,6 +630,25 @@
         "lineHeight": 1.3
        },
        {
+        "id": "px_i_28",
+        "type": "image",
+        "name": "Worn paper photo",
+        "position": {
+         "x": 120,
+         "y": 1950
+        },
+        "size": {
+         "width": 520,
+         "height": 640
+        },
+        "rotation": -10,
+        "scale": 1,
+        "imageSrc": "stock:old-photo.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
         "id": "px_d_29",
         "type": "device",
         "position": {
@@ -615,6 +691,25 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "px_i_30",
+        "type": "image",
+        "name": "Aurora ribbon",
+        "position": {
+         "x": -2580,
+         "y": 0
+        },
+        "size": {
+         "width": 6450,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:aurora-ribbon.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
        {
         "id": "px_t_31",
         "type": "text",
@@ -744,6 +839,25 @@
         "borderRadius": 28
        },
        {
+        "id": "px_i_37",
+        "type": "image",
+        "name": "After beach",
+        "position": {
+         "x": 866,
+         "y": 1866
+        },
+        "size": {
+         "width": 380,
+         "height": 470
+        },
+        "rotation": 4,
+        "scale": 1,
+        "imageSrc": "stock:beach-scene.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 22
+       },
+       {
         "id": "px_d_38",
         "type": "device",
         "position": {
@@ -829,6 +943,25 @@
       },
       "elements": [
        {
+        "id": "px_i_41",
+        "type": "image",
+        "name": "Aurora ribbon",
+        "position": {
+         "x": -3870,
+         "y": 0
+        },
+        "size": {
+         "width": 6450,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:aurora-ribbon.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "px_t_42",
         "type": "text",
         "position": {
@@ -871,6 +1004,158 @@
         "fontWeight": "700",
         "textAlign": "center",
         "lineHeight": 1.1
+       },
+       {
+        "id": "px_i_44",
+        "type": "image",
+        "name": "tile-frame-golden",
+        "position": {
+         "x": 25,
+         "y": 500
+        },
+        "size": {
+         "width": 640,
+         "height": 640
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:neon-tile-frame.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "px_i_45",
+        "type": "image",
+        "name": "tile-frame-neon",
+        "position": {
+         "x": 625,
+         "y": 500
+        },
+        "size": {
+         "width": 640,
+         "height": 640
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:neon-tile-frame.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "px_i_46",
+        "type": "image",
+        "name": "tile-frame-soft",
+        "position": {
+         "x": 25,
+         "y": 1120
+        },
+        "size": {
+         "width": 640,
+         "height": 640
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:neon-tile-frame.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "px_i_47",
+        "type": "image",
+        "name": "tile-frame-noir",
+        "position": {
+         "x": 625,
+         "y": 1120
+        },
+        "size": {
+         "width": 640,
+         "height": 640
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:neon-tile-frame.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "px_i_48",
+        "type": "image",
+        "name": "tile-golden",
+        "position": {
+         "x": 65,
+         "y": 540
+        },
+        "size": {
+         "width": 560,
+         "height": 560
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:still-life-golden.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 36
+       },
+       {
+        "id": "px_i_49",
+        "type": "image",
+        "name": "tile-neon",
+        "position": {
+         "x": 665,
+         "y": 540
+        },
+        "size": {
+         "width": 560,
+         "height": 560
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:still-life-neon.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 36
+       },
+       {
+        "id": "px_i_50",
+        "type": "image",
+        "name": "tile-soft",
+        "position": {
+         "x": 65,
+         "y": 1160
+        },
+        "size": {
+         "width": 560,
+         "height": 560
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:still-life-soft.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 36
+       },
+       {
+        "id": "px_i_51",
+        "type": "image",
+        "name": "tile-noir",
+        "position": {
+         "x": 665,
+         "y": 1160
+        },
+        "size": {
+         "width": 560,
+         "height": 560
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:still-life-noir.webp",
+        "imageAlt": "",
+        "objectFit": "cover",
+        "borderRadius": 36
        },
        {
         "id": "px_r_52",
@@ -1087,6 +1372,25 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "px_i_61",
+        "type": "image",
+        "name": "Aurora ribbon",
+        "position": {
+         "x": -5160,
+         "y": 0
+        },
+        "size": {
+         "width": 6450,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:aurora-ribbon.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
        {
         "id": "px_s_62",
         "type": "shape",

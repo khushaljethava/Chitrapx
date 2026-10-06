@@ -30,6 +30,25 @@
       },
       "elements": [
        {
+        "id": "scrappi-img-1",
+        "type": "image",
+        "name": "paper grain",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-grain.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-2",
         "type": "text",
         "position": {
@@ -50,6 +69,25 @@
         "fontWeight": "400",
         "textAlign": "center",
         "lineHeight": 1.05
+       },
+       {
+        "id": "scrappi-img-3",
+        "type": "image",
+        "name": "headline strip",
+        "position": {
+         "x": 260,
+         "y": 288
+        },
+        "size": {
+         "width": 770,
+         "height": 164
+        },
+        "rotation": -2,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-strip.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-txt-4",
@@ -96,6 +134,63 @@
         "lineHeight": 1.12
        },
        {
+        "id": "scrappi-img-6",
+        "type": "image",
+        "name": "deckle page",
+        "position": {
+         "x": 60,
+         "y": 880
+        },
+        "size": {
+         "width": 1170,
+         "height": 1702
+        },
+        "rotation": 1,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-page.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-7",
+        "type": "image",
+        "name": "paperclip",
+        "position": {
+         "x": 150,
+         "y": 795
+        },
+        "size": {
+         "width": 96,
+         "height": 185
+        },
+        "rotation": -8,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-clip.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-8",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": 66,
+         "y": 942.4799999999999
+        },
+        "size": {
+         "width": 990,
+         "height": 1742.4
+        },
+        "rotation": -3,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-9",
         "type": "device",
         "position": {
@@ -121,6 +216,82 @@
          "width": 100,
          "height": 100
         }
+       },
+       {
+        "id": "scrappi-img-10",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 55,
+         "y": 928
+        },
+        "size": {
+         "width": 360,
+         "height": 101.88
+        },
+        "rotation": -13,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-11",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 685,
+         "y": 942
+        },
+        "size": {
+         "width": 360,
+         "height": 101.88
+        },
+        "rotation": 12,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-12",
+        "type": "image",
+        "name": "polaroid slot",
+        "position": {
+         "x": 960,
+         "y": 1430
+        },
+        "size": {
+         "width": 330,
+         "height": 396
+        },
+        "rotation": 7,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-polaroid.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-13",
+        "type": "image",
+        "name": "pressed flower",
+        "position": {
+         "x": 985,
+         "y": 2330
+        },
+        "size": {
+         "width": 280,
+         "height": 280
+        },
+        "rotation": -14,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-flower.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#E4C9A1",
@@ -144,6 +315,44 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "scrappi-img-14",
+        "type": "image",
+        "name": "paper grain",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-grain.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-15",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 985,
+         "y": -32
+        },
+        "size": {
+         "width": 400,
+         "height": 113.19999999999999
+        },
+        "rotation": 14,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
        {
         "id": "scrappi-txt-16",
         "type": "text",
@@ -189,6 +398,44 @@
         "lineHeight": 1.12
        },
        {
+        "id": "scrappi-img-18",
+        "type": "image",
+        "name": "deckle page",
+        "position": {
+         "x": 40,
+         "y": 560
+        },
+        "size": {
+         "width": 1210,
+         "height": 1760
+        },
+        "rotation": -1,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-page.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-19",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": -86.25,
+         "y": 768.5999999999999
+        },
+        "size": {
+         "width": 862.5,
+         "height": 1518.0000000000002
+        },
+        "rotation": -6,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-20",
         "type": "device",
         "position": {
@@ -216,6 +463,63 @@
         }
        },
        {
+        "id": "scrappi-img-21",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": -90,
+         "y": 792
+        },
+        "size": {
+         "width": 320,
+         "height": 90.55999999999999
+        },
+        "rotation": -16,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-22",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 470,
+         "y": 728
+        },
+        "size": {
+         "width": 320,
+         "height": 90.55999999999999
+        },
+        "rotation": 8,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-23",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": 593.75,
+         "y": 1218.6
+        },
+        "size": {
+         "width": 862.5,
+         "height": 1518.0000000000002
+        },
+        "rotation": 7,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-24",
         "type": "device",
         "position": {
@@ -241,6 +545,44 @@
          "width": 100,
          "height": 100
         }
+       },
+       {
+        "id": "scrappi-img-25",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 655,
+         "y": 1168
+        },
+        "size": {
+         "width": 330,
+         "height": 93.38999999999999
+        },
+        "rotation": -10,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-26",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 1130,
+         "y": 1292
+        },
+        "size": {
+         "width": 330,
+         "height": 93.38999999999999
+        },
+        "rotation": 14,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-txt-27",
@@ -289,6 +631,44 @@
          "strokeOnly": true,
          "baseStrokeWidth": 5
         }
+       },
+       {
+        "id": "scrappi-img-29",
+        "type": "image",
+        "name": "scrap left",
+        "position": {
+         "x": -50,
+         "y": 2560
+        },
+        "size": {
+         "width": 400,
+         "height": 286
+        },
+        "rotation": 10,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-kraft.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-30",
+        "type": "image",
+        "name": "scrap right",
+        "position": {
+         "x": 1000,
+         "y": 2640
+        },
+        "size": {
+         "width": 380,
+         "height": 271
+        },
+        "rotation": -14,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-kraft.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#E4C9A1",
@@ -312,6 +692,25 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "scrappi-img-31",
+        "type": "image",
+        "name": "paper grain",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-grain.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
        {
         "id": "scrappi-txt-32",
         "type": "text",
@@ -463,6 +862,25 @@
         }
        },
        {
+        "id": "scrappi-img-39",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": -46.25,
+         "y": 731.3999999999999
+        },
+        "size": {
+         "width": 1012.5,
+         "height": 1782.0000000000002
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-40",
         "type": "device",
         "position": {
@@ -488,6 +906,63 @@
          "width": 100,
          "height": 100
         }
+       },
+       {
+        "id": "scrappi-img-41",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": -40,
+         "y": 722
+        },
+        "size": {
+         "width": 350,
+         "height": 99.05
+        },
+        "rotation": -12,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-42",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 605,
+         "y": 728
+        },
+        "size": {
+         "width": 350,
+         "height": 99.05
+        },
+        "rotation": 11,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-43",
+        "type": "image",
+        "name": "sticker sheet",
+        "position": {
+         "x": 848,
+         "y": 780
+        },
+        "size": {
+         "width": 430,
+         "height": 881
+        },
+        "rotation": -3,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-stickers.webp",
+        "imageAlt": "",
+        "objectFit": "contain",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-shp-44",
@@ -658,6 +1133,25 @@
         }
        },
        {
+        "id": "scrappi-img-51",
+        "type": "image",
+        "name": "pressed flower",
+        "position": {
+         "x": 990,
+         "y": 2140
+        },
+        "size": {
+         "width": 250,
+         "height": 250
+        },
+        "rotation": 18,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-flower.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-52",
         "type": "text",
         "position": {
@@ -728,6 +1222,25 @@
       },
       "elements": [
        {
+        "id": "scrappi-img-54",
+        "type": "image",
+        "name": "paper grain",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-grain.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-55",
         "type": "text",
         "position": {
@@ -772,6 +1285,25 @@
         "lineHeight": 1.12
        },
        {
+        "id": "scrappi-img-57",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": 328.75,
+         "y": 771.3999999999999
+        },
+        "size": {
+         "width": 1012.5,
+         "height": 1782.0000000000002
+        },
+        "rotation": 4,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-58",
         "type": "device",
         "position": {
@@ -797,6 +1329,44 @@
          "width": 100,
          "height": 100
         }
+       },
+       {
+        "id": "scrappi-img-59",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 345,
+         "y": 762
+        },
+        "size": {
+         "width": 350,
+         "height": 99.05
+        },
+        "rotation": -12,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-60",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 995,
+         "y": 788
+        },
+        "size": {
+         "width": 350,
+         "height": 99.05
+        },
+        "rotation": 13,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-cus-61",
@@ -1117,6 +1687,25 @@
         "lineHeight": 1.25
        },
        {
+        "id": "scrappi-img-74",
+        "type": "image",
+        "name": "day tab",
+        "position": {
+         "x": 115,
+         "y": 2480
+        },
+        "size": {
+         "width": 285,
+         "height": 153
+        },
+        "rotation": -4,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-tab.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-75",
         "type": "text",
         "position": {
@@ -1137,6 +1726,25 @@
         "fontWeight": "400",
         "textAlign": "center",
         "lineHeight": 1.12
+       },
+       {
+        "id": "scrappi-img-76",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 150,
+         "y": 2438
+        },
+        "size": {
+         "width": 220,
+         "height": 62.25999999999999
+        },
+        "rotation": -12,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        }
       ],
       "backgroundColor": "#E4C9A1",
@@ -1160,6 +1768,25 @@
        "height": 2796
       },
       "elements": [
+       {
+        "id": "scrappi-img-77",
+        "type": "image",
+        "name": "paper grain",
+        "position": {
+         "x": 0,
+         "y": 0
+        },
+        "size": {
+         "width": 1290,
+         "height": 2796
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-grain.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
        {
         "id": "scrappi-txt-78",
         "type": "text",
@@ -1323,6 +1950,63 @@
         }
        },
        {
+        "id": "scrappi-img-85",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": -48.75,
+         "y": 1089.4
+        },
+        "size": {
+         "width": 637.5,
+         "height": 1122
+        },
+        "rotation": -10,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-86",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": 701.25,
+         "y": 1089.4
+        },
+        "size": {
+         "width": 637.5,
+         "height": 1122
+        },
+        "rotation": 10,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-87",
+        "type": "image",
+        "name": "paper shadow",
+        "position": {
+         "x": 326.25,
+         "y": 959.4
+        },
+        "size": {
+         "width": 637.5,
+         "height": 1122
+        },
+        "rotation": 2,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-shadow.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-phone-88",
         "type": "device",
         "position": {
@@ -1404,6 +2088,25 @@
         }
        },
        {
+        "id": "scrappi-img-91",
+        "type": "image",
+        "name": "tab 2024",
+        "position": {
+         "x": 145,
+         "y": 1032
+        },
+        "size": {
+         "width": 240,
+         "height": 129
+        },
+        "rotation": -10,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-tab.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-92",
         "type": "text",
         "position": {
@@ -1424,6 +2127,44 @@
         "fontWeight": "700",
         "textAlign": "center",
         "lineHeight": 1.12
+       },
+       {
+        "id": "scrappi-img-93",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 175,
+         "y": 1002
+        },
+        "size": {
+         "width": 210,
+         "height": 59.42999999999999
+        },
+        "rotation": -18,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-94",
+        "type": "image",
+        "name": "tab 2025",
+        "position": {
+         "x": 525,
+         "y": 892
+        },
+        "size": {
+         "width": 240,
+         "height": 129
+        },
+        "rotation": 3,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-tab.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-txt-95",
@@ -1448,6 +2189,44 @@
         "lineHeight": 1.12
        },
        {
+        "id": "scrappi-img-96",
+        "type": "image",
+        "name": "washi straw",
+        "position": {
+         "x": 555,
+         "y": 862
+        },
+        "size": {
+         "width": 210,
+         "height": 59.42999999999999
+        },
+        "rotation": 8,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-straw.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-97",
+        "type": "image",
+        "name": "tab 2026",
+        "position": {
+         "x": 900,
+         "y": 1032
+        },
+        "size": {
+         "width": 240,
+         "height": 129
+        },
+        "rotation": 10,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-tab.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "scrappi-txt-98",
         "type": "text",
         "position": {
@@ -1468,6 +2247,63 @@
         "fontWeight": "700",
         "textAlign": "center",
         "lineHeight": 1.12
+       },
+       {
+        "id": "scrappi-img-99",
+        "type": "image",
+        "name": "washi mint",
+        "position": {
+         "x": 930,
+         "y": 1002
+        },
+        "size": {
+         "width": 210,
+         "height": 59.42999999999999
+        },
+        "rotation": 16,
+        "scale": 1,
+        "imageSrc": "stock:washi-tape-mint.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-100",
+        "type": "image",
+        "name": "scrap",
+        "position": {
+         "x": -45,
+         "y": 2590
+        },
+        "size": {
+         "width": 380,
+         "height": 271
+        },
+        "rotation": 9,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-kraft.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
+        "id": "scrappi-img-101",
+        "type": "image",
+        "name": "pressed flower",
+        "position": {
+         "x": 1000,
+         "y": 2450
+        },
+        "size": {
+         "width": 265,
+         "height": 265
+        },
+        "rotation": 14,
+        "scale": 1,
+        "imageSrc": "stock:scrapbook-flower.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
        },
        {
         "id": "scrappi-shp-102",

@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { stockSrc, stockUrl, type ArtboardState, type StockPhoto } from "../src/index.ts";
-import { fitBox, restoreBoard } from "../scripts/restore-stock.ts";
+import { alignScreen, fitBox, restoreBoard } from "../scripts/restore-stock.ts";
 
 const root = join(import.meta.dirname, "../../..");
 const photos = JSON.parse(readFileSync(join(root, "packages/assets/stock.json"), "utf8")) as StockPhoto[];
@@ -33,6 +33,19 @@ describe("restoreBoard", () => {
     expect(restored.mediaId).toBeUndefined();
     expect(restoreBoard(ours, osg, lookup)).toBe(0); // re-running adds nothing
   });
+
+  it("reshapes only contained images that run off the bottom of the board", () => {
+    const wide = { file: "wide.png", width: 2, height: 1 } as StockPhoto;
+    const at = (y: number, objectFit = "contain") => ({ ...img("i", "/data/projects/x.png"), objectFit, position: { x: 0, y }, size: { width: 4, height: 4 } });
+    const mid = board([]), edge = board([]), cover = board([]);
+    restoreBoard(mid, board([at(2)]), () => wide);            // 2 + 4 < 9: stays as placed
+    restoreBoard(edge, board([at(6)]), () => wide);           // 6 + 4 >= 9: reshaped, bottom kept
+    restoreBoard(cover, board([at(6, "cover")]), () => wide); // cover crops to the box the design chose
+    expect(mid.elements[0]!.size).toEqual({ width: 4, height: 4 });
+    expect(edge.elements[0]!.size).toEqual({ width: 6, height: 3 });
+    expect(edge.elements[0]!.position.y + edge.elements[0]!.size.height).toBe(10);
+    expect(cover.elements[0]!.size).toEqual({ width: 4, height: 4 });
+  });
 });
 
 describe("fitBox", () => {
@@ -42,6 +55,21 @@ describe("fitBox", () => {
     expect(box.size).toEqual({ width: 800, height: 400 });
     expect(box.position).toEqual({ x: -100, y: 1400 });
     expect(fitBox(el, { width: 1, height: 2 })).toEqual({ size: { width: 400, height: 800 }, position: { x: 100, y: 1000 } });
+  });
+});
+
+describe("alignScreen", () => {
+  it("puts the phone's screen exactly under the overlay and trims the overlay to the screen", () => {
+    const photo = { file: "p.png", width: 100, height: 200, screen: { x: 0.5, y: 0.1, width: 0.4, height: 0.5 } } as StockPhoto;
+    const phone = { id: "p", type: "image", position: { x: 0, y: 0 }, size: { width: 1000, height: 2000 } } as never as ArtboardState["elements"][number];
+    const overlay = { id: "o", type: "image", rotation: -0.4, position: { x: 400, y: 300 }, size: { width: 200, height: 900 } } as never as ArtboardState["elements"][number];
+    const board = { elements: [phone, overlay] } as unknown as ArtboardState;
+    alignScreen(board, phone, photo);
+    // screen is 40 px wide in the file, so the phone scales 5x: 500 x 1000, screen at (250, 100) inside it.
+    expect(phone.size).toEqual({ width: 500, height: 1000 });
+    expect(phone.position).toEqual({ x: 150, y: 200 });
+    expect(overlay.size).toEqual({ width: 200, height: 500 });
+    expect(overlay.rotation).toBe(0);
   });
 });
 

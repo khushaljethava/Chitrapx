@@ -109,15 +109,18 @@ export function placeholderLayout(seed: string, width: number, height: number): 
   return LAYOUTS[hash(seed) % LAYOUTS.length]!;
 }
 
-/** An SVG data URL of a generic app screen with the given aspect. Same seed, same screen. */
-export function placeholderScreen(seed: string, width: number, height: number, dark = false): string {
+/** The SVG markup of a generic app screen with the given aspect. Same seed, same screen; `layout` and `accent` override the seed's pick. */
+export function placeholderSvg(seed: string, width: number, height: number, dark = false, opts: { layout?: PlaceholderLayout; accent?: string } = {}): string {
   const W = 400, H = Math.max(200, Math.round((W * height) / Math.max(1, width)));
-  const t = theme(dark, ACCENTS[hash(`${seed}:accent`) % ACCENTS.length]!);
-  const layout = placeholderLayout(seed, width, height);
+  const t = theme(dark, opts.accent ?? ACCENTS[hash(`${seed}:accent`) % ACCENTS.length]!);
+  const layout = opts.layout ?? placeholderLayout(seed, width, height);
   const body = layout === "desktop" ? desktop(W, H, t) : layout === "watch" ? watch(W, H, t) : tall(layout, W, H, t);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${rect(0, 0, W, H, 0, t.bg)}${body}</svg>`;
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${rect(0, 0, W, H, 0, t.bg)}${body}</svg>`;
 }
+
+/** An SVG data URL of a generic app screen with the given aspect. Same seed, same screen. */
+export const placeholderScreen = (seed: string, width: number, height: number, dark = false): string =>
+  `data:image/svg+xml;charset=utf-8,${encodeURIComponent(placeholderSvg(seed, width, height, dark))}`;
 
 const isEmptyScreen = (el: ArtboardElement) =>
   el.type === "device" && !(el as { screenshotSrc?: string }).screenshotSrc && (el as { deviceType?: string }).deviceType !== "custom";

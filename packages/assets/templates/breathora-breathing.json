@@ -955,6 +955,25 @@
         }
        },
        {
+        "id": "breathora-b4-fade-45",
+        "type": "image",
+        "name": "Bottom fade",
+        "position": {
+         "x": 0,
+         "y": 2096
+        },
+        "size": {
+         "width": 1290,
+         "height": 700
+        },
+        "rotation": 0,
+        "scale": 1,
+        "imageSrc": "stock:fade-green.webp",
+        "imageAlt": "",
+        "objectFit": "fill",
+        "borderRadius": 0
+       },
+       {
         "id": "breathora-b4-headline-38",
         "type": "text",
         "position": {

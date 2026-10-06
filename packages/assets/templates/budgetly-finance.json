@@ -1390,6 +1390,24 @@
         "lineHeight": 1.15
        },
        {
+        "id": "tpl_bgt_ab4_hand",
+        "type": "image",
+        "name": "Holding Hand",
+        "position": {
+         "x": 100,
+         "y": 1030
+        },
+        "size": {
+         "width": 920,
+         "height": 1720
+        },
+        "rotation": -6,
+        "scale": 1,
+        "imageSrc": "stock:hand-finger-up.webp",
+        "imageAlt": "Hand holding phone",
+        "objectFit": "contain"
+       },
+       {
         "id": "tpl_bgt_ab4_dev",
         "type": "device",
         "position": {
