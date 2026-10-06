@@ -29,7 +29,7 @@ async function ctxWith(credits: number): Promise<Ctx> {
   const user = await createUser();
   const ws = await makeWorkspace(user.id);
   if (credits) await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: credits, reason: "adjust" });
-  return { userId: user.id, workspaceId: ws, plan: "free" };
+  return { userId: user.id, workspaceId: ws, plan: "free", role: "owner" };
 }
 
 describe("jobs", () => {
@@ -88,7 +88,7 @@ describe("export guards", () => {
     await seedTemplates();
     const { createUser, makeWorkspace } = await import("../../../packages/db/test/helpers.ts");
     const user = await createUser();
-    const ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" as const };
+    const ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" as const, role: "owner" as const };
     const app = await createApp(ctx, { name: "A" });
     const p = await createProject(ctx, app.id, { name: "T", templateSlug: "amoura-dating" });
     const row = (await db.select().from(schema.projects).where(eq(schema.projects.id, p.id)))[0]!;
@@ -108,7 +108,7 @@ describe("recordings", () => {
   }
 
   it("queues one conversion per file, even for copies in other apps, and retries a failed one", async () => {
-    const ctx = { ...(await ctxWith(0)), plan: "pro" as const };
+    const ctx = { ...(await ctxWith(0)), plan: "pro" as const, role: "owner" as const };
     const [a, b] = [await createApp(ctx, { name: "A" }), await createApp(ctx, { name: "B" })];
     const sha = "a".repeat(64);
     const first = await recording(ctx, a.id, sha, { ready: false });

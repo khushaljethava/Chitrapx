@@ -25,7 +25,7 @@ const sha = (b: Buffer) => createHash("sha256").update(b).digest("hex");
 
 async function setup(plan: Ctx["plan"] = "free") {
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, plan), plan };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, plan), plan, role: "owner" };
   const app = await createApp(ctx, { name: "A" });
   return { ctx, app, storage: memoryStorage() };
 }

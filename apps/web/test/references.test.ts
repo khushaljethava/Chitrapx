@@ -28,7 +28,7 @@ const rights = { analysisRights: true };
 
 async function setup() {
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro", role: "owner" };
   return { ctx, app: await createApp(ctx, { name: "A" }), storage: memoryStorage() };
 }
 type S = Awaited<ReturnType<typeof setup>>;

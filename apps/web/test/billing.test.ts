@@ -30,7 +30,7 @@ afterEach(() => { vi.unstubAllGlobals(); });
 async function ctxWith(credits: number): Promise<Ctx> {
   const ws = await makeWorkspace((await createUser()).id);
   if (credits) await db.insert(schema.creditLedger).values({ workspaceId: ws, delta: credits, reason: "adjust" });
-  return { userId: "", workspaceId: ws, plan: "free" };
+  return { userId: "", workspaceId: ws, plan: "free", role: "owner" };
 }
 const planOf = async (ws: string) => (await db.select({ plan: schema.workspaces.plan }).from(schema.workspaces).where(eq(schema.workspaces.id, ws)))[0]!.plan;
 function webhook(event: string, payload: unknown, id = `evt_${RUN}_${seq++}`) {

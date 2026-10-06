@@ -10,7 +10,7 @@ import { createProject, getProject, saveDoc } from "@/server/projects.ts";
 async function setup() {
   await seedTemplates();
   const user = await createUser();
-  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro" };
+  const ctx: Ctx = { userId: user.id, workspaceId: await makeWorkspace(user.id, "pro"), plan: "pro", role: "owner" };
   const app = await createApp(ctx, { name: "A" });
   const project = await createProject(ctx, app.id, { name: "P", templateSlug: "amoura-dating" });
   return { ctx, project };
