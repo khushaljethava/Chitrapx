@@ -99,6 +99,13 @@
       "when": 1791262602059,
       "tag": "0014_sp15_collaboration",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791265135067,
+      "tag": "0015_sp15_live_coediting",
+      "breakpoints": true
     }
   ]
 }

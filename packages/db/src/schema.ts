@@ -122,6 +122,25 @@ export const projectVersions = pgTable("project_versions", {
   createdAt: createdAt(),
 }, (t) => [index("project_versions_project_idx").on(t.projectId), index("project_versions_project_created_idx").on(t.projectId, t.createdAt.desc())]);
 
+/**
+ * SP15 live co-editing: the server-ordered command log. `seq` is the project revision the command produced;
+ * whole-document writes (solo save, restore, AI jobs) bump the revision without a row, which readers see as
+ * a hole and answer with a snapshot. (client_id, client_seq) makes resubmission idempotent.
+ */
+export const projectCommands = pgTable("project_commands", {
+  projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  seq: integer("seq").notNull(),
+  workspaceId: workspaceRef(),
+  clientId: uuid("client_id").notNull(),
+  clientSeq: integer("client_seq").notNull(),
+  userId: uuid("user_id").references(() => authUsers.id, { onDelete: "set null" }),
+  command: jsonb("command").notNull(),
+  createdAt: createdAt(),
+}, (t) => [
+  primaryKey({ columns: [t.projectId, t.seq] }),
+  unique("project_commands_client_uq").on(t.projectId, t.clientId, t.clientSeq),
+]);
+
 export const assets = pgTable("assets", {
   id: id(),
   workspaceId: workspaceRef(),

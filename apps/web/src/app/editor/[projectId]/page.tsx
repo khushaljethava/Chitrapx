@@ -6,7 +6,8 @@ import { AccessRemoved, AccessWatcher } from "@/components/Workspaces.tsx";
 import { Editor } from "@/editor/Editor.tsx";
 import { EditorComments } from "@/editor/ui/CommentsPanel.tsx";
 import { can } from "@/server/authz.ts";
-import { requireContext } from "@/server/context.ts";
+import { canSendCommands } from "@/server/commands.ts";
+import { currentUser, requireContext } from "@/server/context.ts";
 import { renderExtras } from "@/server/renderExtras.ts";
 import { HttpError } from "@/server/http.ts";
 import { assetUrlMap, getProject } from "@/server/projects.ts";
@@ -45,7 +46,10 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       </main>
     );
   }
-  const [docUrls, assets, fonts, app] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId)]);
+  const [docUrls, assets, fonts, app, user] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId), currentUser()]);
+  // SP15 presence: the name others see next to this editor's cursor.
+  const meta = (user?.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string };
+  const me = { userId: ctx.userId, name: meta.full_name || meta.name || user?.email || "Someone", avatarUrl: meta.avatar_url ?? null };
   // Everything the app has uploaded is pickable, so its URLs must resolve too.
   const assetUrls = {
     ...docUrls,
@@ -64,6 +68,8 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       extras={{ faces: facesOf(fonts), palette: brandPalette(app.brand) }}
       openTranslations={search.translations === "1"}
       glossary={app.glossary}
+      me={me}
+      canEdit={canSendCommands(ctx)}
     >
       <EditorComments projectId={project.id} moderate={can(ctx, "members")} initiallyOpen={search.comments === "1"} />
     </Editor>

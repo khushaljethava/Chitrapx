@@ -13,12 +13,14 @@ import { TranslationsTable } from "./TranslationsTable.tsx";
 
 const STATUS: Record<SaveStatus, string> = {
   saved: "All changes saved", saving: "Saving", unsaved: "Unsaved changes", offline: "Offline, kept on this device",
-  conflict: "Changed elsewhere", error: "Could not save",
+  conflict: "Changed elsewhere", error: "Could not save", reconnecting: "Reconnecting, edits still save",
 };
 
-export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations, glossary: initialGlossary }: {
+export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations, glossary: initialGlossary, presence }: {
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
   adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; openTranslations?: boolean; glossary: string[];
+  /** SP15: who else is in the project. */
+  presence?: React.ReactNode;
 }) {
   const { resolveSrc, fonts, extras } = useEditorAssets();
   const store = useEditorStore();
@@ -77,7 +79,8 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
           </label>
         )}
       </nav>
-      <span className={`ml-auto text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
+      {presence && <div className="ml-auto">{presence}</div>}
+      <span className={`${presence ? "" : "ml-auto "}text-xs ${status === "conflict" || status === "error" ? "text-red-600" : "text-neutral-500"}`} role="status" title={error || undefined}>{STATUS[status]}{status === "error" && error ? `: ${error}` : ""}</span>
       <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
       {translating && <TranslationsTable name={name} glossary={glossary} onGlossary={setGlossary} onClose={() => setTranslating(false)} />}
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>

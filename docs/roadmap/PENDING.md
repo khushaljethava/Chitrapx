@@ -100,8 +100,19 @@ Built and merged; these were left for later.
 
 ## SP15 follow-ups (roles, share links, comments)
 
-- [ ] Apply migration `0014_sp15_collaboration` after merging (member_role becomes owner/admin/editor/viewer; existing `member` rows become `editor`; new tables `workspace_invites`, `project_shares`, `project_comments`, `notifications` with read-only RLS). Renumber its journal entry if another branch also took 0014; 15.3's migration goes after it.
-- [ ] Wire 15.3's command route to `requireContext("edit")` and its presence/read routes to `requireContext()`; replace the comments poll with its Realtime channel.
+- [ ] Apply migration `0014_sp15_collaboration` (merged; member_role becomes owner/admin/editor/viewer; existing `member` rows become `editor`; new tables `workspace_invites`, `project_shares`, `project_comments`, `notifications` with read-only RLS).
+- [x] 15.3's command route uses `requireContext("edit")` and `canSendCommands` uses `can(ctx, "edit")` (wired at merge).
+- [ ] Replace the comments poll with the Realtime channel.
 - [ ] Run `apps/worker/test-e2e/collaboration.test.ts` with the web app up.
 - [ ] Deferred: comment pins drawn on the canvas (anchors are stored), a comment count on project cards, seat add-ons, email delivery of invites and mentions.
 
+## SP15.3 live co-editing follow-ups
+
+Merged into `main` (spec `docs/superpowers/specs/2026-10-06-sp15-live-coediting-design.md`, plan with the manual check list `docs/superpowers/plans/2026-10-06-sp15-live-coediting.md`).
+
+- [x] Migration `0015_sp15_live_coediting` rechained after 0014 at merge (snapshot `prevId` = 0014).
+- [ ] Apply migrations 0013, 0014 and 0015 to the dev database (`pnpm db:migrate`).
+- [ ] Supabase: Realtime private channels must be allowed (Project Settings, Realtime). Migration 0015 adds the `realtime.messages` policies; without them the editor simply stays in solo mode.
+- [ ] Run the twelve manual two-browser checks at the end of the SP15.3 plan, and `apps/worker/test-e2e/collab.test.ts` with the web app up.
+- [ ] Measure Realtime latency and message limits on the chosen plan (roadmap open question 9); drags send one command at the end plus a preview every 80 ms.
+- [ ] Later: compaction of `project_commands` (one row per coalesced command; a version every 100), a cap of about 10 editors, comments on the same channel (15.4).
