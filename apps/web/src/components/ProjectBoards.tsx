@@ -23,9 +23,12 @@ export function ProjectBoards({ doc, assetUrls, extras }: { doc: ChitrapxDoc; as
         </div>
       )}
       {doc.groups.map((g) => (
-        <section key={g.id} className="space-y-2">
-          <h2 className="text-sm font-medium text-neutral-500">{getTarget(g.target)?.label} · {g.boards.length} board{g.boards.length === 1 ? "" : "s"}</h2>
-          <div className="flex gap-3 overflow-x-auto pb-2">
+        <section key={g.id} className="space-y-3 rounded-2xl border border-neutral-200 bg-neutral-100/60 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
+          <h2 className="flex items-baseline gap-2 text-sm">
+            <span className="font-semibold">{getTarget(g.target)?.label}</span>
+            <span className="tabular-nums text-neutral-500">{getTarget(g.target)?.width}×{getTarget(g.target)?.height} · {g.boards.length} board{g.boards.length === 1 ? "" : "s"}</span>
+          </h2>
+          <div className="flex gap-4 overflow-x-auto pb-2">
             {g.boards.map((b, i) => (
               <BoardThumb key={b.id} doc={doc} groupId={g.id} boardIndex={i} locale={locale} height={b.size.width > b.size.height ? 200 : 360} resolveSrc={resolveSrc} extras={extras} />
             ))}

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { getTarget, TARGETS, type ArtboardElement, type TargetId } from "@chitrapx/document";
 import { useJobDownload } from "@/components/useJobDownload.ts";
 import { useIntake } from "../useIntake.ts";
@@ -9,6 +10,9 @@ import { StylePicker } from "./StylePicker.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
 import { HeadlineIdeas } from "./HeadlineIdeas.tsx";
 import { LayersPanel } from "./LayersPanel.tsx";
+
+const TABS = ["Boards", "Layers", "Add", "AI"] as const;
+type Tab = (typeof TABS)[number];
 
 type NewElement = (w: number, h: number) => Record<string, unknown>;
 const base = (w: number, h: number, ew: number, eh: number) =>
@@ -58,9 +62,22 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
     store.getState().setActiveBoard(id);
   };
   const usedTargets = new Set(doc.groups.map((g) => g.target));
+  const [tab, setTab] = useState<Tab>("Boards");
+  // Hidden, not unmounted, so AI requests and panel state survive a tab switch.
+  const pane = (t: Tab) => ({ role: "tabpanel", id: `left-${t}`, "aria-labelledby": `left-tab-${t}`, hidden: tab !== t, className: "space-y-5 p-3" });
 
   return (
-    <aside className="w-60 shrink-0 space-y-5 overflow-y-auto border-r border-neutral-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900">
+    <aside className="flex w-64 shrink-0 flex-col border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+      <div role="tablist" aria-label="Editor panels" className="grid grid-cols-4 gap-1 border-b border-neutral-200 p-1.5 dark:border-neutral-800">
+        {TABS.map((t) => (
+          <button key={t} type="button" role="tab" id={`left-tab-${t}`} aria-controls={`left-${t}`} aria-selected={tab === t} onClick={() => setTab(t)}
+            className={`rounded-lg py-1.5 text-xs font-medium transition ${tab === t ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"}`}>
+            {t === "AI" ? <><span aria-hidden className="mr-0.5 text-coral-500">✦</span>AI</> : t}
+          </button>
+        ))}
+      </div>
+      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div {...pane("Add")}>
       <section className="space-y-2">
         <h2 className="label">Add</h2>
         <div className="grid grid-cols-2 gap-1.5">
@@ -77,7 +94,9 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
               add({ ...base(w, h, ew, ew * 2.17), type: "video-device", name: "Phone with video", deviceType: "iphone-17-pro-max", styleType: "normal", screenshotRect: { left: 0, top: 0, width: 100, height: 100 } }); }}>Phone + video</button>
         </div>
       </section>
+      </div>
 
+      <div {...pane("Boards")}>
       <section className="space-y-2">
         <h2 className="label">Sizes</h2>
         <div className="flex flex-wrap gap-1">
@@ -128,7 +147,7 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
         </div>
         <ol className="space-y-1">
           {group?.boards.map((b, i) => (
-            <li key={b.id} className={`group flex items-center gap-1 rounded-md px-2 py-1 text-sm ${b.id === board?.id ? "bg-indigo-50 dark:bg-indigo-950" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}>
+            <li key={b.id} className={`group flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm ${b.id === board?.id ? "bg-indigo-50 ring-1 ring-indigo-200 dark:bg-indigo-950 dark:ring-indigo-800" : "hover:bg-neutral-100 dark:hover:bg-neutral-800"}`}>
               <button type="button" className="flex-1 truncate text-left" onClick={() => { store.getState().setActiveBoard(b.id); store.getState().select([]); }}>
                 <span className="mr-1 text-neutral-400">{i + 1}</span>{b.name}
               </button>
@@ -149,14 +168,17 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
         {intake.errors.length > 0 && <ul className="error list-disc pl-4 text-xs" role="alert">{intake.errors.map((m, i) => <li key={i}>{m}</li>)}</ul>}
         {png.error && <p role="alert" className="error text-xs">{png.error}{png.error.startsWith("Free jobs") ? " Use Export ZIP for full sets." : ""}</p>}
       </section>
+      </div>
 
-      <LayersPanel />
+      <div {...pane("Layers")}><LayersPanel /></div>
 
+      <div {...pane("AI")}>
       <StylePicker />
       <Checks />
-
       <CopyIdeas />
       <HeadlineIdeas />
+      </div>
+      </div>
     </aside>
   );
 }

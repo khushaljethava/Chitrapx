@@ -46,10 +46,24 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="card w-full max-w-sm">
-        <h1 className="mb-6 text-xl font-semibold">Sign in to Chitrapx</h1>
-        <Suspense><LoginForm /></Suspense>
+    <main className="grid min-h-screen lg:grid-cols-2">
+      <aside aria-hidden className="relative hidden overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+        <span className="font-display text-lg font-bold">Chitrapx</span>
+        <div className="flex justify-center gap-4">
+          {["-rotate-6 translate-y-8", "z-10", "rotate-6 translate-y-8"].map((t) => (
+            <div key={t} className={`aspect-[9/19] w-36 rounded-[1.75rem] border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur ${t}`}>
+              <div className="h-full rounded-[1.25rem] bg-gradient-to-b from-white/30 to-white/5" />
+            </div>
+          ))}
+        </div>
+        <p className="max-w-sm font-display text-2xl font-semibold leading-snug">From raw app screens to a store-ready set in one sitting.</p>
+      </aside>
+      <div className="flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <h1 className="text-3xl font-bold">Sign in to Chitrapx</h1>
+          <p className="mb-8 mt-2 text-sm text-neutral-500">No password needed. We&apos;ll email you a link.</p>
+          <Suspense><LoginForm /></Suspense>
+        </div>
       </div>
     </main>
   );

@@ -18,7 +18,7 @@ import { Inspector } from "./ui/Inspector.tsx";
 import { LeftPanel } from "./ui/LeftPanel.tsx";
 import { DocJobProvider } from "./docJobs.tsx";
 import { PresenceBar } from "./ui/PresenceBar.tsx";
-import { Toolbar } from "./ui/Toolbar.tsx";
+import { Toolbar, ZoomBar } from "./ui/Toolbar.tsx";
 import type { PickerAsset } from "./ui/fields.tsx";
 
 export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations, glossary, me = null, canEdit = true, children }: {
@@ -64,7 +64,10 @@ export function Editor({ appId, project, assets, assetUrls, fonts, extras, openT
           presence={<PresenceBar peers={live.peers} live={live.mode === "live"} notice={live.notice} onDismiss={live.dismissNotice} selfId={me?.userId} />} />
         <div className="flex min-h-0 flex-1">
           <LeftPanel flush={flush} />
-          <Canvas />
+          <div className="relative flex min-w-0 flex-1">
+            <Canvas />
+            <div className="pointer-events-none absolute inset-x-0 bottom-5 z-20 flex justify-center"><ZoomBar /></div>
+          </div>
           <Inspector />
         </div>
       </div>

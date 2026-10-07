@@ -181,7 +181,7 @@ export function Canvas() {
   }
 
   return (
-    <div ref={viewport} className="relative flex-1 overflow-auto bg-neutral-200 dark:bg-neutral-900"
+    <div ref={viewport} className="relative flex-1 overflow-auto bg-neutral-100 bg-[radial-gradient(var(--color-neutral-300)_1px,transparent_1px)] bg-size-[16px_16px] dark:bg-neutral-950 dark:bg-[radial-gradient(var(--color-neutral-800)_1px,transparent_1px)]"
       onDragOver={(e) => { if (!isFileDrag(e.dataTransfer)) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setFileOver(true); }}
       onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFileOver(false); }}
       onDrop={(e) => {
@@ -258,7 +258,7 @@ export function Canvas() {
       </div>
       {fileOver && <div className="pointer-events-none absolute inset-0 z-10 border-4 border-dashed border-indigo-500 bg-indigo-500/10" aria-hidden />}
       {(intake.progress || intake.errors.length > 0 || intake.pending) && (
-        <div className="sticky bottom-4 left-4 z-20 m-4 max-w-sm space-y-2 rounded-md bg-white p-3 text-sm shadow dark:bg-neutral-800" role="status">
+        <div className="sticky bottom-4 left-4 z-20 m-4 max-w-sm space-y-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-800" role="status">
           {intake.progress && <p>{intake.progress}</p>}
           {intake.pending && (
             <div className="space-y-1">

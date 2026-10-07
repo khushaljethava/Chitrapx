@@ -29,9 +29,9 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
         {projects.length < maxProjects && <Link href={`/dashboard/apps/${appId}/templates`} className="btn">Start from a template</Link>}
       </div>
       {projects.length === 0 && <p className="text-sm text-neutral-500">No projects yet.</p>}
-      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {projects.map((p) => (
-          <li key={p.id} className="flex items-center gap-3 py-2">
+          <li key={p.id} className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 transition hover:border-indigo-300 dark:border-neutral-800">
             {editing === p.id ? (
               <form className="flex flex-1 gap-2" onSubmit={(e) => {
                 e.preventDefault();
@@ -42,16 +42,22 @@ export function ProjectList({ appId, projects, maxProjects }: { appId: string; p
                 <button className="btn-ghost">Save</button>
               </form>
             ) : (
-              <div className="flex flex-1 items-center gap-2">
-                <Link href={`/dashboard/projects/${p.id}`} className="font-medium hover:underline">{p.name}</Link>
-                <span className="text-xs text-neutral-500">{KINDS.find(([k]) => k === p.kind)?.[1]}</span>
-                <button className="text-xs text-neutral-500 hover:underline" onClick={() => setEditing(p.id)}>Rename</button>
+              <div className="min-w-0 flex-1">
+                <Link href={`/dashboard/projects/${p.id}`} className="block truncate font-semibold hover:text-indigo-600">{p.name}</Link>
+                <div className="mt-1.5 flex items-center gap-2 text-xs text-neutral-500">
+                  <span className="chip">{KINDS.find(([k]) => k === p.kind)?.[1]}</span>
+                  {/* ISO date, not toLocaleDateString: same text on server and client, no hydration mismatch */}
+                  <span>Updated {p.updatedAt.slice(0, 10)}</span>
+                </div>
               </div>
             )}
-            <button className="btn-danger" onBlur={() => setArmed(null)} onClick={() =>
+            <div className="flex items-center justify-between border-t border-neutral-100 pt-2 dark:border-neutral-800">
+            <button className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-100" onClick={() => setEditing(p.id)}>Rename</button>
+            <button className="btn-danger px-2 py-1 text-xs" onBlur={() => setArmed(null)} onClick={() =>
               armed === p.id ? run(() => api(`/api/projects/${p.id}`, "DELETE")) : setArmed(p.id)}>
               {armed === p.id ? "Confirm" : "Delete"}
             </button>
+            </div>
           </li>
         ))}
       </ul>

@@ -76,7 +76,7 @@ export function Inspector() {
   const ref = selection.length === 1 ? selection[0]! : null;
   const el = ref ? findElement(doc, ref) : undefined;
   return (
-    <aside className="w-72 shrink-0 space-y-4 overflow-y-auto border-l border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <aside className="w-80 shrink-0 space-y-4 overflow-y-auto border-l border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
       {selection.length > 1 ? <p className="text-sm text-neutral-500">{selection.length} items selected. Drag to move them together.</p>
         : ref && el ? <ElementInspector key={`${ref.boardId}:${ref.elementId}`} refr={ref} el={el} assets={assets} />
           : <BoardInspector />}

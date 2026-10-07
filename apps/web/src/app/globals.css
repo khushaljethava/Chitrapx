@@ -2,15 +2,52 @@
 /* The renderer package ships Tailwind classes (ported OSG elements). */
 @source "../../../../packages/renderer/src";
 
-:root { color-scheme: light dark; }
-body { @apply bg-neutral-50 text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100; }
+/* Redesign (Stitch "Chitrapx" design system): electric violet brand, warm neutrals, coral for AI moments.
+   ponytail: the palette is remapped in place so every existing indigo-/neutral- class picks it up; rename to brand-/ink- if it ever confuses. */
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-inter), ui-sans-serif, sans-serif;
+
+  --color-indigo-50: #f1efff;
+  --color-indigo-100: #e4e0ff;
+  --color-indigo-200: #cbc4ff;
+  --color-indigo-300: #a99dff;
+  --color-indigo-400: #8473ff;
+  --color-indigo-500: #6b5bff;
+  --color-indigo-600: #5b4bff;
+  --color-indigo-700: #4a37e6;
+  --color-indigo-800: #3b2bb8;
+  --color-indigo-900: #2f2591;
+  --color-indigo-950: #1c1658;
+
+  --color-neutral-50: #fafaf7;
+  --color-neutral-100: #f3f2ee;
+  --color-neutral-200: #e7e5df;
+  --color-neutral-300: #d4d2cb;
+  --color-neutral-400: #a3a19a;
+  --color-neutral-500: #73716b;
+  --color-neutral-600: #57554f;
+  --color-neutral-700: #3f3d39;
+  --color-neutral-800: #282724;
+  --color-neutral-900: #1a1917;
+  --color-neutral-950: #0f0f0d;
+
+  --color-coral-500: #ff6b4a;
+  --color-coral-600: #f0502d;
+}
+
+:root { color-scheme: light dark; accent-color: var(--color-indigo-600); }
+body { @apply bg-neutral-50 font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100; }
+h1, h2, h3 { @apply font-display tracking-tight; }
 
 @layer components {
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 disabled:opacity-50 dark:border-neutral-700 dark:hover:bg-neutral-800; }
-  .btn-danger { @apply inline-flex items-center rounded-lg px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950; }
-  .input { @apply w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-neutral-700 dark:bg-neutral-900; }
-  .label { @apply mb-1 block text-xs font-medium text-neutral-600 dark:text-neutral-400; }
-  .card { @apply rounded-xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50; }
+  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800; }
+  .btn-danger { @apply inline-flex items-center rounded-xl px-3 py-1.5 text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950; }
+  .input { @apply w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-neutral-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 dark:border-neutral-800 dark:bg-neutral-900; }
+  .label { @apply mb-1.5 block text-xs font-medium text-neutral-600 dark:text-neutral-400; }
+  .card { @apply rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900; }
   .error { @apply text-sm text-red-600; }
+  .chip { @apply inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300; }
+  .nav-link { @apply rounded-lg px-2.5 py-1.5 text-sm text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100; }
 }
