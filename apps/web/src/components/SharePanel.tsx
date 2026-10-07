@@ -35,21 +35,21 @@ export function SharePanel({ projectId, initial, canShare }: { projectId: string
     <div className="relative">
       <button type="button" className="btn-ghost" aria-expanded={open} onClick={() => setOpen(!open)}>{share ? "Shared link" : "Share link"}</button>
       {open && (
-        <div className="card absolute right-0 z-20 mt-2 w-96 space-y-3 shadow-lg">
-          <p className="text-sm text-neutral-500">Anyone with the link sees a read-only preview. Comments and your workspace stay private.</p>
+        <div className="absolute right-0 z-20 mt-2 w-[min(24rem,calc(100vw-2rem))] space-y-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+          <p className="text-sm text-neutral-600 dark:text-neutral-400">Anyone with the link sees a read-only preview. Comments and your workspace stay private.</p>
           {!share ? (
             canShare ? <button className="btn w-full" disabled={busy} onClick={() => put({})}>Create link</button>
               : <p className="text-sm text-neutral-500">Only editors, admins and the owner can share.</p>
           ) : (
             <>
               <div className="flex gap-2">
-                <input readOnly aria-label="Share link" className="input font-mono text-xs" value={url} onFocus={(e) => e.currentTarget.select()} />
-                <button type="button" className="btn-ghost" onClick={() => void navigator.clipboard?.writeText(url)}>Copy</button>
+                <input readOnly aria-label="Share link" className="input min-w-0 bg-neutral-50 font-mono text-xs dark:bg-neutral-950" value={url} onFocus={(e) => e.currentTarget.select()} />
+                <button type="button" className="btn-ghost shrink-0" onClick={() => void navigator.clipboard?.writeText(url)}>Copy</button>
               </div>
               {canShare && (
                 <>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input type="checkbox" checked={share.allowDuplicate} disabled={busy} onChange={(e) => put({ allowDuplicate: e.target.checked })} />
+                  <label className="flex items-start gap-2 text-sm">
+                    <input type="checkbox" className="mt-0.5" checked={share.allowDuplicate} disabled={busy} onChange={(e) => put({ allowDuplicate: e.target.checked })} />
                     Let signed-in visitors copy it into their workspace
                   </label>
                   <label className="block text-sm">
@@ -57,7 +57,7 @@ export function SharePanel({ projectId, initial, canShare }: { projectId: string
                     <input type="date" className="input" disabled={busy} value={share.expiresAt?.slice(0, 10) ?? ""}
                       onChange={(e) => put({ expiresAt: e.target.value ? new Date(`${e.target.value}T23:59:59`).toISOString() : null })} />
                   </label>
-                  <div className="flex justify-between">
+                  <div className="flex justify-between border-t border-neutral-200 pt-3 dark:border-neutral-800">
                     <button className="btn-ghost" disabled={busy} onClick={() => put({ regenerate: true })}>New link</button>
                     <button className="btn-danger" disabled={busy} onClick={off}>Turn off</button>
                   </div>
@@ -65,7 +65,7 @@ export function SharePanel({ projectId, initial, canShare }: { projectId: string
               )}
             </>
           )}
-          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+          {error && <p role="alert" className="error">{error}</p>}
         </div>
       )}
     </div>
@@ -82,7 +82,7 @@ export function DuplicateShared({ slug, signedIn, apps }: { slug: string; signed
   return (
     <div className="flex flex-wrap items-center gap-2">
       {apps.length > 1 && (
-        <select aria-label="Copy into app" className="input w-auto" value={appId} onChange={(e) => setAppId(e.target.value)}>
+        <select aria-label="Copy into app" className="input w-auto max-w-full" value={appId} onChange={(e) => setAppId(e.target.value)}>
           {apps.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
         </select>
       )}

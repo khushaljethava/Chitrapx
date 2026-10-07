@@ -15,10 +15,17 @@ export default async function PreviewPage({ params }: { params: Promise<{ projec
   const subtitle = (app.description.split(/(?<=[.!?])\s/)[0] ?? "").slice(0, 80) || "Your app subtitle";
   return (
     <>
-      <div>
-        <Link href={`/dashboard/projects/${project.id}`} className="text-sm text-neutral-500 hover:underline">Back to project</Link>
-        <h1 className="text-2xl font-semibold">Store preview</h1>
-        <p className="text-sm text-neutral-500">How {project.name} looks to shoppers. Store layouts are approximations.</p>
+      <div className="space-y-4">
+        <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
+          <Link href="/dashboard" className="hover:text-neutral-900 dark:hover:text-neutral-100">Apps</Link>
+          <span className="mx-1.5">/</span><Link href={`/dashboard/apps/${project.appId}`} className="hover:text-neutral-900 dark:hover:text-neutral-100">{app.name}</Link>
+          <span className="mx-1.5">/</span><Link href={`/dashboard/projects/${project.id}`} aria-label={`Back to project ${project.name}`} className="hover:text-neutral-900 dark:hover:text-neutral-100">{project.name}</Link>
+          <span className="mx-1.5">/</span><span className="text-neutral-900 dark:text-neutral-100">Store preview</span>
+        </nav>
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold">Store preview</h1>
+          <p className="text-sm text-neutral-500">How {project.name} looks to shoppers. Store layouts are approximations.</p>
+        </div>
       </div>
       <StorePreview doc={project.doc} assetUrls={assetUrls} app={{ name: app.name, subtitle }} extras={extras} />
     </>

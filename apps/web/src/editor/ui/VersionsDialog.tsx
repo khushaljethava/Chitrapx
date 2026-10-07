@@ -90,13 +90,14 @@ export function VersionsDialog({ onClose, saveStatus, flush, adoptServerDoc, rep
 
   return (
     <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Version history" onClick={onBackdrop}
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 outline-none">
-      <div className="card grid w-full max-w-3xl gap-4 sm:grid-cols-[1fr_16rem]">
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Version history</h2>
-            <button type="button" className="btn-ghost" onClick={onClose} aria-label="Close" autoFocus>✕</button>
-          </div>
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-950/40 p-4 outline-none backdrop-blur-sm sm:py-10">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4 dark:border-neutral-800">
+          <h2 className="text-lg font-semibold">Version history</h2>
+          <button type="button" className="btn-ghost size-9 rounded-full p-0 text-neutral-500" onClick={onClose} aria-label="Close" autoFocus>✕</button>
+        </div>
+        <div className="grid gap-5 p-5 sm:grid-cols-[1fr_16rem]">
+        <div className="min-w-0 space-y-3">
           <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void saveNamed(); }}>
             <input className="input flex-1" aria-label="Version name" placeholder="Name this version" maxLength={80} value={name} onChange={(e) => setName(e.target.value)} />
             <button className="btn" disabled={busy || !name.trim()}>Save version</button>
@@ -108,22 +109,22 @@ export function VersionsDialog({ onClose, saveStatus, flush, adoptServerDoc, rep
             </button>
           )}
           {versions === null ? <p className="text-sm text-neutral-500">Loading</p> : versions.length === 0 ? <p className="text-sm text-neutral-500">No versions yet.</p> : (
-            <ul className="max-h-96 divide-y divide-neutral-200 overflow-y-auto text-sm dark:divide-neutral-800">
+            <ul className="max-h-96 divide-y divide-neutral-200 overflow-y-auto rounded-2xl border border-neutral-200 text-sm dark:divide-neutral-800 dark:border-neutral-800">
               {versions.map((v) => (
                 <li key={v.id}>
-                  <button type="button" onClick={() => open(v)} className={`flex w-full justify-between gap-3 px-1 py-2 text-left ${preview?.v.id === v.id ? "bg-indigo-50 dark:bg-indigo-950" : ""}`}>
+                  <button type="button" onClick={() => open(v)} className={`flex w-full flex-wrap justify-between gap-x-3 gap-y-0.5 px-3 py-2.5 text-left transition ${preview?.v.id === v.id ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-100" : "hover:bg-neutral-50 dark:hover:bg-neutral-800/60"}`}>
                     <span className={v.kind === "named" ? "font-medium" : ""}>{title(v)}</span>
-                    <span className="text-neutral-500">{ago(v.createdAt)}{v.author ? ` · ${v.author}` : ""}</span>
+                    <span className="text-xs text-neutral-500">{ago(v.createdAt)}{v.author ? ` · ${v.author}` : ""}</span>
                   </button>
                 </li>
               ))}
             </ul>
           )}
         </div>
-        <aside className="space-y-2">
+        <aside className="space-y-3 sm:border-l sm:border-neutral-200 sm:pl-5 sm:dark:border-neutral-800">
           {preview ? (
             <>
-              <div className="overflow-hidden rounded border border-neutral-200 dark:border-neutral-700">
+              <div className="mx-auto w-fit max-w-full overflow-hidden rounded-xl border border-neutral-200 bg-neutral-100 dark:border-neutral-800 dark:bg-neutral-950">
                 {preview.doc.groups[0]?.boards[0]
                   ? <BoardView doc={preview.doc} groupId={preview.doc.groups[0].id} boardIndex={0} locale={preview.doc.localization.baseLocale} scale={240 / preview.doc.groups[0].boards[0].size.width} resolveSrc={resolveSrc} extras={extras} />
                   : <p className="p-4 text-sm text-neutral-500">This version has no boards.</p>}
@@ -131,8 +132,9 @@ export function VersionsDialog({ onClose, saveStatus, flush, adoptServerDoc, rep
               <button type="button" className="btn w-full" disabled={busy || conflicted} onClick={() => restore(preview.v)}>Restore this version</button>
               <p className="text-xs text-neutral-500">Your current design is saved as “Before restore” first.</p>
             </>
-          ) : <p className="text-sm text-neutral-500">Select a version to preview it.</p>}
+          ) : <p className="rounded-2xl border border-dashed border-neutral-300 p-6 text-center text-sm text-neutral-500 dark:border-neutral-700">Select a version to preview it.</p>}
         </aside>
+        </div>
       </div>
     </div>
   );

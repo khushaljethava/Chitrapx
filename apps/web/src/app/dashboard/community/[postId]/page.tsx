@@ -16,7 +16,10 @@ export default async function CommunityPostPage({ params }: { params: Promise<{ 
   const apps = await listApps(ctx);
   return (
     <>
-      <Link href="/dashboard/community" className="text-sm text-neutral-500 hover:underline">Community templates</Link>
+      <nav aria-label="Breadcrumb" className="truncate text-sm text-neutral-500">
+        <Link href="/dashboard/community" className="hover:text-neutral-900 dark:hover:text-neutral-100">Community templates</Link>
+        <span className="mx-1.5">/</span><span className="text-neutral-900 dark:text-neutral-100">{post.title}</span>
+      </nav>
       <CommunityPostView post={post} apps={apps.map(({ id, name }) => ({ id, name }))} />
     </>
   );

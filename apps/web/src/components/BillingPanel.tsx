@@ -72,24 +72,31 @@ export function BillingPanel({ configured, currency, plan, subscription, plans, 
   const ends = subscription?.currentEnd ? new Date(subscription.currentEnd).toLocaleDateString() : null;
   return (
     <div className="space-y-6">
-      {!configured && <p className="card text-sm text-amber-700 dark:text-amber-300">Payments are not set up on this server yet.</p>}
+      {!configured && <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">Payments are not set up on this server yet.</p>}
       {message && <p role="status" className="card text-sm">{message}</p>}
 
-      <section className="card space-y-3">
+      <section className="card space-y-4">
         <h2 className="font-semibold">Plan</h2>
         <p className="text-sm">
           You are on <strong className="capitalize">{plan}</strong>.
           {subscription?.status === "cancelling" && ends && <> It ends on {ends}.</>}
           {subscription?.status === "active" && ends && <> Renews on {ends}.</>}
         </p>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {plans.map((p) => (
-            <div key={p.id} className="rounded-lg border border-neutral-200 p-4 dark:border-neutral-800">
-              <h3 className="font-medium capitalize">{p.id} {p.price && <span className="text-sm font-normal text-neutral-500">· {p.price}</span>}</h3>
-              <p className="text-sm text-neutral-500">{p.credits.toLocaleString()} credits a month · {Number.isFinite(p.maxApps) ? `${p.maxApps} apps` : "unlimited apps"}</p>
+            <div key={p.id} aria-current={plan === p.id ? "true" : undefined}
+              className={`flex flex-col rounded-2xl border p-5 transition ${plan === p.id
+                ? "border-indigo-300 bg-indigo-50/60 ring-2 ring-indigo-500 dark:border-indigo-800 dark:bg-indigo-950/30"
+                : "border-neutral-200 hover:border-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-700"}`}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-lg font-semibold capitalize">{p.id}</h3>
+                {plan === p.id && <span className="chip bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white">Current plan</span>}
+              </div>
+              {p.price && <p className="mt-1 font-display text-2xl font-bold">{p.price}</p>}
+              <p className="mt-2 flex-1 text-sm text-neutral-500">{p.credits.toLocaleString()} credits a month · {Number.isFinite(p.maxApps) ? `${p.maxApps} apps` : "unlimited apps"}</p>
               {plan === p.id && subscription?.status === "active"
-                ? <button type="button" className="btn-ghost mt-3" disabled={busy !== null} onClick={cancel}>Cancel plan</button>
-                : <button type="button" className="btn mt-3" disabled={!configured || busy !== null || !!subscription} onClick={() => subscribe(p.id)}>
+                ? <button type="button" className="btn-ghost mt-4 self-start" disabled={busy !== null} onClick={cancel}>Cancel plan</button>
+                : <button type="button" className="btn mt-4 self-start" disabled={!configured || busy !== null || !!subscription} onClick={() => subscribe(p.id)}>
                     {busy === `plan:${p.id}` ? "Opening…" : `Choose ${p.id === "pro" ? "Pro" : "Studio"}`}
                   </button>}
             </div>
@@ -103,8 +110,8 @@ export function BillingPanel({ configured, currency, plan, subscription, plans, 
         <p className="text-sm text-neutral-500">One-time top-ups for AI and exports. Pack credits never expire.</p>
         <div className="grid gap-3 sm:grid-cols-3">
           {packs.map((p) => (
-            <button key={p.id} type="button" className="btn-ghost flex-col py-4" disabled={!configured || busy !== null} onClick={() => buyPack(p.id, p.credits)}>
-              <span className="text-lg font-semibold">{p.credits.toLocaleString()} credits</span>
+            <button key={p.id} type="button" className="btn-ghost flex-col gap-1 rounded-2xl py-5 hover:border-indigo-300 dark:hover:border-indigo-800" disabled={!configured || busy !== null} onClick={() => buyPack(p.id, p.credits)}>
+              <span className="font-display text-lg font-semibold">{p.credits.toLocaleString()} credits</span>
               <span className="text-neutral-500">{busy === `pack:${p.id}` ? "Opening…" : money(p.amount, currency)}</span>
             </button>
           ))}
@@ -114,9 +121,9 @@ export function BillingPanel({ configured, currency, plan, subscription, plans, 
       {payments.length > 0 && (
         <section className="card space-y-2">
           <h2 className="font-semibold">Recent purchases</h2>
-          <ul className="divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+          <ul className="divide-y divide-neutral-100 text-sm dark:divide-neutral-800">
             {payments.map((p) => (
-              <li key={p.id} className="flex justify-between py-2">
+              <li key={p.id} className="flex flex-wrap justify-between gap-x-4 gap-y-1 py-2.5">
                 <span>{p.credits.toLocaleString()} credits</span>
                 <span className="text-neutral-500">{money(p.amount, p.currency)} · {new Date(p.paidAt).toLocaleDateString()}</span>
               </li>

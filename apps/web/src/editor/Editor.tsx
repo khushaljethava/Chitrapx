@@ -21,9 +21,11 @@ import { PresenceBar } from "./ui/PresenceBar.tsx";
 import { Toolbar, ZoomBar } from "./ui/Toolbar.tsx";
 import type { PickerAsset } from "./ui/fields.tsx";
 
-export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations, glossary, me = null, canEdit = true, children }: {
+export function Editor({ appId, project, assets, assetUrls, fonts, extras, openTranslations, glossary, me = null, canEdit = true, share, children }: {
   /** SP15: rendered inside the editor context (the comments panel). */
   children?: React.ReactNode;
+  /** The project's share-link control, built on the server where share permission is known. */
+  share?: React.ReactNode;
   appId: string;
   project: { id: string; name: string; doc: ChitrapxDoc; revision: number };
   assets: PickerAsset[];
@@ -61,6 +63,7 @@ export function Editor({ appId, project, assets, assetUrls, fonts, extras, openT
       <DocJobProvider flush={flush} adoptServerDoc={adoptServerDoc}>
       <div className="flex h-screen flex-col">
         <Toolbar name={project.name} projectId={project.id} status={status} error={error} flush={flush} adoptServerDoc={adoptServerDoc} reportConflict={reportConflict} openTranslations={openTranslations} glossary={glossary}
+          share={share}
           presence={<PresenceBar peers={live.peers} live={live.mode === "live"} notice={live.notice} onDismiss={live.dismissNotice} selfId={me?.userId} />} />
         <div className="flex min-h-0 flex-1">
           <LeftPanel flush={flush} />

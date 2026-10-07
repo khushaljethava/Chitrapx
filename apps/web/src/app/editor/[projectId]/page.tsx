@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProjectBoards } from "@/components/ProjectBoards.tsx";
+import { SharePanel } from "@/components/SharePanel.tsx";
+import { getShare } from "@/server/shares.ts";
 import { ViewerComments } from "@/components/Comments.tsx";
 import { AccessRemoved, AccessWatcher } from "@/components/Workspaces.tsx";
 import { Editor } from "@/editor/Editor.tsx";
@@ -46,7 +48,7 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       </main>
     );
   }
-  const [docUrls, assets, fonts, app, user] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId), currentUser()]);
+  const [docUrls, assets, fonts, app, user, share] = await Promise.all([assetUrlMap(ctx, storage, project.doc), listAssets(ctx, storage, project.appId), listFonts(ctx, storage), getApp(ctx, project.appId), currentUser(), getShare(ctx, project.id)]);
   // SP15 presence: the name others see next to this editor's cursor.
   const meta = (user?.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string };
   const me = { userId: ctx.userId, name: meta.full_name || meta.name || user?.email || "Someone", avatarUrl: meta.avatar_url ?? null };
@@ -70,6 +72,7 @@ export default async function EditorPage({ params, searchParams }: { params: Pro
       glossary={app.glossary}
       me={me}
       canEdit={canSendCommands(ctx)}
+      share={<SharePanel key="share" projectId={project.id} canShare={can(ctx, "share")} initial={share && { slug: share.slug, path: share.path, allowDuplicate: share.allowDuplicate, expiresAt: share.expiresAt?.toISOString() ?? null }} />}
     >
       <EditorComments projectId={project.id} moderate={can(ctx, "members")} initiallyOpen={search.comments === "1"} />
     </Editor>

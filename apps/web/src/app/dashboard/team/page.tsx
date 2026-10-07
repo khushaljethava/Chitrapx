@@ -8,7 +8,10 @@ export default async function TeamPage() {
   const t = await listMembers(await requireContext());
   return (
     <>
-      <h1 className="text-2xl font-semibold">Team</h1>
+      <header className="space-y-1">
+        <h1 className="text-3xl font-bold">Team</h1>
+        <p className="text-sm text-neutral-500">Members, roles and invite links for this workspace.</p>
+      </header>
       <TeamPanel
         me={t.role}
         plan={t.plan}

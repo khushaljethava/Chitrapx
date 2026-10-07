@@ -15,12 +15,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 border-b border-neutral-200/80 bg-white/80 backdrop-blur-md dark:border-neutral-800/80 dark:bg-neutral-900/80">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-2.5">
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <Link href="/dashboard" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link>
             {workspaces.length > 1 && <span className="h-5 w-px bg-neutral-200 dark:bg-neutral-800" />}
             <WorkspaceSwitcher current={ctx.workspaceId} workspaces={workspaces.map(({ id, name, role }) => ({ id, name, role }))} />
           </div>
-          <nav className="flex items-center gap-1">
+          {/* Scrolls inside the header on phones instead of widening the page. */}
+          <nav className="-mr-4 flex min-w-0 items-center gap-1 overflow-x-auto whitespace-nowrap pr-4 [scrollbar-width:none]">
             <Link href="/dashboard" className="nav-link">Apps</Link>
             <Link href="/dashboard/team" className="nav-link">Team</Link>
             <Link href="/dashboard/community" className="nav-link">Community</Link>

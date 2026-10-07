@@ -8,7 +8,6 @@ import { useEditor, useEditorStore } from "../context.tsx";
 import { Checks } from "./Checks.tsx";
 import { StylePicker } from "./StylePicker.tsx";
 import { CopyIdeas } from "./CopyIdeas.tsx";
-import { HeadlineIdeas } from "./HeadlineIdeas.tsx";
 import { LayersPanel } from "./LayersPanel.tsx";
 
 const TABS = ["Boards", "Layers", "Add", "AI"] as const;
@@ -176,7 +175,6 @@ export function LeftPanel({ flush }: { flush: () => Promise<boolean> }) {
       <StylePicker />
       <Checks />
       <CopyIdeas />
-      <HeadlineIdeas />
       </div>
       </div>
     </aside>

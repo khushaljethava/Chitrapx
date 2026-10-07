@@ -47,28 +47,31 @@ export function TeamPanel({ me, plan, members, invites, seats }: { me: MemberRol
   return (
     <div className="space-y-6">
       {banner && (
-        <p className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <p className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
           {banner} <Link href="/dashboard/billing" className="underline">Billing</Link>
         </p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="error">
           {error.message} {error.upgrade && <Link href="/dashboard/billing" className="underline">Upgrade</Link>}
         </p>
       )}
 
-      <section className="card space-y-3">
-        <h2 className="font-medium">Members <span className="text-sm text-neutral-500">· {seats.members} of {seats.max} seat{seats.max === 1 ? "" : "s"} used{seats.pending ? `, ${seats.pending} pending` : ""}</span></h2>
-        <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+      <section className="card space-y-4">
+        <h2 className="font-semibold">Members <span className="font-sans text-sm font-normal text-neutral-500">· {seats.members} of {seats.max} seat{seats.max === 1 ? "" : "s"} used{seats.pending ? `, ${seats.pending} pending` : ""}</span></h2>
+        <ul className="-mx-2 divide-y divide-neutral-100 dark:divide-neutral-800">
           {members.map((m) => {
             const options = assignableRoles(me, m);
             return (
-              <li key={m.userId} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <div>
-                  <p className="text-sm font-medium">{m.name || m.email}{m.you && <span className="text-neutral-500"> (you)</span>}</p>
-                  <p className="text-xs text-neutral-500">{m.email}</p>
+              <li key={m.userId} className="flex flex-wrap items-center justify-between gap-3 rounded-xl px-2 py-3 transition hover:bg-neutral-50 dark:hover:bg-neutral-800/40">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300">{(m.name || m.email).slice(0, 1).toUpperCase()}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium">{m.name || m.email}{m.you && <span className="text-neutral-500"> (you)</span>}</p>
+                    <p className="truncate text-xs text-neutral-500">{m.email}</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {options.length ? (
                     <select aria-label={`Role for ${m.email}`} className="input w-auto" value={m.role} disabled={busy}
                       onChange={(e) => {
@@ -79,7 +82,7 @@ export function TeamPanel({ me, plan, members, invites, seats }: { me: MemberRol
                       {!options.includes(m.role) && <option value={m.role}>{ROLE_LABEL[m.role]}</option>}
                       {options.map((r) => <option key={r} value={r}>{r === "owner" ? "Owner (transfer)" : ROLE_LABEL[r]}</option>)}
                     </select>
-                  ) : <span className="text-sm text-neutral-600 dark:text-neutral-400" title={ROLE_HINT[m.role]}>{ROLE_LABEL[m.role]}</span>}
+                  ) : <span className={m.role === "owner" ? "chip bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300" : "chip"} title={ROLE_HINT[m.role]}>{ROLE_LABEL[m.role]}</span>}
                   {m.you && m.role !== "owner" && (
                     <button className="btn-danger" disabled={busy} onClick={() => confirm("Leave this workspace?") && void run(async () => {
                       await api(`/api/members/${m.userId}`, "DELETE");
@@ -97,36 +100,36 @@ export function TeamPanel({ me, plan, members, invites, seats }: { me: MemberRol
       </section>
 
       {manage && (
-        <section className="card space-y-3">
-          <h2 className="font-medium">Invite someone</h2>
+        <section className="card space-y-4">
+          <h2 className="font-semibold">Invite someone</h2>
           <p className="text-sm text-neutral-500">We do not send email. You get a link to send yourself; it works once, for that email address, for 7 days.</p>
-          <form onSubmit={invite} className="flex flex-wrap items-end gap-2">
-            <div className="min-w-60 flex-1">
+          <form onSubmit={invite} className="flex flex-wrap items-end gap-3">
+            <div className="min-w-0 flex-1 basis-60">
               <label className="label" htmlFor="invite-email">Email</label>
               <input id="invite-email" type="email" required className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
             </div>
             <div>
               <label className="label" htmlFor="invite-role">Role</label>
-              <select id="invite-role" className="input w-auto" value={role} onChange={(e) => setRole(e.target.value as MemberRole)}>
+              <select id="invite-role" className="input sm:w-auto" value={role} onChange={(e) => setRole(e.target.value as MemberRole)}>
                 {(["admin", "editor", "viewer"] as const).map((r) => <option key={r} value={r}>{ROLE_LABEL[r]} · {ROLE_HINT[r]}</option>)}
               </select>
             </div>
             <button className="btn" disabled={busy}>Create invite link</button>
           </form>
           {link && (
-            <div className="space-y-1 rounded-lg bg-neutral-100 p-3 text-sm dark:bg-neutral-800">
+            <div className="space-y-2 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-sm dark:border-indigo-900 dark:bg-indigo-950/40">
               <p>Send this link to <strong>{link.email}</strong>. It is shown only now.</p>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 sm:flex-nowrap">
                 <input readOnly aria-label="Invite link" className="input font-mono text-xs" value={link.url} onFocus={(e) => e.currentTarget.select()} />
                 <button type="button" className="btn-ghost" onClick={() => void navigator.clipboard?.writeText(link.url)}>Copy</button>
               </div>
             </div>
           )}
           {invites.length > 0 && (
-            <ul className="divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+            <ul className="divide-y divide-neutral-100 border-t border-neutral-100 text-sm dark:divide-neutral-800 dark:border-neutral-800">
               {invites.map((i) => (
-                <li key={i.id} className="flex items-center justify-between py-2">
-                  <span>{i.email} · {ROLE_LABEL[i.role]} · expires {new Date(i.expiresAt).toLocaleDateString()}</span>
+                <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
+                  <span className="min-w-0 break-all">{i.email} · {ROLE_LABEL[i.role]} · expires {new Date(i.expiresAt).toLocaleDateString()}</span>
                   <button className="btn-danger" disabled={busy} onClick={() => void run(() => api(`/api/invites/${i.id}`, "DELETE"))}>Revoke</button>
                 </li>
               ))}

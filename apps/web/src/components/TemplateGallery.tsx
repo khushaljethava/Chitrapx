@@ -37,7 +37,7 @@ export function TemplateGallery({ appId, templates, categories, screenshotCount 
       <div role="tablist" className="flex flex-wrap gap-2">
         {tabs.map((c) => (
           <button key={c} role="tab" aria-selected={tab === c} onClick={() => setTab(c)}
-            className={tab === c ? "btn" : "btn-ghost"}>{categories[c]}</button>
+            className={tab === c ? "btn rounded-full" : "btn-ghost rounded-full"}>{categories[c]}</button>
         ))}
       </div>
       {error && <p role="alert" className="error">{error}</p>}
@@ -45,12 +45,12 @@ export function TemplateGallery({ appId, templates, categories, screenshotCount 
         {templates.filter((t) => t.category === tab).map((t) => {
           const g = t.preview.groups[0]!;
           return (
-            <li key={t.slug} className="card flex flex-col gap-3">
-              <div className="flex h-56 items-center justify-center">
+            <li key={t.slug} className="card flex flex-col gap-4 p-4 transition duration-200 hover:-translate-y-1 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-600/5 dark:hover:border-indigo-800">
+              <div className="flex h-56 items-center justify-center overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800/60">
                 <BoardThumb doc={t.preview} groupId={g.id} boardIndex={0} locale={null} height={g.boards[0]!.size.width > g.boards[0]!.size.height ? 140 : 220} resolveSrc={passthroughSrc} placeholders />
               </div>
-              <div className="flex-1">
-                <h3 className="font-medium">{t.name}</h3>
+              <div className="flex-1 space-y-1">
+                <h3 className="font-semibold">{t.name}</h3>
                 {t.description && <p className="line-clamp-2 text-sm text-neutral-500">{t.description}</p>}
               </div>
               <button className="btn" disabled={busy !== null} onClick={() => use(t)}>{busy === t.slug ? "Creating" : "Use template"}</button>

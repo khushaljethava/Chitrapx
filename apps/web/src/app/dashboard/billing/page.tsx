@@ -9,7 +9,10 @@ export default async function BillingPage() {
   const o = await billingOverview(await requireContext());
   return (
     <>
-      <h1 className="text-2xl font-semibold">Plan and credits</h1>
+      <header className="space-y-1">
+        <h1 className="text-3xl font-bold">Plan and credits</h1>
+        <p className="text-sm text-neutral-500">Your subscription, one-time credit packs and recent purchases.</p>
+      </header>
       <BillingPanel
         configured={o.configured}
         currency={o.currency}

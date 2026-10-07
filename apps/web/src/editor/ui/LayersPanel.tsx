@@ -70,7 +70,8 @@ function LayerList({ title, groupId, boardId, elements }: { title?: string; grou
   return (
     <div className="space-y-0.5">
       {title && <p className="text-xs text-neutral-500">{title}</p>}
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      {/* Fixed id: dnd-kit's auto id counter differs between server and client render and breaks hydration. */}
+      <DndContext id="layers-dnd" sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
         <SortableContext items={visible.map((x) => x.id)} strategy={verticalListSortingStrategy}>
           <ul>
             {front.map((el) => {

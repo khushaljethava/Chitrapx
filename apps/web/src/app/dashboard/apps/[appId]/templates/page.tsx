@@ -17,9 +17,13 @@ export default async function TemplatesPage({ params }: { params: Promise<{ appI
   ]);
   return (
     <>
-      <div>
-        <Link href={`/dashboard/apps/${app.id}`} className="text-sm text-neutral-500 hover:underline">{app.name}</Link>
-        <h1 className="text-2xl font-semibold">Start from a template</h1>
+      <div className="space-y-4">
+        <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
+          <Link href="/dashboard" className="hover:text-neutral-900 dark:hover:text-neutral-100">Apps</Link>
+          <span className="mx-1.5">/</span><Link href={`/dashboard/apps/${app.id}`} className="hover:text-neutral-900 dark:hover:text-neutral-100">{app.name}</Link>
+          <span className="mx-1.5">/</span><span className="text-neutral-900 dark:text-neutral-100">Templates</span>
+        </nav>
+        <h1 className="text-3xl font-bold">Start from a template</h1>
       </div>
       <TemplateGallery appId={app.id} templates={templates} categories={TEMPLATE_CATEGORIES} screenshotCount={shots?.n ?? 0} />
     </>

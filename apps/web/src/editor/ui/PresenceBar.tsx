@@ -2,7 +2,7 @@
 
 import { initials, type PeerPresence } from "../live/presence.ts";
 
-const SHOWN = 5;
+const SHOWN = 3;
 
 /** Who else is in the project (SP15): an avatar stack in each person's colour, a Live badge, and sync notices. */
 export function PresenceBar({ peers, live, notice, onDismiss, selfId }: {
@@ -23,13 +23,13 @@ export function PresenceBar({ peers, live, notice, onDismiss, selfId }: {
       <ul className="flex -space-x-2" aria-label="People in this project">
         {people.slice(0, SHOWN).map((p) => (
           <li key={p.userId} title={p.canEdit ? p.name : `${p.name} (viewing)`}
-            className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-[11px] font-semibold text-white dark:border-neutral-900"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-semibold text-white ring-2 ring-white dark:ring-neutral-900"
             style={{ backgroundColor: p.color }}>
             {initials(p.name)}
           </li>
         ))}
         {people.length > SHOWN && (
-          <li className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-neutral-500 text-[11px] font-semibold text-white dark:border-neutral-900"
+          <li className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-200 text-[11px] font-semibold text-neutral-700 ring-2 ring-white dark:bg-neutral-700 dark:text-neutral-200 dark:ring-neutral-900"
             title={people.slice(SHOWN).map((p) => p.name).join(", ")}>+{people.length - SHOWN}</li>
         )}
       </ul>

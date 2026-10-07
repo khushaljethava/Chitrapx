@@ -20,9 +20,13 @@ export default async function LaunchAssetsPage({ params }: { params: Promise<{ a
     .map(({ id, url, width, height }) => ({ id, url, width, height }));
   return (
     <>
-      <div>
-        <Link href={`/dashboard/apps/${app.id}`} className="text-sm text-neutral-500 hover:underline">{app.name}</Link>
-        <h1 className="text-2xl font-semibold">Launch assets</h1>
+      <div className="space-y-4">
+        <nav aria-label="Breadcrumb" className="text-sm text-neutral-500">
+          <Link href="/dashboard" className="hover:text-neutral-900 dark:hover:text-neutral-100">Apps</Link>
+          <span className="mx-1.5">/</span><Link href={`/dashboard/apps/${app.id}`} className="hover:text-neutral-900 dark:hover:text-neutral-100">{app.name}</Link>
+          <span className="mx-1.5">/</span><span className="text-neutral-900 dark:text-neutral-100">Launch assets</span>
+        </nav>
+        <h1 className="text-3xl font-bold">Launch assets</h1>
       </div>
       <LogoStarterPanel appId={app.id} images={images} />
       <IconGeneratorPanel images={images} />

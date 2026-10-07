@@ -11,9 +11,9 @@ export default async function CommunityPage() {
   const [initial, apps, staff] = await Promise.all([listPosts(ctx, appStorage(), {}), listApps(ctx), isStaff()]);
   return (
     <>
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">Community templates</h1>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-3xl font-bold">Community templates</h1>
           <p className="text-sm text-neutral-500">Screenshot sets other people shared. Use one to start a project of your own.</p>
         </div>
         {staff && <Link href="/dashboard/community/review" className="btn-ghost">Review reports</Link>}

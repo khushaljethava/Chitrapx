@@ -13,6 +13,7 @@ import { facesOf } from "@/lib/fontFaces.ts";
 import { ChipsEditor } from "./ChipsEditor.tsx";
 import { FontPicker } from "./FontPicker.tsx";
 import { FontUploadDialog } from "./FontUploadDialog.tsx";
+import { HeadlineIdeas } from "./HeadlineIdeas.tsx";
 import { LayoutPresets } from "./LayoutPresets.tsx";
 import { RichTextToolbar } from "./RichTextToolbar.tsx";
 import { AssetPicker, brandSwatches, ColorField, NumberField, Row, SelectField, useGesture, type PickerAsset } from "./fields.tsx";
@@ -69,6 +70,16 @@ const ANIMATIONS = [["none", "None (automatic)"], ["fade", "Fade"], ["slide-up",
 
 const FITS = [["cover", "Fill the screen"], ["contain", "Fit inside"], ["fill", "Stretch"]] as const;
 
+/** A titled group of fields; groups are split by hairline dividers. */
+function Section({ title, children }: { title?: string; children: React.ReactNode }) {
+  return (
+    <section className="space-y-3 border-t border-neutral-200 pt-4 dark:border-neutral-800">
+      {title && <h3 className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{title}</h3>}
+      {children}
+    </section>
+  );
+}
+
 export function Inspector() {
   const { assets } = useEditorAssets();
   const doc = useEditor((s) => s.doc);
@@ -77,7 +88,7 @@ export function Inspector() {
   const el = ref ? findElement(doc, ref) : undefined;
   return (
     <aside className="w-80 shrink-0 space-y-4 overflow-y-auto border-l border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-      {selection.length > 1 ? <p className="text-sm text-neutral-500">{selection.length} items selected. Drag to move them together.</p>
+      {selection.length > 1 ? <p className="rounded-xl border border-dashed border-neutral-300 p-4 text-center text-sm text-neutral-500 dark:border-neutral-700">{selection.length} items selected. Drag to move them together.</p>
         : ref && el ? <ElementInspector key={`${ref.boardId}:${ref.elementId}`} refr={ref} el={el} assets={assets} />
           : <BoardInspector />}
     </aside>
@@ -90,26 +101,34 @@ function BoardInspector() {
   const boardId = useEditor((s) => s.activeBoardId);
   const board = useEditor((s) => s.doc.groups.find((g) => g.id === groupId)?.boards.find((b) => b.id === boardId));
   const g = useGesture();
-  if (!board || !boardId) return <p className="text-sm text-neutral-500">Select a board or an element.</p>;
+  if (!board || !boardId) return <p className="rounded-xl border border-dashed border-neutral-300 p-4 text-center text-sm text-neutral-500 dark:border-neutral-700">Select a board or an element.</p>;
   const set = (props: Record<string, unknown>) => store.getState().apply({ type: "updateBoard", groupId, boardId, props });
   const grad = board.backgroundGradient ?? { color1: board.backgroundColor, color2: "#ffffff", angle: 180 };
   return (
-    <div className="space-y-3">
-      <h2 className="font-semibold">Board</h2>
+    <div className="space-y-4">
+      <h2 className="text-base font-semibold">Board</h2>
       <Row label="Name" htmlFor="b-name"><input id="b-name" className="input" value={board.name} onChange={(e) => set({ name: e.target.value })} {...g} /></Row>
+      <Section title="Background">
       <SelectField id="b-bgtype" label="Background" value={board.backgroundType ?? "solid"} options={[["solid", "Solid colour"], ["gradient", "Gradient"]] as const}
         onChange={(v) => set(v === "gradient" ? { backgroundType: v, backgroundGradient: grad } : { backgroundType: v })} />
       {board.backgroundType === "gradient" ? (
         <>
           <ColorField id="b-g1" label="From" value={grad.color1} onChange={(v) => set({ backgroundGradient: { ...grad, color1: v } })} />
           <ColorField id="b-g2" label="To" value={grad.color2} onChange={(v) => set({ backgroundGradient: { ...grad, color2: v } })} />
-          <NumberField id="b-ga" label="Angle" value={grad.angle} onChange={(v) => set({ backgroundGradient: { ...grad, angle: v } })} />
+          <div className="grid grid-cols-2 gap-2">
+            <NumberField id="b-ga" label="Angle" value={grad.angle} onChange={(v) => set({ backgroundGradient: { ...grad, angle: v } })} />
+          </div>
         </>
       ) : (
         <ColorField id="b-bg" label="Colour" value={board.backgroundColor} onChange={(v) => set({ backgroundColor: v })} />
       )}
+      </Section>
+      <Section>
       <LayoutPresets groupId={groupId} boardId={boardId} />
+      </Section>
+      <Section>
       <ApplyToLocales groupId={groupId} boardId={boardId} />
+      </Section>
     </div>
   );
 }
@@ -163,14 +182,22 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
   const sz = { w: el.size.width * (el.scale || 1), h: el.size.height * (el.scale || 1) };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h2 className="font-semibold capitalize">{el.type === "device" ? "Device" : el.type === "video-device" ? "Phone with video" : el.type}</h2>
-        {localized && <span className="rounded bg-amber-100 px-1.5 text-xs text-amber-800 dark:bg-amber-900 dark:text-amber-200">Editing {locale}</span>}
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-semibold capitalize">{el.type === "device" ? "Device" : el.type === "video-device" ? "Phone with video" : el.type}</h2>
+        {localized && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">Editing {locale}</span>}
       </div>
+
+      {/* Stitch layout: ideas sit next to the text they insert into. Offline formulas, not AI, so no coral. */}
+      {el.type === "text" && (
+        <div className="max-h-72 overflow-y-auto rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-3 dark:border-indigo-900 dark:from-indigo-950 dark:to-neutral-900">
+          <HeadlineIdeas />
+        </div>
+      )}
 
       {el.type === "text" && (
         <>
+          <Section title="Content">
           <Row label="Text" htmlFor="i-content">
             <div className="relative">
               {sel && (
@@ -185,6 +212,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
             {localized && stylingNotCarried(textBase, override) && <p className="text-xs text-amber-700 dark:text-amber-300">Styling not carried to this language — reapply</p>}
             <OverrideNote k="content" />
           </Row>
+          </Section>
+          <Section title="Typography">
           <FontPicker id="i-font" label="Font" value={override?.fontFamily ?? a.fontFamily ?? ""} used={used}
             custom={custom} onUpload={() => setUploadingFont(true)} onChange={(v) => setLocalizable("fontFamily", v)} />
           <OverrideNote k="fontFamily" />
@@ -203,13 +232,17 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
           </div>
           <SelectField id="i-case" label="Case" value={a.textTransform ?? "none"} options={[["none", "As typed"], ["uppercase", "UPPERCASE"], ["lowercase", "lowercase"]] as const}
             onChange={(v) => set({ textTransform: v === "none" ? undefined : v })} />
+          </Section>
           {uploadingFont && <FontUploadDialog onClose={() => setUploadingFont(false)}
             onUploaded={async (family) => { await refreshFonts(); if (family) setLocalizable("fontFamily", family); }} />}
         </>
       )}
       {el.type === "chips" && (
         <>
+          <Section title="Chips">
           <ChipsEditor refr={refr} el={el as ChipsElementProps} locale={localized ? locale : null} />
+          </Section>
+          <Section title="Typography">
           <FontPicker id="i-chips-font" label="Font" value={a.fontFamily ?? ""} used={used} custom={custom} onChange={(v) => set({ fontFamily: v })} />
           <div className="grid grid-cols-2 gap-2">
             <NumberField id="i-chips-size" label="Size" value={a.fontSize ?? 7} min={1} step={0.5} onChange={(v) => set({ fontSize: Math.max(1, v) })} />
@@ -222,22 +255,24 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
               <button key={al} type="button" className={(a.align ?? "left") === al ? "btn flex-1 px-2" : "btn-ghost flex-1 px-2"} onClick={() => set({ align: al })}>{al[0]!.toUpperCase() + al.slice(1)}</button>
             ))}
           </div>
+          </Section>
         </>
       )}
 
       {el.type === "shape" && (
-        <>
+        <Section title="Appearance">
           <ColorField id="i-fill" label="Fill" value={a.fillColor ?? "#000000"} onChange={(v) => set({ fillColor: v })} />
           <ColorField id="i-stroke" label="Outline" value={a.strokeColor ?? "#000000"} onChange={(v) => set({ strokeColor: v })} />
           <div className="grid grid-cols-2 gap-2">
             <NumberField id="i-sw" label="Outline width" value={a.strokeWidth ?? 0} min={0} onChange={(v) => set({ strokeWidth: Math.max(0, v) })} />
             {a.shapeType === "rectangle" && <NumberField id="i-radius" label="Corner radius" value={Number(a.borderRadius ?? 0)} min={0} onChange={(v) => set({ borderRadius: Math.max(0, v) })} />}
           </div>
-        </>
+        </Section>
       )}
 
       {el.type === "device" && (
         <>
+          <Section title="Device">
           <DeviceSelect id="i-device" value={a.deviceType ?? "iphone-15"}
             onChange={(v) => set(v === "carplay" && a.deviceType !== "carplay" && boardSize ? { deviceType: v, ...fitLandscape(boardSize, 800 / 480) } : { deviceType: v })} />
           <SelectField id="i-style" label="Style" value={(a.styleType ?? "normal") as "normal"} options={STYLES} onChange={(v) => set({ styleType: v, ...(v !== "normal" && !a.pose3d ? { pose3d: "front" } : {}) })} />
@@ -249,6 +284,8 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
           ) : (
             <ColorField id="i-frame" label="Frame colour" value={a.frameColor ?? ""} onChange={(v) => set({ frameColor: v || undefined })} />
           )}
+          </Section>
+          <Section title="Screen">
           <AssetPicker label={localized ? `Screenshot (${locale})` : "Screenshot"} assets={assets.filter((x) => x.kind !== "recording")} value={localized ? override?.screenshotSrc ?? a.screenshotSrc : a.screenshotSrc}
             onPick={(src) => store.getState().apply({ type: "setScreenshot", ref: refr, src, locale: localized ? locale : undefined })} />
           <OverrideNote k="screenshotSrc" />
@@ -279,34 +316,40 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
               </div>
             );
           })()}
+          </Section>
         </>
       )}
 
       {el.type === "video-device" && (
-        <>
+        <Section title="Device">
           <DeviceSelect id="i-vdevice" value={a.deviceType ?? "iphone-17-pro-max"} onChange={(v) => set({ deviceType: v })} />
           <AssetPicker label="Screen recording" assets={assets.filter((x) => x.kind === "recording")}
             value={(el as unknown as { videoSrc?: string }).videoSrc}
             onPick={(src) => set({ videoSrc: src, posterSrc: src ? `${src}#poster` : undefined } as never)} />
           <p className="text-xs text-neutral-500">Plays in preview videos; still exports show its first frame.</p>
-        </>
+        </Section>
       )}
 
       {el.type === "image" && (
-        <>
+        <Section title="Image">
           <AssetPicker label="Picture" assets={assets.filter((x) => x.kind !== "recording")} value={a.imageSrc} onPick={(src) => set({ imageSrc: src })} />
-          <SelectField id="i-ifit" label="Fit" value={a.objectFit ?? "cover"} options={FITS} onChange={(v) => set({ objectFit: v })} />
-          <NumberField id="i-iradius" label="Corner radius" value={Number(a.borderRadius ?? 0)} min={0} onChange={(v) => set({ borderRadius: Math.max(0, v) })} />
-        </>
+          <div className="grid grid-cols-2 gap-2">
+            <SelectField id="i-ifit" label="Fit" value={a.objectFit ?? "cover"} options={FITS} onChange={(v) => set({ objectFit: v })} />
+            <NumberField id="i-iradius" label="Corner radius" value={Number(a.borderRadius ?? 0)} min={0} onChange={(v) => set({ borderRadius: Math.max(0, v) })} />
+          </div>
+        </Section>
       )}
 
-      <div className="grid grid-cols-2 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+      <Section title="Animation">
+      <div className="grid grid-cols-2 gap-2">
         <SelectField id="i-anim" label="Animation (video)" value={el.animation?.enter ?? "none"} options={ANIMATIONS}
           onChange={(v) => set({ animation: v === "none" ? undefined : { ...el.animation, enter: v } })} />
         <NumberField id="i-anim-delay" label="Delay (s)" value={el.animation?.enterDelay ?? 0} step={0.1} min={0} max={10}
           onChange={(v) => el.animation?.enter && set({ animation: { ...el.animation, enterDelay: Math.min(10, Math.max(0, v)) } })} />
       </div>
-      <div className="grid grid-cols-2 gap-2 border-t border-neutral-200 pt-3 dark:border-neutral-800">
+      </Section>
+      <Section title="Position and size">
+      <div className="grid grid-cols-2 gap-2">
         <NumberField id="i-x" label="X" value={el.position.x} onChange={(v) => set({ position: { ...el.position, x: v } })} />
         <NumberField id="i-y" label="Y" value={el.position.y} onChange={(v) => set({ position: { ...el.position, y: v } })} />
         <NumberField id="i-w" label="Width" value={sz.w} min={8} max={MAX_BOARD_EDGE} onChange={(v) => set({ size: { ...el.size, width: clampEdge(v) / (el.scale || 1) } })} />
@@ -314,14 +357,17 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
         <NumberField id="i-rot" label="Rotation" value={el.rotation || 0} onChange={(v) => set({ rotation: v })} />
         <NumberField id="i-op" label="Opacity %" value={Math.round((el.opacity ?? 1) * 100)} min={0} max={100} onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
       </div>
+      </Section>
+      <Section title="Arrange">
       <ApplyToBoards refr={refr} />
       <div className="grid grid-cols-2 gap-2">
         <button type="button" className="btn-ghost" onClick={() => store.getState().apply({ type: "reorderElement", ref: refr, to: "front" })}>Bring to front</button>
         <button type="button" className="btn-ghost" onClick={() => store.getState().apply({ type: "reorderElement", ref: refr, to: "back" })}>Send to back</button>
         <button type="button" className="btn-ghost" onClick={() => duplicateSelection(store)}>Duplicate</button>
-        <button type="button" className="btn-ghost text-red-600" onClick={() => store.getState().apply({ type: "deleteElements", refs: [refr] })}>Delete</button>
+        <button type="button" className="btn-ghost text-red-600 hover:border-red-200 hover:bg-red-50 dark:text-red-400 dark:hover:border-red-900 dark:hover:bg-red-950" onClick={() => store.getState().apply({ type: "deleteElements", refs: [refr] })}>Delete</button>
       </div>
-      {refr.boardId !== null && (el.type === "text" || el.type === "device" || el.type === "video-device") && <LayoutPresets groupId={refr.groupId} boardId={refr.boardId} />}
+      </Section>
+      {refr.boardId !== null && (el.type === "text" || el.type === "device" || el.type === "video-device") && <Section><LayoutPresets groupId={refr.groupId} boardId={refr.boardId} /></Section>}
     </div>
   );
 }

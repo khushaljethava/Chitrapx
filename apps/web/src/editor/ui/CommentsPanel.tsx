@@ -27,10 +27,10 @@ export function EditorComments({ projectId, moderate, initiallyOpen = false }: {
   };
 
   if (!open) {
-    return <button type="button" className="btn fixed bottom-4 right-4 z-30 shadow-lg" onClick={() => setOpen(true)}>Comments</button>;
+    return <button type="button" className="btn fixed bottom-4 right-4 z-30 rounded-full px-5 shadow-xl shadow-indigo-600/25" onClick={() => setOpen(true)}>Comments</button>;
   }
   return (
-    <div className="fixed inset-y-0 right-0 z-30 shadow-xl">
+    <div className="fixed inset-y-0 right-0 z-30 max-w-full border-l border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
       <CommentsPanel projectId={projectId} boards={boards} anchor={anchorFor(selection, activeBoardId)} moderate={moderate} onFocus={focus} onClose={() => setOpen(false)} />
     </div>
   );

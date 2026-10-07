@@ -68,13 +68,13 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
   const shell = (body: React.ReactNode) => (
     <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Export" onClick={onBackdrop}
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 outline-none">
-      <div className="card w-full max-w-3xl space-y-4">
-        <div className="flex items-center justify-between">
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-950/40 p-4 outline-none backdrop-blur-sm sm:py-10">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4 dark:border-neutral-800">
           <h2 className="text-lg font-semibold">Export</h2>
-          <button type="button" className="btn-ghost" onClick={onClose} disabled={posting} aria-label="Close">✕</button>
+          <button type="button" className="btn-ghost size-9 rounded-full p-0 text-neutral-500" onClick={onClose} disabled={posting} aria-label="Close">✕</button>
         </div>
-        {body}
+        <div className="space-y-5 px-5 py-5">{body}</div>
       </div>
     </div>
   );
@@ -100,24 +100,24 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
     <>
         <div className="flex flex-wrap gap-2">
           {PRESETS.map(([p, label]) => (
-            <button key={p} type="button" className="btn-ghost text-sm" onClick={() => setSelection(presetSelection(doc, p))}>{label}</button>
+            <button key={p} type="button" className="btn-ghost rounded-full px-3 py-1.5 text-xs" onClick={() => setSelection(presetSelection(doc, p))}>{label}</button>
           ))}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           {Object.entries(BY_PLATFORM).filter(([p]) => p !== "social" || hasSocial).map(([platform, targets]) => (
-            <fieldset key={platform} className="space-y-1">
-              <legend className="label">{PLATFORM_NAME[platform]}</legend>
+            <fieldset key={platform} className="space-y-1.5 rounded-2xl border border-neutral-200 p-3 dark:border-neutral-800">
+              <legend className="px-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">{PLATFORM_NAME[platform]}</legend>
               {targets.map((t) => {
                 const src = sourcesFor(doc, t.id as TargetId);
                 const from = src.groups[0];
                 const tag = !from ? "No boards" : !src.derived ? "Designed"
                   : src.letterboxed ? "Letterboxed" : `Auto from ${getTarget(from.target)!.label}`;
                 return (
-                  <label key={t.id} className="flex items-center gap-2 text-sm">
+                  <label key={t.id} className="flex flex-wrap items-center gap-x-2 gap-y-0.5 rounded-lg px-1 py-0.5 text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
                     <input type="checkbox" disabled={!from} checked={selection.targets.includes(t.id as TargetId)}
                       onChange={() => setSelection({ ...selection, targets: toggle(selection.targets, t.id as TargetId) })} />
-                    <span className="flex-1">{t.label} <span className="text-neutral-400">{t.width}×{t.height}</span></span>
+                    <span className="min-w-0 flex-1">{t.label} <span className="text-xs tabular-nums text-neutral-400">{t.width}×{t.height}</span></span>
                     <span className={`text-xs ${src.letterboxed ? "text-amber-600" : "text-neutral-500"}`}>{tag}</span>
                     {src.letterboxed && onAddSize && from && (
                       <button type="button" className="text-xs text-indigo-600 hover:underline" onClick={() => onAddSize(t.id as TargetId, from.id)}>Add as editable size</button>
@@ -129,33 +129,33 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
           ))}
         </div>
 
-        <fieldset className="flex flex-wrap gap-3">
-          <legend className="label">Languages</legend>
+        <fieldset className="flex flex-wrap gap-2">
+          <legend className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Languages</legend>
           {allLocales(doc).map((l) => (
-            <label key={l} className="flex items-center gap-1 text-sm">
+            <label key={l} className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-2.5 py-1 text-sm dark:border-neutral-800">
               <input type="checkbox" checked={selection.locales.includes(l)} onChange={() => setSelection({ ...selection, locales: toggle(selection.locales, l) })} />{l}
             </label>
           ))}
         </fieldset>
 
         {checks && checks.length > 0 && (
-          <section className="space-y-1 text-xs">
-            <h3 className="label">Before you export</h3>
-            <ul>{checks.map((c, k) => <li key={k}><span className="text-amber-600">Check</span> {c.message}</li>)}</ul>
+          <section className="space-y-1 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs dark:border-amber-900 dark:bg-amber-950/40">
+            <h3 className="text-[11px] font-semibold uppercase tracking-wide text-amber-800 dark:text-amber-300">Before you export</h3>
+            <ul className="space-y-0.5">{checks.map((c, k) => <li key={k}><span className="font-medium text-amber-700 dark:text-amber-400">Check</span> {c.message}</li>)}</ul>
           </section>
         )}
 
-        <section className="space-y-1">
+        <section className="space-y-2">
           {stores.map((s) => {
             const mine = issues.filter((i) => i.store === s);
             const errors = mine.filter((i) => i.severity === "error").length;
             return (
               <div key={s}>
-                <button type="button" className="text-sm" onClick={() => setOpen(open === s ? null : s)} aria-expanded={open === s}>
+                <button type="button" className="text-sm font-medium hover:text-indigo-600 dark:hover:text-indigo-400" onClick={() => setOpen(open === s ? null : s)} aria-expanded={open === s}>
                   {s === "app-store" ? "App Store" : "Google Play"}: {mine.length === 0 ? "✓ ready" : `${errors} to fix, ${mine.length - errors} to check`}
                 </button>
                 {open === s && (
-                  <ul className="mt-1 space-y-1 text-xs">
+                  <ul className="mt-1.5 space-y-1 border-l-2 border-neutral-200 pl-3 text-xs dark:border-neutral-800">
                     {mine.map((i, k) => (
                       <li key={k}>
                         <button type="button" disabled={!onJump || i.groupId === undefined} className="text-left disabled:cursor-default"
@@ -171,7 +171,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
           })}
         </section>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800">
           <p className={`text-sm ${tooMany ? "text-red-600" : "text-neutral-500"}`}>
             {plan.length} PNGs{tooMany ? `. One export can hold up to ${MAX_EXPORT_ITEMS}.` : ""}
           </p>
@@ -180,9 +180,9 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
         {error && <p role="alert" className="error">{error}</p>}
 
         {jobs.length > 0 && (
-          <ul className="divide-y divide-neutral-200 text-sm dark:divide-neutral-800">
+          <ul className="divide-y divide-neutral-200 rounded-2xl border border-neutral-200 px-3 text-sm dark:divide-neutral-800 dark:border-neutral-800">
             {jobs.map((j) => (
-              <li key={j.id} className="flex items-center justify-between gap-3 py-2">
+              <li key={j.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5">
                 <span className="text-neutral-500">{new Date(j.createdAt).toLocaleString()}</span>
                 {j.status === "done" ? (
                   <a className="font-medium text-indigo-600 hover:underline" href={`/api/jobs/${j.id}/download`}>
@@ -191,7 +191,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
                 ) : j.status === "failed" ? (
                   <span className="text-red-600" title={j.error ?? ""}>{jobError(j.error)}</span>
                 ) : (
-                  <span>{j.status === "queued" ? "Waiting" : "Rendering"}</span>
+                  <span className="chip">{j.status === "queued" ? "Waiting" : "Rendering"}</span>
                 )}
               </li>
             ))}

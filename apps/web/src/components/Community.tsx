@@ -99,15 +99,15 @@ export function CommunityFeed({ initial, apps }: { initial: { posts: Card[]; has
         </select>
       </div>
       {error && <p role="alert" className="error">{error}</p>}
-      {data.posts.length === 0 ? <p className="text-neutral-500">Nothing shared here yet. Share one of your projects from its page.</p> : (
+      {data.posts.length === 0 ? <p className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500 dark:border-neutral-700">Nothing shared here yet. Share one of your projects from its page.</p> : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {data.posts.map((c) => (
-            <li key={c.id} className="card flex flex-col gap-3">
-              <Link href={`/dashboard/community/${c.id}`} className="flex h-56 items-center justify-center" aria-label={`Open ${c.title}`}>
+            <li key={c.id} className="card flex flex-col gap-4 p-4 transition hover:-translate-y-0.5 hover:border-indigo-300 dark:hover:border-indigo-800">
+              <Link href={`/dashboard/community/${c.id}`} className="flex h-56 items-center justify-center overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800/60" aria-label={`Open ${c.title}`}>
                 <Preview doc={c.preview} urls={c.urls} height={220} />
               </Link>
               <div className="flex-1 space-y-1">
-                <h3 className="font-medium"><Link href={`/dashboard/community/${c.id}`} className="hover:underline">{c.title}</Link></h3>
+                <h3 className="font-semibold"><Link href={`/dashboard/community/${c.id}`} className="hover:text-indigo-600 dark:hover:text-indigo-400">{c.title}</Link></h3>
                 {c.description && <p className="line-clamp-2 text-sm text-neutral-500">{c.description}</p>}
                 <p className="text-xs text-neutral-500">
                   {CATEGORY_LABEL[c.category] ?? c.category} · {c.platforms.map((x) => PLATFORM_LABEL[x] ?? x).join(", ")} · used {c.importCount} {c.importCount === 1 ? "time" : "times"}
@@ -119,7 +119,7 @@ export function CommunityFeed({ initial, apps }: { initial: { posts: Card[]; has
           ))}
         </ul>
       )}
-      <div className="flex justify-between">
+      <div className="flex justify-between gap-2">
         <button type="button" className="btn-ghost" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</button>
         <button type="button" className="btn-ghost" disabled={!data.hasMore} onClick={() => setPage(page + 1)}>Next</button>
       </div>
@@ -150,15 +150,15 @@ export function CommunityPostView({ post, apps }: { post: Card & { doc: Chitrapx
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold">{post.title}</h1>
+        <div className="min-w-0 space-y-2">
+          <h1 className="text-3xl font-bold">{post.title}</h1>
           {post.description && <p className="max-w-2xl text-neutral-600 dark:text-neutral-400">{post.description}</p>}
           <p className="text-sm text-neutral-500">{CATEGORY_LABEL[post.category] ?? post.category} · used {post.importCount} {post.importCount === 1 ? "time" : "times"}{post.status === "hidden" && " · Hidden while staff review reports"}</p>
         </div>
-        <div className="w-64"><UseTemplate postId={post.id} apps={apps} /></div>
+        <div className="w-full sm:w-64"><UseTemplate postId={post.id} apps={apps} /></div>
       </div>
       {g && (
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="flex gap-3 overflow-x-auto rounded-2xl border border-neutral-200 bg-neutral-100 p-4 dark:border-neutral-800 dark:bg-neutral-900">
           {g.boards.map((b, i) => (
             <BoardThumb key={b.id} doc={post.doc} groupId={g.id} boardIndex={i} locale={null} height={b.size.width > b.size.height ? 200 : 360} resolveSrc={resolveSrc} />
           ))}
@@ -168,12 +168,12 @@ export function CommunityPostView({ post, apps }: { post: Card & { doc: Chitrapx
       {post.mine ? (
         <button type="button" className="btn-danger" onClick={remove}>Delete post</button>
       ) : (
-        <form className="flex max-w-xl gap-2" onSubmit={(e) => { e.preventDefault(); void report(); }}>
+        <form className="flex max-w-xl flex-wrap gap-2 sm:flex-nowrap" onSubmit={(e) => { e.preventDefault(); void report(); }}>
           <input className="input flex-1" aria-label="Why report this post?" placeholder="Report: what is wrong with this post?" maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
           <button className="btn-ghost" disabled={!reason.trim()}>Report</button>
         </form>
       )}
-      {note && <p role="status" className="text-sm text-neutral-600">{note}</p>}
+      {note && <p role="status" className="text-sm text-neutral-600 dark:text-neutral-400">{note}</p>}
     </div>
   );
 }
@@ -189,14 +189,14 @@ export function ModerationQueue({ items }: { items: QueueItem[] }) {
     try { await api(`/api/community/${id}/moderate`, "POST", { action }); setList((l) => l.filter((x) => x.id !== id)); }
     catch (err) { setError((err as Error).message); }
   }
-  if (!list.length) return <p className="text-neutral-500">Nothing to review.</p>;
+  if (!list.length) return <p className="rounded-2xl border border-dashed border-neutral-300 p-10 text-center text-neutral-500 dark:border-neutral-700">Nothing to review.</p>;
   return (
     <div className="space-y-2">
       {error && <p role="alert" className="error">{error}</p>}
-      <ul className="divide-y divide-neutral-200 dark:divide-neutral-800">
+      <ul className="card divide-y divide-neutral-100 py-1 dark:divide-neutral-800">
         {list.map((q) => (
           <li key={q.id} className="flex flex-wrap items-center gap-3 py-3">
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <Link href={`/dashboard/community/${q.id}`} className="font-medium hover:underline">{q.title}</Link>
               <p className="text-xs text-neutral-500">{q.status} · {q.reports} {q.reports === 1 ? "report" : "reports"}{q.reasons.length ? `: ${q.reasons.join(" · ")}` : ""}</p>
             </div>

@@ -242,6 +242,25 @@ export async function listAssets(ctx: Ctx, storage: ObjectStorage, appId: string
   });
 }
 
+/** Up to `per` newest uploaded screenshots for every app in the workspace, as signed URLs (dashboard card covers). */
+export async function appCovers(ctx: Ctx, storage: ObjectStorage, per = 4): Promise<Record<string, string[]>> {
+  // ponytail: loads every screenshot row's id in the workspace and trims per app in JS; use a window query if workspaces hold thousands.
+  const rows = await db.select({ appId: schema.assets.appId, sha256: schema.assets.sha256 }).from(schema.assets)
+    .where(and(eq(schema.assets.workspaceId, ctx.workspaceId), eq(schema.assets.kind, "screenshot")))
+    .orderBy(desc(schema.assets.createdAt));
+  const picked: Array<{ appId: string; path: string }> = [];
+  const seen: Record<string, number> = {};
+  for (const r of rows) {
+    if (!r.appId || (seen[r.appId] ?? 0) >= per) continue;
+    seen[r.appId] = (seen[r.appId] ?? 0) + 1;
+    picked.push({ appId: r.appId, path: finalPath(ctx, r.sha256) });
+  }
+  const urls = await storage.signedUrls(picked.map((p) => p.path));
+  const out: Record<string, string[]> = {};
+  picked.forEach((p, i) => { if (urls[i]) (out[p.appId] ??= []).push(urls[i]!); });
+  return out;
+}
+
 /** The app's competitor board: signed image URLs and each image's analysis (null until analysed). */
 export async function listReferences(ctx: Ctx, storage: ObjectStorage, appId: string): Promise<Array<Asset & { url: string; insight: unknown }>> {
   await getApp(ctx, appId);

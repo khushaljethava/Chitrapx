@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ne } from "drizzle-orm";
+import { and, count, desc, eq, max, ne } from "drizzle-orm";
 import { z } from "zod";
 import { db, lockWorkspace, PLANS, schema, withTx } from "@chitrapx/db";
 import { BRAND_TOKENS, briefSchema, FONT_FAMILY_UNSAFE, glossarySchema } from "@chitrapx/document";
@@ -42,8 +42,29 @@ export type App = typeof schema.apps.$inferSelect;
 
 const own = (ctx: Ctx, appId: string) => and(eq(schema.apps.id, appId), eq(schema.apps.workspaceId, ctx.workspaceId));
 
-export async function listApps(ctx: Ctx): Promise<App[]> {
-  return db.select().from(schema.apps).where(eq(schema.apps.workspaceId, ctx.workspaceId)).orderBy(desc(schema.apps.createdAt));
+/** Status of the app's most recent full-set ("export") job, or null if it was never exported. */
+export type ExportStatus = (typeof schema.jobStatusEnum.enumValues)[number] | null;
+export type AppSummary = App & { projectCount: number; updatedAt: Date; exportStatus: ExportStatus };
+
+/** Apps with their project count, last edit (latest project update, else when the app was created) and latest export status. */
+export async function listApps(ctx: Ctx): Promise<AppSummary[]> {
+  const [rows, exports] = await Promise.all([
+    db.select({ app: schema.apps, projectCount: count(schema.projects.id), lastEdit: max(schema.projects.updatedAt) })
+      .from(schema.apps).leftJoin(schema.projects, eq(schema.projects.appId, schema.apps.id))
+      .where(eq(schema.apps.workspaceId, ctx.workspaceId)).groupBy(schema.apps.id).orderBy(desc(schema.apps.createdAt)),
+    // ponytail: reads every export job in the workspace and keeps the newest per app; switch to DISTINCT ON if job history gets large.
+    db.select({ appId: schema.projects.appId, status: schema.jobs.status }).from(schema.jobs)
+      .innerJoin(schema.projects, eq(schema.jobs.projectId, schema.projects.id))
+      .where(and(eq(schema.jobs.workspaceId, ctx.workspaceId), eq(schema.jobs.type, "export")))
+      .orderBy(desc(schema.jobs.createdAt)),
+  ]);
+  const latest = new Map<string, ExportStatus>();
+  for (const e of exports) if (!latest.has(e.appId)) latest.set(e.appId, e.status);
+  return rows.map(({ app, projectCount, lastEdit }) => ({
+    ...app, projectCount,
+    updatedAt: lastEdit && lastEdit > app.createdAt ? lastEdit : app.createdAt,
+    exportStatus: latest.get(app.id) ?? null,
+  }));
 }
 
 export async function getApp(ctx: Ctx, appId: string): Promise<App> {

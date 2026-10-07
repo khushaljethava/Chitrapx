@@ -16,7 +16,8 @@ const STATUS: Record<SaveStatus, string> = {
   conflict: "Changed elsewhere", error: "Could not save", reconnecting: "Reconnecting, edits still save",
 };
 
-export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations, glossary: initialGlossary, presence }: {
+export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc, reportConflict, openTranslations, glossary: initialGlossary, presence, share }: {
+  share?: React.ReactNode;
   name: string; projectId: string; status: SaveStatus; error?: string; flush: () => Promise<boolean>;
   adoptServerDoc: (doc: ChitrapxDoc, revision: number) => void; reportConflict: (revision: number) => void; openTranslations?: boolean; glossary: string[];
   /** SP15: who else is in the project. */
@@ -54,16 +55,12 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
         <button type="button" className="nav-link px-2 disabled:opacity-40" disabled={!canRedo} onClick={() => store.getState().redo()} title="Redo (Shift+Ctrl/Cmd+Z)" aria-label="Redo">↷</button>
       </div>
       <nav className="flex flex-wrap items-center gap-1" aria-label="Languages">
-        {codes.map((c) => (
-          <span key={c} className="inline-flex items-center">
-            <button type="button" className={c === locale ? "btn px-2 py-1 text-xs" : "btn-ghost px-2 py-1 text-xs"} onClick={() => store.getState().setLocale(c)}>
-              {c}{rtl(c) && <span className="ml-1 rounded bg-neutral-200 px-1 text-[9px] font-semibold text-neutral-700 dark:bg-neutral-700 dark:text-neutral-200" title="Right-to-left">RTL</span>}
-            </button>
-            {c !== loc.baseLocale && c === locale && (
-              <button type="button" aria-label={`Remove ${c}`} className="px-1 text-xs text-neutral-500 hover:text-red-600" onClick={() => store.getState().apply({ type: "removeLocale", code: c })}>x</button>
-            )}
-          </span>
-        ))}
+        <select aria-label="Language" className="input w-auto py-1 text-xs" value={locale} onChange={(e) => store.getState().setLocale(e.target.value)}>
+          {codes.map((c) => <option key={c} value={c}>{c}{rtl(c) ? " (RTL)" : ""}</option>)}
+        </select>
+        {locale !== loc.baseLocale && (
+          <button type="button" aria-label={`Remove ${locale}`} title={`Remove ${locale}`} className="nav-link px-1.5 text-xs hover:text-red-600" onClick={() => store.getState().apply({ type: "removeLocale", code: locale })}>×</button>
+        )}
         <select aria-label="Add a language" className="input w-auto py-1 text-xs" value="" onChange={(e) => {
           if (!e.target.value) return;
           store.getState().apply({ type: "addLocale", code: e.target.value });
@@ -81,6 +78,7 @@ export function Toolbar({ name, projectId, status, error, flush, adoptServerDoc,
       </nav>
       {presence && <div className="ml-auto">{presence}</div>}
       {!presence && <span className="ml-auto" />}
+      {share}
       <button type="button" className="btn-ghost py-1.5" disabled={!doc.groups.length} onClick={() => setTranslating(true)}>Translations</button>
       {translating && <TranslationsTable name={name} glossary={glossary} onGlossary={setGlossary} onClose={() => setTranslating(false)} />}
       <button type="button" className="btn-ghost py-1.5" onClick={() => setHistory(true)}>History</button>
