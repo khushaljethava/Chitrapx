@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { api } from "@/server/api.ts";
+import { Notice, icon } from "@/components/Notice.tsx";
 
 /** SP15: switch the current workspace (a cookie set by the server), then reload the dashboard. */
 export function WorkspaceSwitcher({ current, workspaces }: { current: string; workspaces: Array<{ id: string; name: string; role: string }> }) {
@@ -44,14 +45,14 @@ export function AcceptInvite({ token, workspaceName }: { token: string; workspac
 /** Shown when the chosen workspace is no longer yours: go back to your own. */
 export function AccessRemoved() {
   return (
-    <div className="mx-auto max-w-md space-y-3 p-8 text-center">
-      <h1 className="text-xl font-semibold">Access removed</h1>
-      <p className="text-sm text-neutral-500">You are no longer a member of this workspace. Your own workspaces are still here.</p>
-      <button className="btn" onClick={async () => {
+    <Notice title="Access removed" body="You are no longer a member of this workspace. Your own workspaces are still here."
+      icon={icon("M7 11V7a5 5 0 0 1 9.9-1M5 11h14v10H5z")}>
+      <button className="btn w-full py-3" onClick={async () => {
         await api("/api/workspaces/switch", "POST", {}).catch(() => {});
         window.location.assign("/dashboard");
-      }}>Go to my workspace</button>
-    </div>
+      }}>Go to my workspace <span aria-hidden>→</span></button>
+      <form action="/auth/signout" method="post"><button className="text-xs font-medium text-neutral-500 transition hover:text-indigo-600">Sign out</button></form>
+    </Notice>
   );
 }
 
@@ -71,8 +72,8 @@ export function AccessWatcher() {
   }, []);
   if (!removed) return null;
   return (
-    <div role="alertdialog" aria-modal="true" aria-label="Access removed" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="card"><AccessRemoved /></div>
+    <div role="alertdialog" aria-modal="true" aria-label="Access removed" className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <AccessRemoved />
     </div>
   );
 }

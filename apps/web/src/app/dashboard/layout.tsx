@@ -3,13 +3,14 @@ import { balance, db } from "@chitrapx/db";
 import { NotificationsBell } from "@/components/Comments.tsx";
 import { CreditsBadge } from "@/components/CreditsBadge.tsx";
 import { SiteFooter } from "@/components/SiteFooter.tsx";
+import { NoticePage } from "@/components/Notice.tsx";
 import { AccessRemoved, WorkspaceSwitcher } from "@/components/Workspaces.tsx";
 import { listWorkspaces, requireContext } from "@/server/context.ts";
 import { HttpError } from "@/server/http.ts";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const ctx = await requireContext().catch((e) => { if (e instanceof HttpError && e.code === "access_removed") return null; throw e; });
-  if (!ctx) return <AccessRemoved />;
+  if (!ctx) return <NoticePage><AccessRemoved /></NoticePage>;
   const [credits, workspaces] = await Promise.all([balance(db, ctx.workspaceId), listWorkspaces(ctx.userId)]);
   return (
     <div className="min-h-screen">
