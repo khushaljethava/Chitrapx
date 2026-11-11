@@ -5,7 +5,7 @@ import { balance, db, grantMonthlyCredits, pool, schema } from "@chitrapx/db";
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import type { Ctx } from "@/server/context.ts";
 import {
-  activateSubscription, cancelSubscription, createOrder, createSubscription, handleWebhook, signatureValid, verifyOrderPayment, verifySubscriptionPayment,
+  activateSubscription, cancelSubscription, createOrder, createSubscription, currencyFor, handleWebhook, signatureValid, verifyOrderPayment, verifySubscriptionPayment,
 } from "@/server/billing.ts";
 
 const KEY = "test_key_secret", HOOK = "test_webhook_secret";
@@ -17,7 +17,7 @@ const RUN = Date.now().toString(36);
 const calls: Array<{ url: string; body: unknown }> = [];
 
 beforeEach(() => {
-  Object.assign(process.env, { RAZORPAY_KEY_ID: "rzp_test_x", RAZORPAY_KEY_SECRET: KEY, RAZORPAY_WEBHOOK_SECRET: HOOK, RAZORPAY_PLAN_PRO: "plan_pro", RAZORPAY_PLAN_STUDIO: "plan_studio" });
+  Object.assign(process.env, { RAZORPAY_KEY_ID: "rzp_test_x", RAZORPAY_KEY_SECRET: KEY, RAZORPAY_WEBHOOK_SECRET: HOOK, RAZORPAY_PLAN_PRO_USD: "plan_pro", RAZORPAY_PLAN_STUDIO_USD: "plan_studio" });
   calls.length = 0;
   vi.stubGlobal("fetch", vi.fn(async (url: string, init: RequestInit) => {
     calls.push({ url, body: JSON.parse(String(init.body)) });
@@ -47,17 +47,37 @@ describe("signatures", () => {
   });
 });
 
+describe("country pricing", () => {
+  it("picks the currency from the edge's country header, USD elsewhere", () => {
+    const h = (o: Record<string, string>) => new Headers(o);
+    expect(currencyFor(h({ "x-vercel-ip-country": "AE" }))).toBe("AED");
+    expect(currencyFor(h({ "x-vercel-ip-country": "de" }))).toBe("EUR");
+    expect(currencyFor(h({ "cf-ipcountry": "GB" }))).toBe("GBP");
+    expect(currencyFor(h({ "x-vercel-ip-country": "KW" }))).toBe("USD");
+    expect(currencyFor(h({}))).toBe("USD");
+  });
+
+  it("charges and records the order in the buyer's currency, so the webhook checks against it", async () => {
+    const ctx = await ctxWith(0);
+    const order = await createOrder(ctx, { pack: "small" }, "AED");
+    expect(order).toMatchObject({ amount: 1900, currency: "AED" });
+    expect(calls[0]!.body).toMatchObject({ amount: 1900, currency: "AED" });
+    await webhook("payment.captured", { payment: { entity: { id: `pay_aed_${RUN}`, order_id: order.orderId, amount: 1900, currency: "USD" } } });
+    expect(await balance(db, ctx.workspaceId)).toBe(0); // right amount, wrong currency
+  });
+});
+
 describe("credit packs", () => {
   it("adds credits once, whether checkout and the webhook both report the payment", async () => {
     const ctx = await ctxWith(0);
     const order = await createOrder(ctx, { pack: "small" });
-    expect(calls[0]!.body).toMatchObject({ amount: 49900, currency: "INR" });
+    expect(calls[0]!.body).toMatchObject({ amount: 500, currency: "USD" });
     const v = { razorpay_order_id: order.orderId, razorpay_payment_id: `pay_1_${RUN}` };
     await expect(verifyOrderPayment(ctx, { ...v, razorpay_signature: sign("x") })).rejects.toMatchObject({ code: "invalid_signature" });
     expect(await balance(db, ctx.workspaceId)).toBe(0);
 
     await verifyOrderPayment(ctx, { ...v, razorpay_signature: sign(`${order.orderId}|pay_1_${RUN}`) });
-    await webhook("payment.captured", { payment: { entity: { id: `pay_1_${RUN}`, order_id: order.orderId, amount: 49900, currency: "INR" } } });
+    await webhook("payment.captured", { payment: { entity: { id: `pay_1_${RUN}`, order_id: order.orderId, amount: 500, currency: "USD" } } });
     await verifyOrderPayment(ctx, { ...v, razorpay_signature: sign(`${order.orderId}|pay_1_${RUN}`) });
     expect(await balance(db, ctx.workspaceId)).toBe(100);
   });
@@ -67,14 +87,14 @@ describe("credit packs", () => {
     const order = await createOrder(a, { pack: "medium" });
     await expect(verifyOrderPayment(b, { razorpay_order_id: order.orderId, razorpay_payment_id: `pay_2_${RUN}`, razorpay_signature: sign(`${order.orderId}|pay_2_${RUN}`) }))
       .rejects.toMatchObject({ code: "unknown_order" });
-    await webhook("payment.captured", { payment: { entity: { id: `pay_2_${RUN}`, order_id: order.orderId, amount: 100, currency: "INR" } } });
+    await webhook("payment.captured", { payment: { entity: { id: `pay_2_${RUN}`, order_id: order.orderId, amount: 100, currency: "USD" } } });
     expect(await balance(db, a.workspaceId)).toBe(0);
   });
 
   it("rejects webhooks with a bad signature and ignores repeated event ids", async () => {
     const ctx = await ctxWith(0);
     const order = await createOrder(ctx, { pack: "small" });
-    const body = JSON.stringify({ event: "order.paid", payload: { payment: { entity: { id: `pay_3_${RUN}`, order_id: order.orderId, amount: 49900, currency: "INR" } } } });
+    const body = JSON.stringify({ event: "order.paid", payload: { payment: { entity: { id: `pay_3_${RUN}`, order_id: order.orderId, amount: 500, currency: "USD" } } } });
     await expect(handleWebhook(body, sign(body, "wrong"), "evt_x")).rejects.toMatchObject({ code: "invalid_signature" });
     const id = `evt_dup_${seq++}_${Date.now()}`;
     expect(await handleWebhook(body, sign(body, HOOK), id)).toEqual({ handled: true });
@@ -118,7 +138,7 @@ describe("review fixes", () => {
   it("a webhook that fails is applied when Razorpay retries it", async () => {
     const ctx = await ctxWith(0);
     const order = await createOrder(ctx, { pack: "small" });
-    const body = JSON.stringify({ event: "payment.captured", payload: { payment: { entity: { id: `pay_r_${RUN}`, order_id: order.orderId, amount: 49900, currency: "INR" } } } });
+    const body = JSON.stringify({ event: "payment.captured", payload: { payment: { entity: { id: `pay_r_${RUN}`, order_id: order.orderId, amount: 500, currency: "USD" } } } });
     const id = `evt_retry_${RUN}`;
     // The first delivery hits a database blip when the purchase transaction starts (pool.connect()
     // without a callback is withTx; plain queries pass a callback and are left alone).

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { CtaBand, PublicHeader } from "@/components/Shell.tsx";
 import { SiteFooter } from "@/components/SiteFooter.tsx";
 
 export const dynamic = "force-static";
@@ -12,11 +12,7 @@ export const metadata: Metadata = {
 export default function PrivacyPage() {
   return (
     <>
-      <header className="border-b border-neutral-200 dark:border-neutral-800">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
-          <Link href="/" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link>
-        </div>
-      </header>
+      <PublicHeader />
       <main className="mx-auto max-w-2xl space-y-10 px-4 py-12 leading-relaxed text-neutral-700 sm:py-16 dark:text-neutral-300 [&_code]:rounded-md [&_code]:bg-neutral-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-[0.85em] dark:[&_code]:bg-neutral-800 [&_strong]:font-semibold [&_strong]:text-neutral-900 dark:[&_strong]:text-neutral-100">
         <h1 className="text-4xl font-bold text-neutral-900 sm:text-5xl dark:text-neutral-100">Privacy</h1>
 
@@ -55,7 +51,8 @@ export default function PrivacyPage() {
           </p>
         </section>
       </main>
-      <SiteFooter />
+      <CtaBand />
+      <SiteFooter dark />
     </>
   );
 }

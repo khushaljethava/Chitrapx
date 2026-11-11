@@ -7,3 +7,11 @@ node_modules
 supabase/.temp
 supabase/.branches
 next-env.d.ts
+
+# local tooling output
+.claude/
+.playwright-mcp/
+brag-output*/
+graphify-out/
+stitch_chitrapx_redesign/
+videos/

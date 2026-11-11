@@ -6,18 +6,38 @@ import { balance, db, lockWorkspace, PLANS, schema, withTx, type Db, type Plan }
 import type { Ctx } from "./context.ts";
 import { badRequest, HttpError } from "./http.ts";
 
-/** Launch values, business-tunable: credits and price in the currency's smallest unit (paise for INR). */
-export const CREDIT_PACKS = {
-  small: { credits: 100, amount: 49900 },
-  medium: { credits: 500, amount: 199900 },
-  large: { credits: 2000, amount: 699900 },
-} as const;
+/** Launch values, business-tunable: credits per pack. Prices are per currency, in PRICE_LIST. */
+export const CREDIT_PACKS = { small: { credits: 100 }, medium: { credits: 500 }, large: { credits: 2000 } } as const;
 export type PackId = keyof typeof CREDIT_PACKS;
+
+/**
+ * Hand-set prices in each currency's smallest unit (cents, fils, halalas, paise), not live exchange rates.
+ * Plan prices must equal the Razorpay Plan named RAZORPAY_PLAN_<PLAN>_<CURRENCY>, which is what is charged.
+ */
+export const PRICE_LIST = {
+  USD: { small: 500, medium: 1900, large: 5900, pro: 1900, studio: 4900 },
+  EUR: { small: 500, medium: 1900, large: 5900, pro: 1900, studio: 4900 },
+  GBP: { small: 400, medium: 1600, large: 4900, pro: 1600, studio: 4200 },
+  AED: { small: 1900, medium: 6900, large: 21900, pro: 6900, studio: 17900 },
+  SAR: { small: 1900, medium: 6900, large: 21900, pro: 6900, studio: 17900 },
+  INR: { small: 49900, medium: 199900, large: 699900, pro: 99900, studio: 249900 },
+} as const;
+export type Currency = keyof typeof PRICE_LIST;
+const EURO = "AT BE CY DE EE ES FI FR GR HR IE IT LT LU LV MT NL PT SI SK".split(" ");
+const COUNTRY_CURRENCY: Record<string, Currency> = { AE: "AED", SA: "SAR", GB: "GBP", IN: "INR", ...Object.fromEntries(EURO.map((c) => [c, "EUR" as const])) };
+
+/**
+ * The buyer's currency from the edge's IP-country header (Vercel, else Cloudflare); USD for every other country.
+ * ponytail: IP-based, so a VPN can pick a cheaper list; lock the currency per workspace at first payment if that gets abused.
+ */
+export function currencyFor(headers: Headers): Currency {
+  const country = (headers.get("x-vercel-ip-country") ?? headers.get("cf-ipcountry") ?? "").toUpperCase();
+  return COUNTRY_CURRENCY[country] ?? "USD";
+}
 const MAX_OPEN_ORDERS_PER_HOUR = 20;
 export const PAID_PLANS = ["pro", "studio"] as const;
 type PaidPlan = (typeof PAID_PLANS)[number];
 
-export const currency = () => process.env.RAZORPAY_CURRENCY ?? "INR";
 const keyId = () => process.env.RAZORPAY_KEY_ID ?? "";
 const secret = (name: "RAZORPAY_KEY_SECRET" | "RAZORPAY_WEBHOOK_SECRET") => {
   const v = process.env[name];
@@ -25,8 +45,8 @@ const secret = (name: "RAZORPAY_KEY_SECRET" | "RAZORPAY_WEBHOOK_SECRET") => {
   return v;
 };
 /** Razorpay Plans (which hold the price) are created in the Razorpay dashboard; we keep only their ids. */
-const planId = (plan: PaidPlan) => {
-  const v = process.env[plan === "pro" ? "RAZORPAY_PLAN_PRO" : "RAZORPAY_PLAN_STUDIO"];
+const planId = (plan: PaidPlan, cur: Currency) => {
+  const v = process.env[`RAZORPAY_PLAN_${plan.toUpperCase()}_${cur}`];
   if (!v) throw new HttpError(503, "billing_unavailable", "This plan is not on sale yet");
   return v;
 };
@@ -55,28 +75,29 @@ export function signatureValid(payload: string, signature: unknown, key: string)
 
 // ---- Credit packs --------------------------------------------------------------------------
 
-export async function createOrder(ctx: Ctx, raw: unknown) {
+export async function createOrder(ctx: Ctx, raw: unknown, cur: Currency = "USD") {
   const { pack } = z.object({ pack: z.enum(Object.keys(CREDIT_PACKS) as [PackId, ...PackId[]]) }).parse(raw);
-  const { credits, amount } = CREDIT_PACKS[pack];
+  const { credits } = CREDIT_PACKS[pack];
+  const amount = PRICE_LIST[cur][pack];
   const [{ open }] = (await db.select({ open: count() }).from(schema.payments).where(and(
     eq(schema.payments.workspaceId, ctx.workspaceId), eq(schema.payments.status, "created"), gt(schema.payments.createdAt, new Date(Date.now() - 3600_000)),
   ))) as [{ open: number }];
   if (open >= MAX_OPEN_ORDERS_PER_HOUR) throw new HttpError(429, "too_many_orders", "Too many unpaid orders; try again later");
   // Our row exists before Razorpay's order, so a paid order can never be unknown to us.
   const [row] = await db.insert(schema.payments).values({
-    workspaceId: ctx.workspaceId, razorpayOrderId: `pending:${randomUUID()}`, pack, credits, amount, currency: currency(),
+    workspaceId: ctx.workspaceId, razorpayOrderId: `pending:${randomUUID()}`, pack, credits, amount, currency: cur,
   }).returning({ id: schema.payments.id });
   let order: { id: string };
   try {
     order = await razorpay<{ id: string }>("/orders", {
-      amount, currency: currency(), receipt: row!.id.slice(0, 40), notes: { workspaceId: ctx.workspaceId, pack, paymentRow: row!.id },
+      amount, currency: cur, receipt: row!.id.slice(0, 40), notes: { workspaceId: ctx.workspaceId, pack, paymentRow: row!.id },
     });
   } catch (err) {
     await db.update(schema.payments).set({ status: "failed" }).where(eq(schema.payments.id, row!.id));
     throw err;
   }
   await db.update(schema.payments).set({ razorpayOrderId: order.id }).where(eq(schema.payments.id, row!.id));
-  return { orderId: order.id, amount, currency: currency(), keyId: keyId(), credits };
+  return { orderId: order.id, amount, currency: cur, keyId: keyId(), credits };
 }
 
 /**
@@ -114,7 +135,7 @@ export async function verifyOrderPayment(ctx: Ctx, raw: unknown) {
 
 const LIVE = ["active", "cancelling"] as const;
 
-export async function createSubscription(ctx: Ctx, raw: unknown) {
+export async function createSubscription(ctx: Ctx, raw: unknown, cur: Currency = "USD") {
   const { plan } = z.object({ plan: z.enum(PAID_PLANS) }).parse(raw);
   // Serialized per workspace: two tabs can never both hold a payable subscription.
   return withTx(async ({ db: tx }) => {
@@ -130,7 +151,7 @@ export async function createSubscription(ctx: Ctx, raw: unknown) {
     }
     // total_count is required by Razorpay; 10 years of monthly cycles.
     const sub = await razorpay<{ id: string }>("/subscriptions", {
-      plan_id: planId(plan), total_count: 120, customer_notify: 1, notes: { workspaceId: ctx.workspaceId, plan },
+      plan_id: planId(plan, cur), total_count: 120, customer_notify: 1, notes: { workspaceId: ctx.workspaceId, plan },
     });
     await tx.insert(schema.subscriptions).values({ workspaceId: ctx.workspaceId, razorpaySubscriptionId: sub.id, plan });
     return { subscriptionId: sub.id, keyId: keyId() };
@@ -279,12 +300,12 @@ async function applyEvent(event: string, payment: Entity | undefined, sub: Entit
 
 // ---- Page data -----------------------------------------------------------------------------
 
-export async function billingOverview(ctx: Ctx) {
+export async function billingOverview(ctx: Ctx, cur: Currency = "USD") {
   const [subs, recent] = await Promise.all([
     db.select().from(schema.subscriptions)
       .where(and(eq(schema.subscriptions.workspaceId, ctx.workspaceId), inArray(schema.subscriptions.status, [...LIVE]))).limit(1),
     db.select().from(schema.payments)
       .where(and(eq(schema.payments.workspaceId, ctx.workspaceId), eq(schema.payments.status, "paid"))).orderBy(desc(schema.payments.createdAt)).limit(10),
   ]);
-  return { plan: ctx.plan, subscription: subs[0] ?? null, payments: recent, configured: billingConfigured(), currency: currency() };
+  return { plan: ctx.plan, subscription: subs[0] ?? null, payments: recent, configured: billingConfigured(), currency: cur, prices: PRICE_LIST[cur] };
 }

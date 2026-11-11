@@ -3,7 +3,7 @@ import Link from "next/link";
 /** Centered message card for Access removed and error pages (Stitch "Access removed" design). */
 export function Notice({ icon, tone = "indigo", title, body, children }: { icon: React.ReactNode; tone?: "indigo" | "coral"; title: string; body: React.ReactNode; children: React.ReactNode }) {
   return (
-    <div className="card w-full max-w-[440px] p-8 text-center shadow-[0_4px_24px_-4px_rgba(24,24,27,0.04)] sm:p-10">
+    <div className="card w-full max-w-[440px] p-8 text-center sm:p-10">
       <div aria-hidden className={`mx-auto mb-5 flex size-14 items-center justify-center rounded-full ring-4 ${tone === "coral" ? "bg-coral-500/10 text-coral-600 ring-coral-500/5" : "bg-indigo-600/10 text-indigo-600 ring-indigo-600/5 dark:text-indigo-400"}`}>{icon}</div>
       <h1 className="mb-2 text-2xl font-bold">{title}</h1>
       <div className="mx-auto mb-8 max-w-xs text-sm leading-relaxed text-neutral-500">{body}</div>

@@ -85,7 +85,7 @@ Two choices are waiting on you.
 
 Built and merged; these were left for later.
 
-- [ ] Manual browser checks from the end of the SP11 plan (brief and presets, translations table, AI translation, RTL, chips, competitor board). The AI checks need `ANTHROPIC_API_KEY` in `.env` and the worker running.
+- [ ] Manual browser checks from the end of the SP11 plan (brief and presets, translations table, AI translation, RTL, chips, competitor board). The AI checks need `GEMINI_API_KEY` in `.env` and the worker running.
 - [ ] Twelve minor review findings, listed as `Final: minor (deferred)` in the SP11 ledger (`.superpowers/sdd/2026-10-05-sp11-localization-ai-copy/progress.md`). The most user-visible: arrow keys still nudge elements in a mirrored view; paid competitor analyses count toward the free hourly limit; a Play AI design fails if fewer than 4 chips come back.
 - [ ] Remote-database test flakiness: two `bundle.test.ts` "under 1000 ms" checks and the billing "daily grant" test (scans every workspace) time out against the shared dev database.
 

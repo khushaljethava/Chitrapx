@@ -50,9 +50,9 @@ export function AnalyticsConsent() {
   }
 
   return (
-    <div role="region" aria-label="Cookie settings" className="fixed inset-x-0 bottom-0 z-[70] border-t border-neutral-200 bg-white p-4 text-sm shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center">
-        <p className="flex-1">
+    <div role="region" aria-label="Cookie settings" className="fixed inset-x-0 bottom-0 z-[70] border-t border-line bg-surface/95 px-4 py-4 text-sm backdrop-blur-md sm:px-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center">
+        <p className="flex-1 text-muted">
           {blocked
             ? "Your browser asks sites not to track you, so Chitrapx counts nothing. Sign-in cookies are always on because the app needs them."
             : "May Chitrapx count page views and a few actions, like starting an export? The counts stay on our own servers, with no cookies, no third parties and nothing that identifies you. Sign-in cookies are always on because the app needs them."}

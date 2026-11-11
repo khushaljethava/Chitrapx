@@ -6,13 +6,17 @@ import { storageConfig } from "@chitrapx/storage";
 storageConfig(); // a worker without storage settings stops here, naming the variable
 
 boss.on("error", (err) => console.error("[pg-boss]", err));
+boss.on("warning", (w) => console.warn("[pg-boss]", w)); // e.g. LISTEN failed: back to 10 s polling
 await boss.start();
 
 for (const type of Object.keys(handlers) as JobType[]) {
   await boss.createQueue(type);
+  await boss.updateQueue(type, { notify: true }); // queues created before notify existed
   // ponytail: one process, 4 concurrent jobs per type (1 for bundles and imports, ~1 GB each at peak); scale by running more worker containers.
   const localConcurrency = type === "project_bundle" || type === "project_import" ? 1 : 4;
-  await boss.work<{ jobId: string }>(type, { localConcurrency, pollingIntervalSeconds: 1 }, async (jobs) => {
+  // 18 queues x 4 pollers at 1 s, ~400 ms per query, swamped the 3-connection pool ("timeout exceeded when trying to connect").
+  // NOTIFY now delivers new jobs at once; polling is only the backstop (30 s with notify, 10 s if LISTEN is unavailable).
+  await boss.work<{ jobId: string }>(type, { localConcurrency, pollingIntervalSeconds: 10 }, async (jobs) => {
     for (const job of jobs) await runJob(job.data.jobId, handlers[type], cleanups[type]);
   });
 }

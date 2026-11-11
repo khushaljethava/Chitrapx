@@ -36,18 +36,95 @@
   --color-coral-600: #f0502d;
 }
 
-:root { color-scheme: light dark; accent-color: var(--color-indigo-600); }
-body { @apply bg-neutral-50 font-sans text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100; }
-h1, h2, h3 { @apply font-display tracking-tight; }
+/* Semantic tokens (DESIGN.md). Values flip for dark mode below; use these in new markup instead of raw hex. */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: #5b4bff;
+  --color-primary-hover: #4a37e6;
+  --color-primary-tint: var(--primary-tint);
+  --color-on-primary-tint: var(--on-primary-tint);
+  --color-coral: #ff6b4a;
+  /* The dark CTA band: ink in both modes. */
+  --color-night: #18181b;
+  /* Coral text on light backgrounds: #ff6b4a itself is under AA for small text. */
+  --color-coral-ink: var(--coral-ink);
+  --radius-card: 1rem;
+  --radius-control: 0.625rem;
+}
+
+:root {
+  color-scheme: light dark;
+  accent-color: #5b4bff;
+  --canvas: #fafaf7;
+  --surface: #ffffff;
+  --ink: #18181b;
+  --muted: #71717a;
+  --line: rgb(24 24 27 / 0.1);
+  --primary-tint: #eeedff;
+  --on-primary-tint: #1e159e;
+  --coral-ink: #c2391b;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --canvas: #0f0f0d;
+    --surface: #1a1917;
+    --ink: #f3f2ee;
+    --muted: #a3a19a;
+    --line: rgb(243 242 238 / 0.1);
+    --primary-tint: rgb(91 75 255 / 0.18);
+    --on-primary-tint: #cbc4ff;
+    --coral-ink: #ff8a6e;
+  }
+}
+
+body { @apply bg-canvas font-sans text-sm text-ink antialiased sm:text-base; }
+h1, h2, h3 { @apply font-display font-bold tracking-[-0.02em]; }
+:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
 @layer components {
-  .btn { @apply inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-indigo-600/20 transition hover:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50; }
-  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2 text-sm font-medium transition hover:border-neutral-300 hover:bg-neutral-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500 disabled:opacity-50 dark:border-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800; }
-  .btn-danger { @apply inline-flex items-center rounded-xl px-3 py-1.5 text-sm text-red-600 transition hover:bg-red-50 dark:hover:bg-red-950; }
-  .input { @apply w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none transition placeholder:text-neutral-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/15 dark:border-neutral-800 dark:bg-neutral-900; }
-  .label { @apply mb-1.5 block text-xs font-medium text-neutral-600 dark:text-neutral-400; }
-  .card { @apply rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900; }
+  /* Buttons: .btn primary, .btn-ghost secondary (outlined), .btn-text ghost, .btn-ai coral for AI/magic actions only. */
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-control bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:opacity-50; }
+  .btn-ghost { @apply inline-flex items-center justify-center gap-2 rounded-control border border-line bg-surface px-4 py-2 text-sm font-medium text-ink transition hover:bg-canvas disabled:opacity-50; }
+  .btn-text { @apply inline-flex items-center justify-center gap-2 rounded-control px-3 py-2 text-sm font-medium text-muted transition hover:bg-ink/5 hover:text-ink disabled:opacity-50; }
+  .btn-ai { @apply inline-flex items-center justify-center gap-2 rounded-control bg-coral px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-95 disabled:opacity-50; }
+  .btn-danger { @apply inline-flex items-center rounded-control px-3 py-1.5 text-sm text-red-600 transition hover:bg-red-600/10; }
+  .icon-btn { @apply relative inline-grid size-9 place-items-center rounded-full text-muted transition hover:bg-ink/5 hover:text-ink; }
+
+  /* Fields: .input also styles <textarea> and <select>. */
+  .input { @apply w-full rounded-control border border-line bg-surface px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted/70 focus:border-primary focus:ring-4 focus:ring-primary/15; }
+  .label { @apply mb-1.5 block text-xs font-medium text-muted; }
   .error { @apply text-sm text-red-600; }
-  .chip { @apply inline-flex items-center rounded-full bg-neutral-100 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300; }
-  .nav-link { @apply rounded-lg px-2.5 py-1.5 text-sm text-neutral-600 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100; }
+
+  .card { @apply rounded-card border border-line bg-surface p-5; }
+
+  /* Pills: tinted background at 10%, full-color text. */
+  .chip { @apply inline-flex items-center gap-1.5 rounded-full bg-ink/5 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide text-muted; }
+  .pill { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .pill-primary { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-primary/10 text-primary dark:text-on-primary-tint; }
+  .pill-success { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-emerald-600/10 text-emerald-700 dark:text-emerald-400; }
+  .pill-coral { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-coral/10 text-coral-ink; }
+  .pill-warn { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-amber-500/10 text-amber-700 dark:text-amber-400; }
+  .pill-danger { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium bg-red-600/10 text-red-700 dark:text-red-400; }
+
+  /* Segmented control: a group of buttons, the selected one has aria-pressed="true". */
+  .segmented { @apply inline-flex flex-wrap gap-1 rounded-control border border-line bg-surface p-1; }
+  .segmented > button { @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted transition hover:text-ink aria-pressed:bg-primary aria-pressed:text-white; }
+
+  /* Tabs and nav links: the current one is ink with a 2px violet underline. */
+  .tab { @apply relative inline-flex h-full items-center px-1 text-sm font-medium text-muted transition hover:text-ink aria-[current=page]:text-ink aria-[current=page]:after:absolute aria-[current=page]:after:inset-x-0 aria-[current=page]:after:-bottom-px aria-[current=page]:after:h-0.5 aria-[current=page]:after:rounded-full aria-[current=page]:after:bg-primary; }
+  .nav-link { @apply rounded-lg px-2.5 py-1.5 text-sm text-muted transition hover:bg-ink/5 hover:text-ink; }
+
+  /* Dropdown menu and modal: the only surfaces allowed a (single, soft) shadow. */
+  .menu { @apply absolute z-40 mt-2 min-w-56 rounded-xl border border-line bg-surface p-1.5 shadow-lg shadow-ink/5; }
+  .menu-item { @apply flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm text-ink transition hover:bg-ink/5; }
+  .menu-label { @apply px-2.5 pt-1.5 pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted; }
+  .modal-backdrop { @apply fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4 outline-none backdrop-blur-sm sm:items-center sm:py-10; }
+  .modal { @apply w-full max-w-lg rounded-card border border-line bg-surface shadow-xl shadow-black/10; }
+  .modal-head { @apply flex items-center justify-between gap-4 border-b border-line px-6 py-4; }
+  .modal-body { @apply space-y-4 px-6 py-5; }
+  .modal-foot { @apply flex justify-end gap-2 border-t border-line bg-canvas/60 px-6 py-4; }
 }

@@ -10,7 +10,12 @@ export type Tx = { db: Db; client: pg.PoolClient };
 const url = process.env.DATABASE_URL;
 if (!url) throw new Error("DATABASE_URL is not set");
 
-export const pool = new pg.Pool({ connectionString: url, max: Number(process.env.DB_POOL_MAX ?? 10) });
+/**
+ * Kept small: web and worker share Supabase's session pooler (15 clients by default), and pg-boss needs some too.
+ * Reused across dev hot reloads, which would otherwise open a fresh pool each time. DB_POOL_MAX overrides the size.
+ */
+const g = globalThis as { __chitrapxPool?: pg.Pool };
+export const pool = (g.__chitrapxPool ??= new pg.Pool({ connectionString: url, max: Number(process.env.DB_POOL_MAX) || 5 }));
 export const db: Db = drizzle(pool, { schema });
 
 export async function withTx<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {

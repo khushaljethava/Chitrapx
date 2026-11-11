@@ -190,7 +190,7 @@ function ElementInspector({ refr, el, assets }: { refr: Ref; el: ArtboardElement
 
       {/* Stitch layout: ideas sit next to the text they insert into. Offline formulas, not AI, so no coral. */}
       {el.type === "text" && (
-        <div className="max-h-72 overflow-y-auto rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50 to-white p-3 dark:border-indigo-900 dark:from-indigo-950 dark:to-neutral-900">
+        <div className="max-h-72 overflow-y-auto rounded-2xl border border-primary/20 bg-primary-tint p-3">
           <HeadlineIdeas />
         </div>
       )}

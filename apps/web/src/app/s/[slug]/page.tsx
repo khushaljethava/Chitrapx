@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProjectBoards } from "@/components/ProjectBoards.tsx";
 import { DuplicateShared } from "@/components/SharePanel.tsx";
+import { CtaBand, PublicHeader } from "@/components/Shell.tsx";
+import { SiteFooter } from "@/components/SiteFooter.tsx";
+import { Logo } from "@/components/ui.tsx";
 import { clientKey } from "@/lib/rateLimit.ts";
 import { listApps } from "@/server/apps.ts";
 import { chosenWorkspace, contextFor, currentUser } from "@/server/context.ts";
@@ -15,7 +18,7 @@ export const metadata = { title: "Shared project · Chitrapx", robots: { index: 
 /** SP15: a read-only preview anyone with the link can open. No editor, no comments, nothing private. */
 export default async function SharedPage({ params }: { params: Promise<{ slug: string }> }) {
   if (!viewLimit(clientKey(await headers()))) {
-    return <main className="mx-auto max-w-md px-4 py-24 text-center"><Link href="/" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link><p className="card mt-6 text-neutral-500">Too many requests. Try again in a minute.</p></main>;
+    return <main className="mx-auto max-w-md px-4 py-24 text-center"><Logo /><p className="card mt-6 text-muted">Too many requests. Try again in a minute.</p></main>;
   }
   const { slug } = await params;
   const view = await sharedView(slug).catch((e) => { if (e instanceof HttpError && e.status === 404) notFound(); throw e; });
@@ -23,23 +26,27 @@ export default async function SharedPage({ params }: { params: Promise<{ slug: s
   const ctx = user ? await contextFor(user, await chosenWorkspace()).catch(() => null) : null;
   const apps = ctx ? (await listApps(ctx)).map(({ id, name }) => ({ id, name })) : [];
   return (
-    <>
-    <header className="sticky top-0 z-20 border-b border-neutral-200 bg-neutral-50/80 backdrop-blur dark:border-neutral-800 dark:bg-neutral-950/80">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link>
-      </div>
-    </header>
-    <main className="mx-auto max-w-6xl space-y-8 px-4 py-10 sm:py-14">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0 space-y-2">
-          <p className="chip normal-case tracking-normal">Shared with Chitrapx · view only</p>
-          <h1 className="break-words text-3xl font-bold sm:text-4xl">{view.name}</h1>
+    <div className="flex min-h-screen flex-col">
+      <PublicHeader>
+        <div className="flex min-w-0 items-center gap-3">
+          <Logo />
+          <span aria-hidden className="text-ink/25">/</span>
+          <span className="truncate text-sm text-muted">{view.name}</span>
         </div>
-        {view.allowDuplicate && <DuplicateShared slug={slug} signedIn={!!user} apps={apps} />}
-      </div>
-      <ProjectBoards doc={view.doc} assetUrls={view.assetUrls} extras={view.extras} />
-      <p className="border-t border-neutral-200 pt-6 text-center text-sm text-neutral-500 dark:border-neutral-800">Made with <Link href="/" className="font-display font-bold text-neutral-900 hover:text-indigo-600 dark:text-neutral-100 dark:hover:text-indigo-400">Chitrapx</Link>.</p>
-    </main>
-    </>
+        <Link href="/login" className="btn shrink-0"><span className="hidden sm:inline">Made with Chitrapx —</span> Try free</Link>
+      </PublicHeader>
+      <main className="mx-auto w-full max-w-7xl flex-1 space-y-10 px-4 py-10 sm:px-6 sm:py-14">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-8">
+          <div className="min-w-0 space-y-3">
+            <p className="pill-primary">Shared set · view only</p>
+            <h1 className="break-words text-3xl font-extrabold sm:text-5xl">{view.name}</h1>
+          </div>
+          {view.allowDuplicate && <DuplicateShared slug={slug} signedIn={!!user} apps={apps} />}
+        </div>
+        <ProjectBoards doc={view.doc} assetUrls={view.assetUrls} extras={view.extras} />
+      </main>
+      <CtaBand />
+      <SiteFooter dark />
+    </div>
   );
 }

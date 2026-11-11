@@ -69,7 +69,7 @@ export function ExportDialog({ projectId, doc, onClose, beforeExport, onAddSize,
   const shell = (body: React.ReactNode) => (
     <div ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="Export" onClick={onBackdrop}
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-neutral-950/40 p-4 outline-none backdrop-blur-sm sm:py-10">
-      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl shadow-black/10 dark:border-neutral-800 dark:bg-neutral-900">
         <div className="flex items-center justify-between gap-3 border-b border-neutral-200 px-5 py-4 dark:border-neutral-800">
           <h2 className="text-lg font-semibold">Export</h2>
           <button type="button" className="btn-ghost size-9 rounded-full p-0 text-neutral-500" onClick={onClose} disabled={posting} aria-label="Close">✕</button>

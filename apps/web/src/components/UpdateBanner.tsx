@@ -53,11 +53,13 @@ export function UpdateBanner() {
   }
 
   return (
-    <div role="status" className="fixed inset-x-0 bottom-4 z-[60] mx-auto flex w-fit max-w-[calc(100%-2rem)] items-center gap-3 rounded-lg border border-neutral-200 bg-white px-4 py-2 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-900">
+    <div role="status" className="relative z-40 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 bg-primary px-12 py-2 text-sm text-white">
       <span>A new version of Chitrapx is available.</span>
-      <a href="/changelog" target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline">What&apos;s new</a>
-      <button type="button" className="btn py-1" onClick={refresh} disabled={busy}>{busy ? "Saving" : "Refresh"}</button>
-      <button type="button" className="btn-ghost py-1" onClick={dismiss} aria-label="Dismiss">✕</button>
+      <a href="/changelog" target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">What&apos;s new</a>
+      <button type="button" className="rounded-full bg-white/20 px-3 py-0.5 font-semibold transition hover:bg-white/30 focus-visible:outline-white disabled:opacity-60" onClick={refresh} disabled={busy}>{busy ? "Saving" : "Refresh"}</button>
+      <button type="button" className="absolute right-3 grid size-7 place-items-center rounded-full transition hover:bg-white/20 focus-visible:outline-white" onClick={dismiss} aria-label="Dismiss">
+        <svg aria-hidden viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+      </button>
     </div>
   );
 }

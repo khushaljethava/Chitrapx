@@ -3,21 +3,40 @@
 import { useEffect, useState } from "react";
 import { api } from "@/server/api.ts";
 import { Notice, icon } from "@/components/Notice.tsx";
+import { Icon, Menu } from "@/components/ui.tsx";
 
 /** SP15: switch the current workspace (a cookie set by the server), then reload the dashboard. */
 export function WorkspaceSwitcher({ current, workspaces }: { current: string; workspaces: Array<{ id: string; name: string; role: string }> }) {
   const [busy, setBusy] = useState(false);
-  if (workspaces.length < 2) return null;
+  const active = workspaces.find((w) => w.id === current);
+  if (workspaces.length < 2) return active ? <span className="hidden items-center gap-2 text-sm font-medium md:inline-flex"><WorkspaceMark name={active.name} />{active.name}</span> : null;
   return (
-    <select aria-label="Workspace" className="input w-auto max-w-48 py-1" value={current} disabled={busy}
-      onChange={async (e) => {
-        setBusy(true);
-        await api("/api/workspaces/switch", "POST", { workspaceId: e.target.value }).catch(() => {});
-        window.location.assign("/dashboard");
-      }}>
-      {workspaces.map((w) => <option key={w.id} value={w.id}>{w.name} ({w.role})</option>)}
-    </select>
+    <Menu label={`Workspace: ${active?.name ?? ""}`} buttonClassName="inline-flex max-w-32 items-center gap-2 rounded-control px-2 sm:max-w-48 py-1.5 text-sm font-medium transition hover:bg-ink/5"
+      button={<>{active && <WorkspaceMark name={active.name} />}<span className="truncate">{active?.name}</span><Icon name="chevronDown" className="size-4 shrink-0 text-muted" /></>}>
+      {(close) => (
+        <>
+          <p className="menu-label">Workspaces</p>
+          {workspaces.map((w) => (
+            <button key={w.id} type="button" role="menuitemradio" aria-checked={w.id === current} disabled={busy} className="menu-item aria-checked:bg-primary-tint disabled:opacity-50"
+              onClick={async () => {
+                if (w.id === current) return close();
+                setBusy(true);
+                await api("/api/workspaces/switch", "POST", { workspaceId: w.id }).catch(() => {});
+                window.location.assign("/dashboard");
+              }}>
+              <WorkspaceMark name={w.name} />
+              <span className="min-w-0 flex-1"><span className="block truncate font-medium">{w.name}</span><span className="block text-xs capitalize text-muted">{w.role}</span></span>
+              {w.id === current && <Icon name="check" className="size-4 text-primary" />}
+            </button>
+          ))}
+        </>
+      )}
+    </Menu>
   );
+}
+
+function WorkspaceMark({ name }: { name: string }) {
+  return <span aria-hidden className="grid size-6 shrink-0 place-items-center rounded-md bg-primary-tint text-xs font-bold text-on-primary-tint">{name.slice(0, 1).toUpperCase()}</span>;
 }
 
 /** The invite page's button: joins, switches to the workspace, opens the dashboard. */

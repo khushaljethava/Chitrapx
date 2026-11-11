@@ -50,7 +50,7 @@ export function AiDesignCard({ appId, screenshotCount, brief: saved }: { appId: 
   }
 
   return (
-    <section id="ai-brief" className="card space-y-3 border-indigo-200 bg-gradient-to-br from-indigo-50 to-white dark:border-indigo-900 dark:from-indigo-950 dark:to-neutral-900">
+    <section id="ai-brief" className="card space-y-3 border-primary/20 bg-primary-tint">
       <div>
         <h2 className="font-semibold">Design with AI</h2>
         <p className="text-sm text-neutral-600 dark:text-neutral-400">

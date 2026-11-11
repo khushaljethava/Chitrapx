@@ -35,7 +35,7 @@ export function SharePanel({ projectId, initial, canShare }: { projectId: string
     <div className="relative">
       <button type="button" className="btn-ghost" aria-expanded={open} onClick={() => setOpen(!open)}>{share ? "Shared link" : "Share link"}</button>
       {open && (
-        <div className="absolute right-0 z-20 mt-2 w-[min(24rem,calc(100vw-2rem))] space-y-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="absolute right-0 z-20 mt-2 w-[min(24rem,calc(100vw-2rem))] space-y-4 rounded-2xl border border-neutral-200 bg-white p-4 shadow-lg shadow-ink/5 dark:border-neutral-800 dark:bg-neutral-900">
           <p className="text-sm text-neutral-600 dark:text-neutral-400">Anyone with the link sees a read-only preview. Comments and your workspace stay private.</p>
           {!share ? (
             canShare ? <button className="btn w-full" disabled={busy} onClick={() => put({})}>Create link</button>

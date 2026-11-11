@@ -1,10 +1,11 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
-import type { z } from "zod";
+import { z } from "zod";
 import { FatalJobError } from "../runJob.ts";
 
-/** Fast vision and translation; stronger judgment and copywriting. */
-export const MODELS = { fast: "claude-haiku-4-5", writer: "claude-sonnet-5-5" } as const;
+/** Fast vision and translation; judgment and copywriting. Served by geminiModel; anthropicModel takes claude-* ids.
+ * ponytail: writer on Flash-Lite to save cost; move it to gemini-3.8-flash if copy quality falls short. */
+export const MODELS = { fast: "gemini-3.5-flash-lite", writer: "gemini-3.5-flash-lite" } as const;
 export type ModelId = (typeof MODELS)[keyof typeof MODELS];
 
 export type Usage = { model: string; input: number; output: number; cacheRead: number; cacheWrite: number };
@@ -18,7 +19,7 @@ export type StructuredRequest<T> = {
   content: Anthropic.Beta.BetaContentBlockParam[];
   schema: z.ZodType<T>;
   maxTokens?: number;
-  /** Sonnet only; Haiku 4.5 does not take effort. */
+  /** Anthropic only (Sonnet); Gemini ignores it. */
   effort?: "low" | "medium" | "high";
 };
 
@@ -76,4 +77,58 @@ export function sumUsage(all: Usage[]): Record<string, Omit<Usage, "model">> {
     t.input += u.input; t.output += u.output; t.cacheRead += u.cacheRead; t.cacheWrite += u.cacheWrite;
   }
   return out;
+}
+
+const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models";
+/** Finish reasons that would only repeat (and be paid for) on retry. */
+const GEMINI_BLOCKED = new Set(["SAFETY", "RECITATION", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII", "IMAGE_SAFETY"]);
+
+/** Gemini over plain REST: one generateContent call with a JSON schema. Retries are pg-boss's, as for Anthropic 5xx. */
+export function geminiModel(apiKey = process.env.GEMINI_API_KEY, fetcher: typeof fetch = fetch): StructuredModel {
+  return {
+    async generate<T>(req: StructuredRequest<T>) {
+      if (!apiKey) throw new FatalJobError("ai_not_configured");
+      const parts = req.content.map((b) => {
+        if (b.type === "text") return { text: b.text };
+        if (b.type === "image" && b.source.type === "base64") return { inlineData: { mimeType: b.source.media_type, data: b.source.data } };
+        throw new FatalJobError(`ai_unsupported_block:${b.type}`);
+      });
+      // Gemini caches repeated prefixes implicitly, so the cached context just follows the instructions.
+      const system = req.cachedContext ? `${req.system}\n\n${req.cachedContext}` : req.system;
+      const res = await fetcher(`${GEMINI_URL}/${req.model}:generateContent`, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-goog-api-key": apiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: system }] },
+          contents: [{ role: "user", parts }],
+          generationConfig: { responseMimeType: "application/json", responseJsonSchema: z.toJSONSchema(req.schema), maxOutputTokens: req.maxTokens ?? 16000 },
+        }),
+      });
+      if (!res.ok) {
+        const detail = (await res.text()).slice(0, 300);
+        if (res.status === 429 || res.status >= 500) throw new Error(`gemini_${res.status}: ${detail}`); // let the job retry
+        throw new FatalJobError(`ai_request_rejected: ${res.status} ${detail}`);
+      }
+      const body = await res.json() as {
+        candidates?: Array<{ finishReason?: string; content?: { parts?: Array<{ text?: string; thought?: boolean }> } }>;
+        promptFeedback?: { blockReason?: string };
+        usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number; thoughtsTokenCount?: number; cachedContentTokenCount?: number };
+        modelVersion?: string;
+      };
+      const cand = body.candidates?.[0];
+      if (!cand || body.promptFeedback?.blockReason || GEMINI_BLOCKED.has(cand.finishReason ?? "")) throw new FatalJobError("ai_refused");
+      if (cand.finishReason === "MAX_TOKENS") throw new FatalJobError("ai_output_too_long");
+      const text = (cand.content?.parts ?? []).filter((p) => !p.thought).map((p) => p.text ?? "").join("");
+      let json: unknown;
+      try { json = JSON.parse(text); } catch { throw new FatalJobError("ai_output_invalid"); }
+      const parsed = req.schema.safeParse(json);
+      if (!parsed.success) throw new FatalJobError("ai_output_invalid");
+      const u = body.usageMetadata ?? {};
+      const cached = u.cachedContentTokenCount ?? 0;
+      return {
+        data: parsed.data,
+        usage: { model: body.modelVersion ?? req.model, input: (u.promptTokenCount ?? 0) - cached, output: (u.candidatesTokenCount ?? 0) + (u.thoughtsTokenCount ?? 0), cacheRead: cached, cacheWrite: 0 },
+      };
+    },
+  };
 }

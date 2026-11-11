@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { CtaBand, PublicHeader } from "@/components/Shell.tsx";
 import { SiteFooter } from "@/components/SiteFooter.tsx";
 import { currentUser } from "@/server/context.ts";
 
@@ -30,14 +31,7 @@ export default async function Home() {
   if (await currentUser()) redirect("/dashboard");
   return (
     <>
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link>
-        <nav className="flex items-center gap-1">
-          <Link href="/changelog" className="nav-link hidden sm:inline-flex">Changelog</Link>
-          <Link href="/login" className="nav-link">Sign in</Link>
-          <Link href="/login" className="btn ml-2">Get started free</Link>
-        </nav>
-      </header>
+      <PublicHeader />
 
       <main>
         <section className="mx-auto max-w-6xl px-4 pt-16 text-center sm:pt-24">
@@ -51,9 +45,9 @@ export default async function Home() {
             <a href="#how" className="btn-ghost px-6 py-3 text-base">See how it works</a>
           </div>
 
-          <div aria-hidden className="mt-20 flex items-end justify-center gap-3 sm:gap-5">
+          <div aria-hidden className="-mx-4 mt-20 flex items-end justify-center gap-3 overflow-x-clip py-8 sm:gap-5">
             {SHOTS.map((s) => (
-              <div key={s.title} className={`w-28 shrink-0 rounded-[1.75rem] bg-gradient-to-b ${s.bg} p-2 shadow-xl shadow-neutral-900/10 sm:w-40 ${s.tilt}`}>
+              <div key={s.title} className={`w-28 shrink-0 rounded-[1.75rem] bg-gradient-to-b ${s.bg} p-2 sm:w-40 ${s.tilt}`}>
                 <p className="px-2 pt-3 text-left font-display text-sm font-bold leading-tight text-white sm:text-base">{s.title}</p>
                 <div className="mt-3 aspect-[9/16] rounded-[1.25rem] border border-white/20 bg-white/15" />
               </div>
@@ -85,14 +79,9 @@ export default async function Home() {
           </ul>
         </section>
 
-        <section className="mx-auto my-24 max-w-6xl px-4">
-          <div className="rounded-3xl bg-neutral-900 px-6 py-14 text-center text-white dark:bg-indigo-950">
-            <h2 className="text-3xl font-bold sm:text-4xl">Ship your listing this afternoon</h2>
-            <Link href="/login" className="btn mt-6 px-6 py-3 text-base">Get started free</Link>
-          </div>
-        </section>
       </main>
-      <SiteFooter />
+      <div className="mt-24"><CtaBand title="Ship your listing this afternoon" /></div>
+      <SiteFooter dark />
     </>
   );
 }

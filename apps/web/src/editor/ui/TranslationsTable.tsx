@@ -157,7 +157,7 @@ export function TranslationsTable({ name, glossary, onGlossary, onClose }: { nam
   return (
     <div role="dialog" aria-modal="true" aria-label="Translations" className="fixed inset-0 z-40 flex items-center justify-center bg-neutral-950/40 p-2 backdrop-blur-sm sm:p-4"
       onKeyDown={(e) => e.key === "Escape" && onClose()}>
-      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl dark:border-neutral-800 dark:bg-neutral-900">
+      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-xl shadow-black/10 dark:border-neutral-800 dark:bg-neutral-900">
         <header className="flex flex-wrap items-center gap-2 border-b border-neutral-200 px-4 py-3 sm:px-5 dark:border-neutral-800">
           <h2 className="mr-auto text-lg font-semibold">Translations</h2>
           <label className="flex items-center gap-1.5 rounded-full border border-neutral-200 px-2.5 py-1 text-xs dark:border-neutral-800">

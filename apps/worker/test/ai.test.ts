@@ -7,6 +7,7 @@ import { allTexts, migrate, textSlots, type ChitrapxDoc } from "@chitrapx/docume
 import { createUser, makeWorkspace } from "../../../packages/db/test/helpers.ts";
 import { runAiChips, runAiCopy, runAiDesign, runAiReference, runAiTranslate, type AiDeps } from "../src/ai/jobs.ts";
 import type { StructuredModel, StructuredRequest } from "../src/ai/model.ts";
+import { ANALYZE_SYSTEM, COMPETITOR_SYSTEM } from "../src/ai/prompts.ts";
 import { runJob } from "../src/runJob.ts";
 
 let png: Buffer;
@@ -61,7 +62,7 @@ describe("ai_design", () => {
     const s = await setup(3);
     const slots = await amouraSlots();
     const { model, calls } = fakeModel((req) => {
-      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.system === ANALYZE_SYSTEM) return insight;
       if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [2, 0, 1], reasoning: "fits" };
       return { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })) };
     });
@@ -77,20 +78,20 @@ describe("ai_design", () => {
     const firstText = doc.groups[0]!.boards[0]!.elements.find((e) => e.type === "text") as unknown as { content: string };
     expect(firstText.content).toBe("Copy 0");
     expect(doc.brand).toEqual({ appId: s.app.id });
-    expect(calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(3);
+    expect(calls.filter((c) => c.system === ANALYZE_SYSTEM)).toHaveLength(3);
     expect(calls.find((c) => c.cachedContext)?.cachedContext).toContain("amoura-dating");
     expect(await balance(db, s.ws)).toBe(20);
 
     // Same screenshots again: no new analysis.
-    const again = fakeModel(calls.length ? (req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext ? { templateSlug: "amoura-dating", screenshotOrder: [0], reasoning: "" } : { boards: [] }) : () => ({}));
+    const again = fakeModel(calls.length ? (req) => (req.system === ANALYZE_SYSTEM ? insight : req.cachedContext ? { templateSlug: "amoura-dating", screenshotOrder: [0], reasoning: "" } : { boards: [] }) : () => ({}));
     const job2 = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(job2, (input, job) => runAiDesign(input, job, deps(again.model)));
-    expect(again.calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(0);
+    expect(again.calls.filter((c) => c.system === ANALYZE_SYSTEM)).toHaveLength(0);
   });
 
   it("fails and refunds when the model names a template that does not exist", async () => {
     const s = await setup(2);
-    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : { templateSlug: "made-up", screenshotOrder: [0, 1], reasoning: "" }));
+    const { model } = fakeModel((req) => (req.system === ANALYZE_SYSTEM ? insight : { templateSlug: "made-up", screenshotOrder: [0, 1], reasoning: "" }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_unknown_template" });
@@ -169,7 +170,7 @@ describe("review fixes", () => {
   it("a failed design removes the empty project it was created for", async () => {
     const { cleanupFailedDesign } = await import("../src/ai/jobs.ts");
     const s = await setup(2);
-    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : { templateSlug: "made-up", screenshotOrder: [0], reasoning: "" }));
+    const { model } = fakeModel((req) => (req.system === ANALYZE_SYSTEM ? insight : { templateSlug: "made-up", screenshotOrder: [0], reasoning: "" }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)), cleanupFailedDesign);
     expect(await db.select().from(schema.projects).where(eq(schema.projects.id, s.project.id))).toEqual([]);
@@ -177,7 +178,7 @@ describe("review fixes", () => {
 
   it("design copy that misses most slots fails and refunds instead of charging for sample text", async () => {
     const s = await setup(2);
-    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "" } : { boards: [{ boardIndex: 0, texts: [{ id: "nope", text: "x" }] }] }));
+    const { model } = fakeModel((req) => (req.system === ANALYZE_SYSTEM ? insight : req.cachedContext ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "" } : { boards: [{ boardIndex: 0, texts: [{ id: "nope", text: "x" }] }] }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect(await jobRow(jobId)).toMatchObject({ status: "failed", error: "ai_incomplete" });
@@ -199,13 +200,13 @@ describe("review fixes", () => {
     const s = await setup(1);
     await db.insert(schema.screenInsights).values({ workspaceId: s.ws, sha256: s.assets[0]!.sha256, insight: { old: true }, model: "x" });
     const slots = await amouraSlots();
-    const { model, calls } = fakeModel((req) => req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+    const { model, calls } = fakeModel((req) => req.system === ANALYZE_SYSTEM ? insight : req.cachedContext
       ? { templateSlug: "amoura-dating", screenshotOrder: [0], reasoning: "" }
       : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: "ok" })) })) });
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect((await jobRow(jobId)).status).toBe("done");
-    expect(calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(1);
+    expect(calls.filter((c) => c.system === ANALYZE_SYSTEM)).toHaveLength(1);
   });
 });
 
@@ -308,7 +309,7 @@ describe("AI design for Google Play (SP11)", () => {
     const s = await setup(3, 30, "android");
     const slots = await amouraSlots();
     const { model, calls } = fakeModel((req) => {
-      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.system === ANALYZE_SYSTEM) return insight;
       if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "fits", featureGraphicSlug: "fg-habit-tracker" };
       return {
         boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })),
@@ -329,7 +330,7 @@ describe("AI design for Google Play (SP11)", () => {
     expect((fg.boards[0]!.elements.find((e) => e.type === "chips") as unknown as { chips: string[] }).chips).toEqual(["Brew timer", "Recipes", "Bean log", "Grind guide"]);
     const pick = calls.find((c) => c.cachedContext)!;
     expect((pick.content[0] as { text: string }).text).toContain("fg-habit-tracker");
-    const copy = calls.find((c) => c.model !== "claude-haiku-4-5" && !c.cachedContext)!;
+    const copy = calls.find((c) => c.system !== ANALYZE_SYSTEM && !c.cachedContext)!;
     expect((copy.content[0] as { text: string }).text).toContain('id "t108"');
     expect(await balance(db, s.ws)).toBe(20);
   });
@@ -337,7 +338,7 @@ describe("AI design for Google Play (SP11)", () => {
   it("an iOS-only app gets no feature graphic and is not asked for chips", async () => {
     const s = await setup(3);
     const slots = await amouraSlots();
-    const { model, calls } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+    const { model, calls } = fakeModel((req) => (req.system === ANALYZE_SYSTEM ? insight : req.cachedContext
       ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "" }
       : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })) }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
@@ -349,7 +350,7 @@ describe("AI design for Google Play (SP11)", () => {
   it("too few usable chips for a Play app keeps the design with the template's own chips (SP11 final review)", async () => {
     const s = await setup(2, 30, "both");
     const slots = await amouraSlots();
-    const { model } = fakeModel((req) => (req.model === "claude-haiku-4-5" ? insight : req.cachedContext
+    const { model } = fakeModel((req) => (req.system === ANALYZE_SYSTEM ? insight : req.cachedContext
       ? { templateSlug: "amoura-dating", screenshotOrder: [0, 1], reasoning: "", featureGraphicSlug: "fg-habit-tracker" }
       : { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: "ok" })) })), features: ["Timer"] }));
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
@@ -373,7 +374,7 @@ describe("ai_reference (SP11)", () => {
     }
     return ids;
   }
-  const answer = (req: StructuredRequest<unknown>) => (req.model === "claude-haiku-4-5" ? competitor : { summary: "Rivals lead with streaks; stand apart with weekly reviews." });
+  const answer = (req: StructuredRequest<unknown>) => (req.system === COMPETITOR_SYSTEM ? competitor : { summary: "Rivals lead with streaks; stand apart with weekly reviews." });
 
   it("charges once per new image, caches it, writes the summary into the brief, and re-runs free", async () => {
     const s = await setup(0);
@@ -386,7 +387,7 @@ describe("ai_reference (SP11)", () => {
     expect(await db.select().from(schema.referenceInsights).where(eq(schema.referenceInsights.workspaceId, s.ws))).toHaveLength(3);
     const [app] = await db.select().from(schema.apps).where(eq(schema.apps.id, s.app.id));
     expect(app!.brief.competitor).toBe("Rivals lead with streaks; stand apart with weekly reviews.");
-    const summaryCall = first.calls.find((c) => c.model !== "claude-haiku-4-5")!;
+    const summaryCall = first.calls.find((c) => c.system !== COMPETITOR_SYSTEM)!;
     expect((summaryCall.content[0] as { text: string }).text).not.toContain(competitor.headline);
     expect((summaryCall.content[0] as { text: string }).text).toContain("Nobody shows weekly reviews");
 
@@ -394,7 +395,7 @@ describe("ai_reference (SP11)", () => {
     const job2 = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: [] }, 0);
     await runJob(job2, (input, job) => runAiReference(input, job, deps(again.model)));
     expect(await jobRow(job2)).toMatchObject({ status: "done", output: { analysed: 0, cached: 3 } });
-    expect(again.calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(0);
+    expect(again.calls.filter((c) => c.system === COMPETITOR_SYSTEM)).toHaveLength(0);
     expect(await balance(db, s.ws)).toBe(27);
   });
 
@@ -405,14 +406,14 @@ describe("ai_reference (SP11)", () => {
     await db.update(schema.apps).set({ brief: { competitor: "Rivals lead with streaks." } }).where(eq(schema.apps.id, s.app.id));
     const slots = await amouraSlots();
     const { model, calls } = fakeModel((req) => {
-      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.system === ANALYZE_SYSTEM) return insight;
       if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "" };
       return { boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x, k) => ({ id: x.id, text: i === 0 && k === 0 ? "Track every habit you have" : `Copy ${i}` })) })) };
     });
     const jobId = await queue(s.ws, s.project.id, "ai_design", { appId: s.app.id }, 10);
     await runJob(jobId, (input, job) => runAiDesign(input, job, deps(model)));
     expect((await jobRow(jobId)).status).toBe("done");
-    const copyText = (calls.find((c) => c.model !== "claude-haiku-4-5" && !c.cachedContext)!.content[0] as { text: string }).text;
+    const copyText = (calls.find((c) => c.system !== ANALYZE_SYSTEM && !c.cachedContext)!.content[0] as { text: string }).text;
     expect(copyText).toContain("Competitor notes");
     expect(copyText).toContain("Rivals lead with streaks.");
     expect(copyText).not.toContain(competitor.headline);
@@ -431,7 +432,7 @@ describe("ai_reference (SP11)", () => {
     let reached!: () => void;
     const inCall = new Promise<void>((r) => { reached = r; });
     const b = fakeModel(answer);
-    const slowB: StructuredModel = { async generate(req) { if (req.model === "claude-haiku-4-5" && b.calls.length === 0) { reached(); await gate; } return b.model.generate(req); } };
+    const slowB: StructuredModel = { async generate(req) { if (req.system === COMPETITOR_SYSTEM && b.calls.length === 0) { reached(); await gate; } return b.model.generate(req); } };
     const jobA = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: ids }, 2);
     const jobB = await queue(s.ws, s.project.id, "ai_reference", { appId: s.app.id, uncached: ids }, 2);
     const runB = runJob(jobB, (input, job) => runAiReference(input, job, deps(slowB)));
@@ -441,7 +442,7 @@ describe("ai_reference (SP11)", () => {
     await runB;
     expect(await jobRow(jobA)).toMatchObject({ status: "done", output: { analysed: 2 } });
     expect(await jobRow(jobB)).toMatchObject({ status: "done", output: { analysed: 0, cached: 2 } });
-    expect(b.calls.filter((c) => c.model === "claude-haiku-4-5")).toHaveLength(1); // the second image was found cached
+    expect(b.calls.filter((c) => c.system === COMPETITOR_SYSTEM)).toHaveLength(1); // the second image was found cached
     expect(await balance(db, s.ws)).toBe(28);
   });
   it("feature graphic copy that repeats a competitor headline is dropped too (F4)", async () => {
@@ -450,7 +451,7 @@ describe("ai_reference (SP11)", () => {
     await db.insert(schema.referenceInsights).values({ workspaceId: s.ws, assetId: ref!, insight: competitor, model: "m" });
     const slots = await amouraSlots();
     const { model } = fakeModel((req) => {
-      if (req.model === "claude-haiku-4-5") return insight;
+      if (req.system === ANALYZE_SYSTEM) return insight;
       if (req.cachedContext) return { templateSlug: "amoura-dating", screenshotOrder: [0, 1, 2], reasoning: "", featureGraphicSlug: "fg-habit-tracker" };
       return {
         boards: slots.map((b, i) => ({ boardIndex: i, texts: b.map((x) => ({ id: x.id, text: `Copy ${i}` })) })),

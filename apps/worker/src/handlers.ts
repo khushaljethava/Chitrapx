@@ -1,7 +1,7 @@
 import { ObjectMissingError } from "@chitrapx/storage";
 import { PRICES, type JobType } from "@chitrapx/db";
 import { cleanupFailedDesign, runAiChips, runAiCopy, runAiReference, runAiDesign, runAiTranslate, type AiDeps } from "./ai/jobs.ts";
-import { anthropicModel } from "./ai/model.ts";
+import { geminiModel } from "./ai/model.ts";
 import { cleanupFailedImport, runBundle, runImport, type BundleDeps } from "./bundle.ts";
 import { runExport } from "./export.ts";
 import { runAppIcons } from "./icons/index.ts";
@@ -21,12 +21,12 @@ import { FatalJobError, type FailureCleanup, type JobHandler } from "./runJob.ts
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 let deps: AiDeps | null = null;
-/** Built on first AI job, so the worker still runs exports without an Anthropic key. */
+/** Built on first AI job, so the worker still runs exports without a Gemini key. */
 function aiDeps(): AiDeps {
   if (deps) return deps;
-  if (!process.env.ANTHROPIC_API_KEY && !process.env.ANTHROPIC_AUTH_TOKEN) throw new FatalJobError("ai_not_configured");
+  if (!process.env.GEMINI_API_KEY) throw new FatalJobError("ai_not_configured");
   deps = {
-    model: anthropicModel(),
+    model: geminiModel(),
     async loadAsset(workspaceId, sha256) {
       try { return await storage().download(`${workspaceId}/${sha256}`); }
       catch (err) { if (err instanceof ObjectMissingError) throw new FatalJobError(`asset_missing:${sha256.slice(0, 12)}`); throw err; }

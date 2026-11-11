@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, ApiError } from "@/server/api.ts";
 import { groupThreads } from "./commentsModel.ts";
+import { Icon } from "./ui.tsx";
 
 /** SP15 comments UI. Polls while open (Realtime from 15.3 can replace the poll). */
 const POLL_MS = 1500;
@@ -154,16 +155,20 @@ export function NotificationsBell() {
   }, [load]);
   return (
     <div className="relative">
-      <button type="button" className="text-sm hover:underline" aria-expanded={open} onClick={() => {
+      <button type="button" className="icon-btn" aria-label={`Notifications${data.unread ? `, ${data.unread} unread` : ""}`} aria-expanded={open} onClick={() => {
         setOpen(!open);
         if (!open && data.unread) void api("/api/notifications", "POST", {}).then(() => setData((d) => ({ ...d, unread: 0 })), () => {});
-      }}>Notifications{data.unread ? ` (${data.unread})` : ""}</button>
+      }}>
+        <Icon name="bell" />
+        {data.unread > 0 && <span aria-hidden className="absolute top-1.5 right-2 size-2 rounded-full bg-coral ring-2 ring-canvas" />}
+      </button>
       {open && (
-        <div className="card absolute right-0 z-20 mt-2 w-80 space-y-2 p-3 shadow-lg">
-          {!data.items.length && <p className="text-sm text-neutral-500">Nothing yet.</p>}
+        <div className="menu right-0 w-80 max-w-[calc(100vw-2rem)] space-y-1">
+          <p className="menu-label">Notifications</p>
+          {!data.items.length && <p className="px-2.5 py-2 text-sm text-muted">Nothing yet.</p>}
           {data.items.map((n) => (
-            <Link key={n.id} href={`/editor/${n.projectId}?comments=1`} className={`block rounded-lg p-2 text-sm hover:bg-neutral-100 dark:hover:bg-neutral-800 ${n.read ? "" : "font-medium"}`}>
-              <span className="block text-xs text-neutral-500">{n.actorName} {n.kind === "mention" ? "mentioned you" : "replied"} · {n.projectName}</span>
+            <Link key={n.id} href={`/editor/${n.projectId}?comments=1`} className={`block rounded-lg p-2.5 text-sm hover:bg-ink/5 ${n.read ? "" : "font-medium"}`}>
+              <span className="block text-xs text-muted">{n.actorName} {n.kind === "mention" ? "mentioned you" : "replied"} · {n.projectName}</span>
               {n.excerpt}
             </Link>
           ))}

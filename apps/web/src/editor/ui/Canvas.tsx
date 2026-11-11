@@ -258,7 +258,7 @@ export function Canvas() {
       </div>
       {fileOver && <div className="pointer-events-none absolute inset-0 z-10 border-4 border-dashed border-indigo-500 bg-indigo-500/10" aria-hidden />}
       {(intake.progress || intake.errors.length > 0 || intake.pending) && (
-        <div className="sticky bottom-4 left-4 z-20 m-4 max-w-sm space-y-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm shadow-lg dark:border-neutral-700 dark:bg-neutral-800" role="status">
+        <div className="sticky bottom-4 left-4 z-20 m-4 max-w-sm space-y-2 rounded-xl border border-neutral-200 bg-white p-3 text-sm shadow-lg shadow-ink/5 dark:border-neutral-700 dark:bg-neutral-800" role="status">
           {intake.progress && <p>{intake.progress}</p>}
           {intake.pending && (
             <div className="space-y-1">

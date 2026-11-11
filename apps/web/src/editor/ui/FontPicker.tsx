@@ -46,7 +46,7 @@ export function FontPicker({ id, label, value, onChange, used = [], custom = [],
         <span className="truncate">{value || "Choose a font"}</span><span aria-hidden>▾</span>
       </button>
       {open && (
-        <div className="absolute z-30 mt-1 w-full rounded-md border border-neutral-200 bg-white p-2 shadow-lg dark:border-neutral-700 dark:bg-neutral-900"
+        <div className="absolute z-30 mt-1 w-full rounded-md border border-neutral-200 bg-white p-2 shadow-lg shadow-ink/5 dark:border-neutral-700 dark:bg-neutral-900"
           onKeyDown={(e) => { if (e.key === "Escape") setOpen(false); }}>
           <input autoFocus className="input mb-2" placeholder="Search fonts" aria-label="Search fonts" value={query} onChange={(e) => setQuery(e.target.value)} />
           <select className="input mb-2" aria-label="Category" value={category} onChange={(e) => setCategory(e.target.value)}>

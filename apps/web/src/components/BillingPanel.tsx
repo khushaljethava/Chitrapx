@@ -28,7 +28,7 @@ const money = (amount: number, currency: string) => new Intl.NumberFormat(undefi
 export function BillingPanel({ configured, currency, plan, subscription, plans, packs, payments }: {
   configured: boolean; currency: string; plan: string;
   subscription: { status: string; plan: string; currentEnd: string | null } | null;
-  plans: Array<{ id: "pro" | "studio"; credits: number; maxApps: number; price: string }>;
+  plans: Array<{ id: "pro" | "studio"; credits: number; maxApps: number; price: number }>;
   packs: Array<{ id: string; credits: number; amount: number }>;
   payments: Array<{ id: string; credits: number; amount: number; currency: string; paidAt: string }>;
 }) {
@@ -92,7 +92,7 @@ export function BillingPanel({ configured, currency, plan, subscription, plans, 
                 <h3 className="text-lg font-semibold capitalize">{p.id}</h3>
                 {plan === p.id && <span className="chip bg-indigo-600 text-white dark:bg-indigo-500 dark:text-white">Current plan</span>}
               </div>
-              {p.price && <p className="mt-1 font-display text-2xl font-bold">{p.price}</p>}
+              <p className="mt-1 font-display text-2xl font-bold">{money(p.price, currency)}<span className="text-sm font-normal text-neutral-500">/month</span></p>
               <p className="mt-2 flex-1 text-sm text-neutral-500">{p.credits.toLocaleString()} credits a month · {Number.isFinite(p.maxApps) ? `${p.maxApps} apps` : "unlimited apps"}</p>
               {plan === p.id && subscription?.status === "active"
                 ? <button type="button" className="btn-ghost mt-4 self-start" disabled={busy !== null} onClick={cancel}>Cancel plan</button>

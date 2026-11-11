@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
-import Link from "next/link";
+import { CtaBand, PublicHeader } from "@/components/Shell.tsx";
 import { SiteFooter } from "@/components/SiteFooter.tsx";
 import { parseChangelog, type Inline } from "@/lib/changelog.ts";
 
@@ -28,11 +28,7 @@ function Text({ parts }: { parts: Inline[] }) {
 export default function ChangelogPage() {
   return (
     <>
-    <header className="border-b border-neutral-200 dark:border-neutral-800">
-      <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-4">
-        <Link href="/" className="font-display text-lg font-bold tracking-tight">Chitrapx</Link>
-      </div>
-    </header>
+    <PublicHeader />
     <main className="mx-auto max-w-2xl px-4 py-12 sm:py-16">
       <header className="mb-12 space-y-3">
         <h1 className="text-4xl font-bold sm:text-5xl">Changelog</h1>
@@ -60,7 +56,8 @@ export default function ChangelogPage() {
       ))}
       </ol>
     </main>
-    <SiteFooter />
+    <CtaBand />
+    <SiteFooter dark />
     </>
   );
 }

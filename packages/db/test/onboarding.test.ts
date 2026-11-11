@@ -4,6 +4,7 @@ import { db, pool, schema } from "../src/client.ts";
 import { balance } from "../src/credits.ts";
 import { grantMonthlyCredits, isGrantDue } from "../src/grants.ts";
 import { ensureWorkspace } from "../src/onboarding.ts";
+import { PLANS } from "../src/plans.ts";
 import { createUser, ledgerSum } from "./helpers.ts";
 
 describe("ensureWorkspace", () => {
@@ -18,7 +19,7 @@ describe("ensureWorkspace", () => {
     expect(ws).toMatchObject({ name: "Asha's workspace", plan: "free" });
     const [m] = await db.select().from(schema.memberships).where(eq(schema.memberships.userId, user.id));
     expect(m?.role).toBe("owner");
-    expect(await balance(db, first.workspaceId)).toBe(50);
+    expect(await balance(db, first.workspaceId)).toBe(PLANS.free.monthlyCredits);
   });
 
   it("falls back to the email local part for the name", async () => {
@@ -34,7 +35,7 @@ describe("ensureWorkspace", () => {
     expect(a.workspaceId).toBe(b.workspaceId);
     const n = await db.execute<{ n: number }>(sql`select count(*)::int as n from memberships where user_id = ${user.id}`);
     expect(n.rows[0]!.n).toBe(1);
-    expect(await balance(db, a.workspaceId)).toBe(50);
+    expect(await balance(db, a.workspaceId)).toBe(PLANS.free.monthlyCredits);
   });
 });
 
@@ -64,11 +65,11 @@ describe("grantMonthlyCredits", () => {
   }
 
   it("tops up to the plan allowance once per month", async () => {
-    const ws = await workspaceCreated("2026-01-15T00:00:00Z", 10);
+    const ws = await workspaceCreated("2026-01-15T00:00:00Z", 2);
     await grantMonthlyCredits(new Date("2026-03-15T03:00:00Z"));
-    expect(await ledgerSum(db, ws)).toBe(50);
+    expect(await ledgerSum(db, ws)).toBe(PLANS.free.monthlyCredits);
     await grantMonthlyCredits(new Date("2026-03-16T03:00:00Z"));
-    expect(await ledgerSum(db, ws)).toBe(50);
+    expect(await ledgerSum(db, ws)).toBe(PLANS.free.monthlyCredits);
   });
 
   it("writes a zero marker when the balance already exceeds the allowance", async () => {

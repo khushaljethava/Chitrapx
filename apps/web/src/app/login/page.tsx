@@ -47,11 +47,11 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <main className="grid min-h-screen lg:grid-cols-2">
-      <aside aria-hidden className="relative hidden overflow-hidden bg-gradient-to-br from-indigo-600 via-indigo-700 to-indigo-950 p-12 text-white lg:flex lg:flex-col lg:justify-between">
+      <aside aria-hidden className="relative hidden overflow-hidden bg-primary p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <span className="font-display text-lg font-bold">Chitrapx</span>
         <div className="flex justify-center gap-4">
           {["-rotate-6 translate-y-8", "z-10", "rotate-6 translate-y-8"].map((t) => (
-            <div key={t} className={`aspect-[9/19] w-36 rounded-[1.75rem] border border-white/25 bg-white/10 p-2 shadow-2xl backdrop-blur ${t}`}>
+            <div key={t} className={`aspect-[9/19] w-36 rounded-[1.75rem] border border-white/25 bg-white/10 p-2 backdrop-blur ${t}`}>
               <div className="h-full rounded-[1.25rem] bg-gradient-to-b from-white/30 to-white/5" />
             </div>
           ))}
