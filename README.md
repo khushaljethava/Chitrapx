@@ -8,6 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=000)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ecf8e?logo=supabase&logoColor=fff)](https://supabase.com)
+[![Visitors](https://hits.sh/github.com/khushaljethava/Chitrapx.svg?label=visitors&color=5b4bff)](https://hits.sh/github.com/khushaljethava/Chitrapx/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Playwright](https://img.shields.io/badge/Exports-Playwright-2ead33?logo=playwright&logoColor=fff)](https://playwright.dev)
 
