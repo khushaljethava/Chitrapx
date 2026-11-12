@@ -8,6 +8,7 @@
 [![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=000)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=fff)](https://www.typescriptlang.org)
 [![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20Auth-3ecf8e?logo=supabase&logoColor=fff)](https://supabase.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Playwright](https://img.shields.io/badge/Exports-Playwright-2ead33?logo=playwright&logoColor=fff)](https://playwright.dev)
 
 <img src="docs/assets/readme/demo.gif" alt="Chitrapx demo: raw app screens turned into a finished, translated App Store screenshot set with AI, then edited and exported" width="900">
@@ -168,6 +169,10 @@ Yes. AI translation into any language, a glossary for brand terms, CSV import, J
 
 **Can my team work on it together?**
 Yes. Workspaces have Admin, Editor and Viewer roles, live presence, comments and share links.
+
+## License
+
+[MIT](LICENSE) © 2026 Khushal Jethava. Third-party material keeps its own license, listed in [NOTICES.md](NOTICES.md).
 
 ## Credits
 
